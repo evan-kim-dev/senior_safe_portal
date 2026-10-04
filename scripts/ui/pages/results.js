@@ -110,7 +110,7 @@ export const ResultsModule = {
             </span>
           </div>
           <div class="result-body">
-            ${item.isLink ? `<p class="result-type-label">🔗 링크 검사 결과</p>` : ""}
+            ${item.isLink ? `<p class="result-type-label">주소 확인 결과</p>` : ""}
             <h3 class="result-title" style="color: ${cfg.titleColor}">${escapeHtml(item.title)}</h3>
             ${item.subtitle ? `<p class="result-subtitle">${escapeHtml(item.subtitle)}</p>` : ""}
             <p class="result-reason"><strong>검증 결과:</strong> ${escapeHtml(item.reason)}</p>
@@ -131,29 +131,29 @@ export const ResultsModule = {
       summary.style.borderColor = cfg.cardBorder;
       summaryTitle.style.color = cfg.titleColor;
       summaryDesc.textContent = payload.items[0].isLink
-        ? `검사한 주소: ${payload.items[0].subtitle}`
-        : "어르신의 안전을 위해 최신 AI 기술로 분석한 결과입니다.";
+        ? `확인한 주소: ${payload.items[0].subtitle}`
+        : "입력하신 내용이 안전한지 살펴본 결과입니다.";
       return;
     }
 
     summary.style.background = "var(--color-surface)";
     summary.style.borderColor = "var(--color-border)";
     summaryTitle.style.color = "var(--color-text)";
-    summaryDesc.textContent = "어르신의 안전을 위해 최신 AI 기술로 분석한 결과입니다.";
+    summaryDesc.textContent = "입력하신 내용이 안전한지 살펴본 결과입니다.";
   },
 
   render(payload) {
     const { summaryTitle, searchInput, list } = this.els();
 
     if (!payload?.items?.length) {
-      this.showError("표시할 검사 결과가 없습니다. 홈에서 다시 검색해 주세요.");
+      this.showError("보여 드릴 결과가 없습니다. 홈에서 다시 검색해 주세요.");
       return;
     }
 
     this.hideError();
     this.applySummaryStyle(payload);
     if (summaryTitle) {
-      summaryTitle.textContent = payload.summary || `총 ${payload.items.length}건을 정밀 검사했습니다.`;
+      summaryTitle.textContent = payload.summary || `모두 ${payload.items.length}건을 확인했습니다.`;
     }
     if (searchInput) searchInput.value = payload.query || "";
     if (list) {
@@ -178,7 +178,7 @@ export const ResultsModule = {
       const query = validateTextInput(
         searchInput?.value ?? "",
         AppConfig.MAX_SEARCH_LENGTH,
-        "검색어 또는 링크를 입력해 주세요.",
+        "주소나 궁금한 말을 적어 주세요.",
       );
 
       ResultsModule._busy = true;
@@ -188,7 +188,7 @@ export const ResultsModule = {
       saveSearchResults(payload);
       this.render(payload);
     } catch (err) {
-      this.showError(sanitizeUserFacingMessage(err, "검색 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."));
+      this.showError(sanitizeUserFacingMessage(err, "확인하지 못했습니다. 잠시 후 다시 눌러 주세요."));
     } finally {
       this.showLoading(false);
       ResultsModule._busy = false;
@@ -198,7 +198,7 @@ export const ResultsModule = {
   handleLoadingCancel() {
     this.showLoading(false);
     ResultsModule._busy = false;
-    this.showError("검사를 취소했습니다. 다시 검색해 주세요.");
+    this.showError("확인을 멈췄습니다. 다시 검색해 주세요.");
   },
 
   bindEvents() {

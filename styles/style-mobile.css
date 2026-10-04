@@ -9,13 +9,13 @@
   --space-main-x: 0.875rem;
   --space-cards-x: 0.625rem;
 
-  /* 모바일: 폰트·아이콘·터치 영역 축소 */
-  --font-base: 1.125rem;
-  --font-lg: 1.25rem;
-  --font-xl: 1.5rem;
-  --font-2xl: 1.75rem;
-  --font-search: 1.125rem;
-  --btn-min-height: 3rem;
+  /* 모바일도 본문은 20px 이상, 버튼은 누르기 쉽게 */
+  --font-base: 1.25rem;
+  --font-lg: 1.375rem;
+  --font-xl: 1.625rem;
+  --font-2xl: 1.875rem;
+  --font-search: 1.2rem;
+  --btn-min-height: 3.25rem;
   --header-min-height: 3.25rem;
   --icon-base: 1.375rem;
   --icon-lg: 1.5rem;
@@ -41,8 +41,16 @@ body {
   overflow: visible;
 }
 
-.app-main {
-  padding-bottom: 4.5rem;
+.app-main,
+.board-main,
+.browse-main,
+.community-main,
+.info-main {
+  padding-bottom: 6.5rem;
+}
+
+.site-footer {
+  margin-bottom: 5.25rem;
 }
 
 /* ── 헤더: 햄버거 + 로고 ── */
@@ -112,10 +120,10 @@ body {
 }
 
 .site-brand-text {
-  font-size: 0.95rem;
-  max-width: 9rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 1rem;
+  max-width: 11.5rem;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 .auth-button {
@@ -161,7 +169,7 @@ body {
 }
 
 .home-cards-band .section-title {
-  font-size: 0.9rem;
+  font-size: 1.2rem;
 }
 
 .home-cards-band .section-icon {
@@ -174,18 +182,18 @@ body {
 }
 
 .home-cards-band .welfare-location-label {
-  font-size: 0.68rem;
+  font-size: 1rem;
 }
 
 .home-cards-band .category-tabs {
-  min-height: 1.6rem;
-  margin-bottom: 0.1rem;
+  min-height: 2.75rem;
+  margin-bottom: 0.15rem;
 }
 
 .home-cards-band .category-tab {
-  min-height: 1.6rem;
-  padding: 0.22rem 0.5rem;
-  font-size: 0.72rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 1.05rem;
 }
 
 .home-cards-band .content-card-grid,
@@ -206,24 +214,24 @@ body {
 }
 
 .home-cards-band .media-card-title {
-  font-size: 0.8rem;
-  min-height: calc(0.8rem * 1.35 * 2);
+  font-size: 1.125rem;
+  min-height: calc(1.125rem * 1.4 * 2);
 }
 
 .home-cards-band .media-card-meta {
-  font-size: 0.7rem;
-  min-height: calc(0.7rem * 1.35 * 2);
+  font-size: 1rem;
+  min-height: calc(1rem * 1.4 * 2);
 }
 
 .home-cards-band .media-card-foot {
-  font-size: 0.65rem;
-  min-height: calc(0.65rem * 1.35);
+  font-size: 0.95rem;
+  min-height: calc(0.95rem * 1.4);
 }
 
 .home-cards-band .media-card-media .verified-badge,
 .home-cards-band .media-card-badge {
-  font-size: 0.62rem;
-  padding: 0.1rem 0.32rem;
+  font-size: 0.95rem;
+  padding: 0.15rem 0.4rem;
 }
 
 .home-cards-band .media-card-media--icon {
@@ -235,9 +243,9 @@ body {
 }
 
 .home-cards-band .section-more-link {
-  min-height: 2.25rem;
-  padding: 0.35rem 0.55rem;
-  font-size: 0.8rem;
+  min-height: 3rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 1.125rem;
 }
 
 .content-card-grid:not(.content-card-grid--home) {
@@ -254,20 +262,60 @@ body {
 }
 
 .search-submit-label {
-  display: none;
+  display: inline;
 }
 
-.search-submit-chip .material-symbols-outlined {
-  font-size: 1.25rem;
+.search-guide {
+  font-size: 1.2rem;
 }
 
 /* ── 챗봇 ── */
 .chat-fab-wrap {
   left: auto;
   right: 0.75rem;
-  bottom: 0.75rem;
+  bottom: calc(5.35rem + env(safe-area-inset-bottom, 0px));
   align-items: flex-end;
   max-width: calc(100% - 1.5rem);
+}
+
+.app-tabbar {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 220;
+  background: var(--color-surface);
+  border-top: 2px solid var(--color-border);
+  padding: 0.2rem 0.15rem calc(0.25rem + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -2px 10px var(--color-shadow-neutral-08);
+}
+
+.app-tabbar-link {
+  min-height: 3.35rem;
+  padding: 0.15rem 0.05rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05rem;
+  text-decoration: none;
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  border-radius: 0.75rem;
+}
+
+.app-tabbar-link .material-symbols-outlined {
+  font-size: 1.45rem;
+}
+
+.app-tabbar-link--active {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
 }
 
 .chat-fab.chat-fab--mascot {
@@ -307,7 +355,9 @@ body {
 /* ── 소형 화면 (≤767px) ── */
 @media (max-width: 767px) {
   .site-brand-text {
-    display: none;
+    display: block;
+    font-size: 1rem;
+    max-width: 8.5rem;
   }
 
   .top-nav-link {

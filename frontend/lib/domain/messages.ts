@@ -16,6 +16,15 @@ export const MESSAGES = {
   tooManyRequests: "너무 자주 눌렀어요. 잠시 후 다시 눌러 주세요.",
   unexpected: "문제가 생겼어요. 잠시 후 다시 눌러 주세요.",
   boardDraftRequired: "이름, 제목, 내용을 모두 적어 주세요.",
+  loginRequired: "로그인해 주세요.",
+  familyCreateFailed: "가족을 만들지 못했어요. 잠시 후 다시 눌러 주세요.",
+  familyJoinFailed: "연결하지 못했어요. 코드를 다시 확인해 주세요.",
+  familyInviteInvalid: "초대 코드가 올바르지 않아요.",
+  familyInviteExpired: "초대 코드가 만료됐어요. 자녀에게 새 코드를 받아 주세요.",
+  familyInviteUsed: "이미 사용된 초대 코드예요.",
+  familyAlreadyMember: "이미 가족에 연결되어 있어요.",
+  familyNotFound: "연결된 가족이 없어요.",
+  familyLoadFailed: "가족 정보를 불러오지 못했어요.",
 } as const;
 
 export const FEED_MESSAGES = {

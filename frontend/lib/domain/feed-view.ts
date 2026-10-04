@@ -1,3 +1,4 @@
+import { isVideoId } from "./feeds";
 import { FEED_MESSAGES } from "./messages";
 import type { NewsItem, NewsResponse, VideoItem, VideosResponse, WelfareCard, WelfareResponse } from "./types";
 
@@ -39,6 +40,16 @@ export function toWelfareView(data: WelfareResponse | null, region: string): Wel
     placeLabel: data.place || region,
     message: data.cards.length ? "" : (data.message || copy.empty),
   };
+}
+
+/** /videos?v=<id> 로 들어오면 목록에 있는 영상만 바로 연다. */
+export function findVideo(videos: readonly VideoItem[], id: string | null): VideoItem | null {
+  if (!isVideoId(id)) return null;
+  return videos.find((video) => video.id === id) ?? null;
+}
+
+export function videoHref(id: string): string {
+  return `/videos?v=${encodeURIComponent(id)}`;
 }
 
 export function channelChoices(videos: readonly VideoItem[]): string[] {

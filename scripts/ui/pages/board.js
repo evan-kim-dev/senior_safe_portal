@@ -88,11 +88,11 @@ function updateBoardAuthUI(user) {
   const writeBtn = document.getElementById("board-write-btn");
 
   if (user) {
-    if (hint) hint.textContent = `${getUserDisplayName(user)}님으로 글을 작성할 수 있습니다.`;
+    if (hint) hint.textContent = `${getUserDisplayName(user)}님, 경험을 글로 남겨 주세요.`;
     writeBtn?.removeAttribute("disabled");
   } else {
-    if (hint) hint.textContent = "글을 쓰려면 우측 상단에서 로그인해 주세요.";
-    writeBtn?.setAttribute("disabled", "disabled");
+    if (hint) hint.textContent = "글을 쓰려면 오른쪽 위 「로그인」을 눌러 주세요. 「글쓰기」를 눌러도 로그인 창이 열립니다.";
+    writeBtn?.removeAttribute("disabled");
     toggleCompose(false);
   }
 }
@@ -107,7 +107,7 @@ function updatePaginationUI() {
   const prev = document.getElementById("board-prev");
   const next = document.getElementById("board-next");
 
-  if (info) info.textContent = `${currentPage} page / ${totalPages} pages`;
+  if (info) info.textContent = `${currentPage}쪽 / 전체 ${totalPages}쪽`;
   if (prev) prev.disabled = currentPage <= 1;
   if (next) next.disabled = currentPage >= totalPages;
 }
@@ -119,7 +119,7 @@ function renderBoardTable(posts) {
   if (!posts.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" class="board-table-empty">등록된 글이 없습니다.</td>
+        <td colspan="6" class="board-table-empty">아직 올라온 글이 없습니다.</td>
       </tr>
     `;
     return;
@@ -166,7 +166,7 @@ async function incrementViewCount(postId, currentCount = 0) {
 async function openPostDetail(postId) {
   if (!postId) return;
 
-  setBoardStatus("글을 불러오는 중...");
+  setBoardStatus("글을 불러오고 있습니다.");
   const { data, error } = await supabaseClient
     .from(BOARD_TABLE)
     .select("id, user_id, author_name, author_id, title, content, created_at, view_count")
@@ -238,13 +238,8 @@ async function loadBoardPosts(page = currentPage) {
 
   if (error) {
     if (tbody) tbody.innerHTML = "";
-    const missing = /relation|does not exist|schema cache|author_id|view_count/i.test(error.message);
-    setBoardStatus(
-      missing
-        ? "게시판 DB 설정이 필요합니다. Supabase에서 board_posts.sql을 실행해 주세요."
-        : "게시글을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      true,
-    );
+    console.error("Board load failed:", error);
+    setBoardStatus("글을 불러오지 못했습니다. 잠시 후 다시 열어 주세요.", true);
     return;
   }
 
@@ -304,11 +299,11 @@ async function handleBoardSubmit(event) {
 }
 
 async function deleteCurrentPost() {
-  if (!viewingPostId || !confirmCriticalAction("이 글을 삭제할까요?")) return;
+  if (!viewingPostId || !confirmCriticalAction("이 글을 지울까요? 지운 글은 다시 볼 수 없습니다.")) return;
 
   const { error } = await supabaseClient.from(BOARD_TABLE).delete().eq("id", viewingPostId);
   if (error) {
-    alert("글 삭제에 실패했습니다.");
+    setBoardStatus("글을 지우지 못했습니다. 잠시 후 다시 눌러 주세요.", true);
     return;
   }
 

@@ -210,14 +210,14 @@
   --chat-control-size: 2.75rem;
   --chat-avatar-size: 2.5rem;
   --chat-header-pad: 0.7rem 0.9rem;
-  --chat-title-size: 1.125rem;
-  --chat-status-size: 0.8125rem;
-  --chat-bubble-size: 1rem;
+  --chat-title-size: 1.25rem;
+  --chat-status-size: 1rem;
+  --chat-bubble-size: 1.125rem;
   --chat-bubble-pad: 0.6rem 0.85rem;
   --chat-messages-pad: 0.75rem 0.85rem;
   --chat-messages-gap: 0.75rem;
-  --chat-chip-size: 0.8125rem;
-  --chat-chip-min-h: 2.35rem;
+  --chat-chip-size: 1.05rem;
+  --chat-chip-min-h: 2.75rem;
 
   --shadow-app-frame: 0 0.625rem 1.875rem var(--color-shadow-neutral-10);
   --shadow-modal: 0 1.5rem 3rem var(--color-shadow-neutral-18);
@@ -697,6 +697,10 @@ button.back-link-prominent {
   padding-top: var(--header-min-height);
 }
 
+.app-tabbar {
+  display: none;
+}
+
 .app-main {
   flex: 1;
   width: 100%;
@@ -814,6 +818,15 @@ button.back-link-prominent {
   margin-inline: auto;
 }
 
+.search-guide {
+  margin: 0 0 0.85rem;
+  text-align: center;
+  font-size: var(--font-lg);
+  font-weight: 800;
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
 .search-form--home {
   width: 100%;
   max-width: 100%;
@@ -830,13 +843,13 @@ button.back-link-prominent {
   --home-space: 0.625rem;
   --home-col-gap: 0.75rem;
   --home-card-thumb-ratio: 16 / 9;
-  --home-header-h: 3rem;
-  --home-card-title-size: 0.85rem;
-  --home-card-title-lh: 1.35;
-  --home-card-meta-size: 0.75rem;
-  --home-card-meta-lh: 1.35;
-  --home-card-foot-size: 0.7rem;
-  --home-card-foot-lh: 1.35;
+  --home-header-h: 3.25rem;
+  --home-card-title-size: 1.125rem;
+  --home-card-title-lh: 1.4;
+  --home-card-meta-size: 1rem;
+  --home-card-meta-lh: 1.4;
+  --home-card-foot-size: 0.95rem;
+  --home-card-foot-lh: 1.4;
   width: 100%;
   box-sizing: border-box;
   padding: 1rem var(--space-cards-x) 1.25rem;
@@ -880,7 +893,7 @@ button.back-link-prominent {
 }
 
 .home-cards-band .section-title {
-  font-size: 1rem;
+  font-size: 1.25rem;
   margin: 0;
 }
 
@@ -889,9 +902,9 @@ button.back-link-prominent {
 }
 
 .home-cards-band .welfare-location-label {
-  font-size: 0.75rem;
-  line-height: 1.25;
-  margin: 0.15rem 0 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  margin: 0.25rem 0 0;
 }
 
 .home-cards-band .category-tabs {
@@ -901,7 +914,7 @@ button.back-link-prominent {
   overflow-x: auto;
   gap: var(--home-space);
   margin: 0;
-  min-height: 1.75rem;
+  min-height: 2.75rem;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 }
@@ -910,9 +923,9 @@ button.back-link-prominent {
   flex: 0 0 auto;
   width: auto;
   min-width: fit-content;
-  min-height: 1.75rem;
-  padding: 0.32rem 0.65rem;
-  font-size: 0.8rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 1.05rem;
   overflow: visible;
   text-overflow: unset;
   white-space: nowrap;
@@ -976,8 +989,8 @@ button.back-link-prominent {
 
 .home-cards-band .media-card-media .verified-badge,
 .home-cards-band .media-card-badge {
-  font-size: 0.68rem;
-  padding: 0.12rem 0.38rem;
+  font-size: 0.95rem;
+  padding: 0.2rem 0.5rem;
   top: 0.3rem;
   left: 0.3rem;
 }
@@ -1033,9 +1046,9 @@ button.back-link-prominent {
   margin-top: auto;
   margin-bottom: 0;
   margin-inline: 0;
-  min-height: 2.5rem;
-  padding: 0.4rem 0.65rem;
-  font-size: 0.85rem;
+  min-height: 3rem;
+  padding: 0.5rem 0.85rem;
+  font-size: 1.125rem;
   font-weight: 700;
   border-width: var(--card-border-width);
   line-height: 1.2;
@@ -1787,15 +1800,15 @@ button.back-link-prominent {
 }
 
 .content-column .category-tab {
-  flex-shrink: 1;
-  min-width: 0;
-  width: 100%;
-  min-height: 34px;
-  padding: 0.3rem 0.2rem;
-  font-size: clamp(0.68rem, 2.8cqi, 0.84rem);
+  flex-shrink: 0;
+  min-width: fit-content;
+  width: auto;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 1.05rem;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: unset;
 }
 
 .section-header {
@@ -2605,10 +2618,14 @@ button.back-link-prominent {
   color: var(--color-text);
 }
 
-.chat-input::placeholder {
-  color: var(--color-text-placeholder);
-  opacity: 0.55;
-  font-weight: 600;
+.chat-input::placeholder,
+.search-input::placeholder,
+.auth-input::placeholder,
+.modal-input::placeholder,
+.board-textarea::placeholder {
+  color: rgba(17, 17, 17, 0.72);
+  opacity: 1;
+  font-weight: 700;
 }
 
 .chat-input:focus {
@@ -2617,14 +2634,18 @@ button.back-link-prominent {
 
 .chat-send-btn {
   flex-shrink: 0;
-  width: var(--chat-control-size);
-  height: var(--chat-control-size);
-  min-width: var(--chat-control-size);
+  width: auto;
+  height: auto;
+  min-width: 4.5rem;
   min-height: var(--chat-control-size);
-  border: none;
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--color-primary);
+  padding: 0.35rem 0.85rem;
+  border: var(--btn-border-width) solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -2634,8 +2655,10 @@ button.back-link-prominent {
 
 .chat-send-btn:hover:not(:disabled),
 .chat-send-btn:focus-visible:not(:disabled) {
-  background: var(--color-primary-focus-ring);
+  background: var(--color-primary-dark);
+  color: var(--color-text-on-primary);
   outline: none;
+  box-shadow: var(--shadow-focus);
 }
 
 .chat-send-btn .material-symbols-outlined {
@@ -2881,8 +2904,8 @@ button.back-link-prominent {
 }
 
 .auth-input::placeholder {
-  color: var(--color-text-placeholder);
-  opacity: 0.55;
+  color: rgba(17, 17, 17, 0.72);
+  opacity: 1;
   font-weight: 400;
 }
 
@@ -3029,16 +3052,16 @@ button.back-link-prominent {
 }
 
 .auth-switch-link {
-  padding: 0.15rem 0;
+  padding: 0.35rem 0.15rem;
   border: none;
   background: none;
   color: var(--color-primary);
   font-family: inherit;
-  font-size: 0.8125rem;
-  font-weight: 400;
+  font-size: 1.125rem;
+  font-weight: 800;
   text-decoration: underline;
   cursor: pointer;
-  min-height: auto;
+  min-height: 2.75rem;
 }
 
 .auth-switch-link:hover,
@@ -3049,9 +3072,9 @@ button.back-link-prominent {
 
 .auth-form-note {
   margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--color-text);
   text-align: center;
 }
 
@@ -4266,10 +4289,16 @@ button.back-link-prominent {
 }
 
 .board-page-title {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.35rem;
   font-size: var(--font-2xl);
   font-weight: 800;
   color: var(--color-text);
+}
+
+.board-page-lead {
+  margin: 0 0 0.85rem;
+  font-size: var(--font-lg);
+  line-height: 1.45;
 }
 
 .board-title-rule {

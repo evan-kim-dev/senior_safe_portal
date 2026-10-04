@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { postJson } from "@/lib/client/api";
+import { onOpenChat } from "@/lib/client/chat-bridge";
 import { MESSAGES } from "@/lib/domain/messages";
 import type { ChatResponse, ChatTurn } from "@/lib/domain/types";
 import { MAX_CHAT_HISTORY, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/domain/validation";
@@ -20,6 +21,15 @@ export function useChat() {
   const [error, setError] = useState("");
   const sendingRef = useRef(false);
   const aliveRef = useAliveRef();
+
+  useEffect(
+    () =>
+      onOpenChat((prefill) => {
+        setOpen(true);
+        if (prefill && !sendingRef.current) setText(prefill);
+      }),
+    [],
+  );
 
   async function send() {
     const message = text.trim().slice(0, MAX_CHAT_MESSAGE_LENGTH);

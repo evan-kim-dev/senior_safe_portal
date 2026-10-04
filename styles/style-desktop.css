@@ -69,10 +69,10 @@ body {
 }
 
 .top-nav-link {
-  font-size: 1rem;
-  font-weight: 700;
-  min-height: 2.5rem;
-  padding: 0.35rem 0.8rem;
+  font-size: 1.125rem;
+  font-weight: 800;
+  min-height: 3rem;
+  padding: 0.4rem 0.85rem;
 }
 
 .header-end {
@@ -80,9 +80,9 @@ body {
 }
 
 .auth-button {
-  min-height: 2.5rem;
-  padding: 0.4rem 1rem;
-  font-size: 1rem;
+  min-height: 3rem;
+  padding: 0.45rem 1rem;
+  font-size: 1.125rem;
 }
 
 .user-greeting {
@@ -134,28 +134,28 @@ body {
 }
 
 .home-cards-band .content-grid .category-tabs {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.35rem;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
   width: 100%;
-  min-height: 2.15rem;
-  overflow: visible;
+  min-height: 2.85rem;
+  overflow-x: auto;
 }
 
 .home-cards-band .content-grid .category-tab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  min-width: 0;
+  width: auto;
+  min-width: fit-content;
   max-width: none;
-  flex: unset;
-  min-height: 2.15rem;
-  padding: 0.38rem 0.2rem;
-  font-size: clamp(0.7rem, 1.55cqi, 0.82rem);
+  flex: 0 0 auto;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 1.05rem;
   text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: unset;
   white-space: nowrap;
 }
 

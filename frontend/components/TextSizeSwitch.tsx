@@ -1,0 +1,38 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { loadGuardian, saveTextSize } from "@/lib/client/guardian";
+import type { TextSize } from "@/lib/domain/types";
+
+const OPTIONS: { id: TextSize; label: string }[] = [
+  { id: "normal", label: "글자 보통" },
+  { id: "large", label: "글자 크게" },
+  { id: "xlarge", label: "글자 더 크게" },
+];
+
+export function TextSizeSwitch() {
+  const [size, setSize] = useState<TextSize>("normal");
+
+  useEffect(() => {
+    setSize(loadGuardian().textSize);
+  }, []);
+
+  return (
+    <div className="text-switch" role="group" aria-label="글자 크기">
+      <span className="text-switch-label" aria-hidden="true">글자</span>
+      {OPTIONS.map((option, index) => (
+        <button
+          key={option.id}
+          type="button"
+          className={`text-switch-${index}`}
+          aria-pressed={size === option.id}
+          aria-label={option.label}
+          title={option.label}
+          onClick={() => setSize(saveTextSize(option.id).textSize)}
+        >
+          가
+        </button>
+      ))}
+    </div>
+  );
+}

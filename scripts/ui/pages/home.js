@@ -127,11 +127,11 @@ export const SearchModule = {
       const query = validateTextInput(
         homeDom.searchInput?.value ?? "",
         AppConfig.MAX_SEARCH_LENGTH,
-        "검색어 또는 링크를 입력해 주세요.",
+        "주소나 궁금한 말을 적어 주세요.",
       );
 
       searchInProgress = true;
-      AlertUI.showLoading("안전 검사를 진행하고 있습니다. 잠시만 기다려주세요...");
+      AlertUI.showLoading("안전한지 확인하고 있습니다. 조금만 기다려 주세요.");
 
       const payload = await runSearch(query);
       saveSearchResults(payload);
@@ -140,13 +140,13 @@ export const SearchModule = {
       ViewRouter.showResults();
     } catch (err) {
       AlertUI.hideLoading();
-      AlertUI.showError(sanitizeUserFacingMessage(err, "검색 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."));
+      AlertUI.showError(sanitizeUserFacingMessage(err, "확인하지 못했습니다. 잠시 후 다시 눌러 주세요."));
     }
   },
 
   handleLoadingCancel() {
     AlertUI.hideLoading();
-    AlertUI.showError("검사를 취소했습니다. 다시 검색해 주세요.");
+    AlertUI.showError("확인을 멈췄습니다. 다시 검색해 주세요.");
   },
 };
 

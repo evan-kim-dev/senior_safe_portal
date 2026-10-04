@@ -41,6 +41,14 @@ export function ensureFamilyCode(): string {
   return familyCode;
 }
 
+/** 서버 가족 id 와 이 기기 localStorage 코드를 맞춘다. */
+export function setFamilyCode(familyCode: string): GuardianSettings {
+  if (!isFamilyCode(familyCode)) return loadGuardian();
+  const next = { ...loadGuardian(), familyCode };
+  store(next);
+  return next;
+}
+
 export function applySetup(settings: SetupPayload) {
   store({
     ...loadGuardian(),
@@ -60,6 +68,12 @@ export function saveCare(settings: Pick<GuardianSettings, "name" | "phone" | "te
     textSize: settings.textSize,
     channels: sanitizeChannels(settings.channels),
   };
+  store(next);
+  return next;
+}
+
+export function saveTextSize(textSize: TextSize): GuardianSettings {
+  const next: GuardianSettings = { ...loadGuardian(), textSize };
   store(next);
   return next;
 }

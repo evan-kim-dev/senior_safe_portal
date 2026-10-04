@@ -1,25 +1,18 @@
 "use client";
 
-import { BigButton, Field, Group, LineButton, Result, Row, Screen, Status } from "@/components/ui";
+import { NewsSection, VideoRail, WelfareSection } from "@/components/home/HomeFeeds";
+import { HomeHero } from "@/components/home/HomeHero";
+import { HomeRecords } from "@/components/home/HomeRecords";
+import { Hotlines, QuickMenu, ScamRail } from "@/components/home/HomeSections";
+import { BigButton, Checking, Field, LineButton, Result, Screen } from "@/components/ui";
 import { useHome } from "@/hooks/use-home";
-import { kindLabel, MAX_URL_LENGTH } from "@/lib/domain/url";
-import { headlineFor } from "@/lib/domain/verdict";
+import { kindLabel } from "@/lib/domain/url";
 
 export default function HomePage() {
   const home = useHome();
 
   if (home.screen.name === "checking") {
-    return (
-      <Screen
-        center
-        live="polite"
-        busy
-        secondary={<LineButton disabled>붙여넣기</LineButton>}
-        primary={<BigButton disabled>검사하기</BigButton>}
-      >
-        확인하고 있어요
-      </Screen>
-    );
+    return <Checking word="확인하고 있어요" hint="잠시만 기다려 주세요." />;
   }
 
   if (home.screen.name === "result") {
@@ -30,7 +23,7 @@ export default function HomePage() {
         word={result.headline}
         reason={`${kindLabel(result.kind)}. ${result.reason}`}
         secondary={result.verdict === "danger" && home.familyPhone ? (
-          <LineButton onClick={() => home.tellFamily(result.url)}>가족에게 말하기</LineButton>
+          <LineButton icon="phone" onClick={() => home.tellFamily(result.url)}>가족에게 말하기</LineButton>
         ) : null}
         primary={<BigButton onClick={home.backHome}>다시 검사</BigButton>}
       />
@@ -53,6 +46,7 @@ export default function HomePage() {
     return (
       <Screen
         title="적어 둔 것"
+        narrow
         secondary={<LineButton onClick={() => home.removeNote(noteId)}>지우기</LineButton>}
         primary={<BigButton onClick={() => home.saveNote(noteId)}>저장</BigButton>}
       >
@@ -62,42 +56,21 @@ export default function HomePage() {
   }
 
   return (
-    <Screen
-      title="이 링크, 괜찮나요?"
-      secondary={<LineButton onClick={() => void home.pasteAndCheck()}>붙여넣기</LineButton>}
-      primary={<BigButton onClick={() => void home.submitCheck()}>검사하기</BigButton>}
-    >
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          void home.submitCheck();
-        }}
-      >
-        <Field
-          id="url"
-          label="주소"
-          value={home.url}
-          placeholder="주소를 붙여 넣으세요"
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck={false}
-          inputMode="url"
-          enterKeyHint="go"
-          maxLength={MAX_URL_LENGTH}
-          onChange={(event) => home.setUrl(event.target.value)}
-        />
-      </form>
-      {home.homeMessage ? <Status>{home.homeMessage}</Status> : null}
-      <Group label="최근 검사" title="최근 검사">
-        {home.recent.length === 0 ? <Status>아직 검사한 주소가 없습니다.</Status> : home.recent.map((item) => (
-          <Row key={item.url} tone={item.verdict}>{`${headlineFor(item.verdict)} ${item.title}`}</Row>
-        ))}
-      </Group>
-      <Group label="적어 둔 것" title="적어 둔 것">
-        {home.notes.length === 0 ? <Status>주소가 아닌 말은 여기에 남습니다.</Status> : home.notes.map((note) => (
-          <Row key={note.id} onClick={() => home.openNote(note)}>{note.text}</Row>
-        ))}
-      </Group>
-    </Screen>
+    <main className="home">
+      <HomeHero
+        url={home.url}
+        message={home.homeMessage}
+        onUrl={home.setUrl}
+        onSubmit={() => void home.submitCheck()}
+        onPaste={() => void home.pasteAndCheck()}
+      />
+      <QuickMenu />
+      <ScamRail />
+      <VideoRail />
+      <NewsSection />
+      <WelfareSection />
+      <HomeRecords recent={home.recent} notes={home.notes} onOpenNote={home.openNote} />
+      <Hotlines />
+    </main>
   );
 }

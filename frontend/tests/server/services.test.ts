@@ -61,9 +61,9 @@ describe("check service", () => {
 
   it("위험 영상은 캐시에서 나와도 가족 집계에 넣는다", async () => {
     const { deps, deferred, service } = setup({ findFresh: vi.fn(async () => dangerVideo) });
-    await service.check({ url: "https://youtu.be/abc", familyCode: FAMILY });
+    await service.check({ url: "https://youtu.be/abc", familyCode: FAMILY, userId: "user-1" });
     await Promise.all(deferred.map((task) => task()));
-    expect(deps.recordDangerVideo).toHaveBeenCalledWith(FAMILY);
+    expect(deps.recordDangerVideo).toHaveBeenCalledWith(FAMILY, "user-1");
   });
 
   it("같은 주소를 동시에 눌러도 분석은 한 번", async () => {
@@ -157,18 +157,39 @@ describe("feed service", () => {
 
 describe("activity service", () => {
   it("가족 코드가 틀리면 DB 에 가지 않는다", async () => {
-    const repo = { insert: vi.fn(async () => undefined), countBetween: vi.fn(async () => 3) };
+    const repo = {
+      insert: vi.fn(async (_familyCode: string, _userId?: string) => undefined),
+      countBetween: vi.fn(async () => 3),
+      listBetween: vi.fn(async () => []),
+    };
     const service = createActivityService(repo);
     await service.recordDangerVideo("nope");
     expect(await service.countDangerVideosToday("nope")).toBe(0);
+    expect(await service.listDangerVideosToday("nope")).toEqual([]);
     expect(repo.insert).not.toHaveBeenCalled();
     expect(repo.countBetween).not.toHaveBeenCalled();
+    expect(repo.listBetween).not.toHaveBeenCalled();
   });
 
   it("서울 하루 범위로 센다", async () => {
-    const repo = { insert: vi.fn(async () => undefined), countBetween: vi.fn(async () => 3) };
+    const repo = {
+      insert: vi.fn(async (_familyCode: string, _userId?: string) => undefined),
+      countBetween: vi.fn(async () => 3),
+      listBetween: vi.fn(async () => []),
+    };
     const service = createActivityService(repo);
     expect(await service.countDangerVideosToday(FAMILY, new Date("2026-10-04T16:30:00Z"))).toBe(3);
     expect(repo.countBetween).toHaveBeenCalledWith(FAMILY, "2026-10-04T15:00:00.000Z", "2026-10-05T15:00:00.000Z");
+  });
+
+  it("오늘 위험 영상 목록에 시각 라벨을 붙인다", async () => {
+    const repo = {
+      insert: vi.fn(async (_familyCode: string, _userId?: string) => undefined),
+      countBetween: vi.fn(async () => 0),
+      listBetween: vi.fn(async () => [{ id: "a1", created_at: "2026-10-04T16:30:00.000Z" }]),
+    };
+    const service = createActivityService(repo);
+    const items = await service.listDangerVideosToday(FAMILY, new Date("2026-10-04T16:30:00Z"));
+    expect(items).toEqual([{ id: "a1", createdAt: "2026-10-04T16:30:00.000Z", label: "01:30 위험한 영상" }]);
   });
 });

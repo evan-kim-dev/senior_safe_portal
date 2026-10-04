@@ -13,14 +13,21 @@ export function getSupabase(): SupabaseClient | null {
   return client;
 }
 
-export async function signInWith(provider: Provider): Promise<string> {
+/** `/login?next=/care` 처럼 안전한 내부 경로만 허용한다. */
+export function safeNextPath(next: string | null | undefined, fallback = "/board"): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//") || next.includes("://")) return fallback;
+  return next;
+}
+
+export async function signInWith(provider: Provider, next?: string | null): Promise<string> {
   const supabase = getSupabase();
   if (!supabase) return "로그인을 시작할 수 없습니다. 잠시 후 다시 눌러 주세요.";
 
   try {
+    const redirectTo = `${window.location.origin}${safeNextPath(next)}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/board` },
+      options: { redirectTo },
     });
     return error ? "로그인하지 못했습니다. 잠시 후 다시 눌러 주세요." : "";
   } catch {

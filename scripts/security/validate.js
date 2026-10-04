@@ -14,7 +14,7 @@ export function sanitizeUserFacingMessage(error, fallback) {
   const geminiBusy = /503|429|high demand|Service Unavailable|Resource exhausted/i;
 
   if (geminiBusy.test(message)) {
-    return "AI 서비스 이용량이 많아 잠시 응답이 지연되고 있습니다. 1~2분 후 다시 시도해 주세요.";
+    return "지금 확인하는 분이 많아 조금 늦어지고 있습니다. 1~2분 뒤에 다시 눌러 주세요.";
   }
 
   if (/GoogleGenerativeAI|generativelanguage\.googleapis\.com/i.test(message)) {
@@ -47,7 +47,7 @@ export function validateEmailInput(email) {
 export function validatePasswordInput(password, minLength = 6) {
   if (!password) throw new Error("비밀번호를 입력해 주세요.");
   if (password.length < minLength) {
-    throw new Error(`비밀번호는 ${minLength}자 이상 입력해 주세요.`);
+    throw new Error(`비밀번호는 ${minLength}글자 이상으로 적어 주세요.`);
   }
   if (password.length > 72) {
     throw new Error("비밀번호가 너무 깁니다. 72자 이내로 입력해 주세요.");

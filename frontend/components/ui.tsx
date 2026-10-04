@@ -1,55 +1,136 @@
 import Link from "next/link";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
+import { Icon, type IconName } from "./icons";
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; href?: string };
+type ButtonTone = "kakao" | "naver" | "google";
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  children: ReactNode;
+  href?: string;
+  icon?: IconName;
+  tone?: ButtonTone;
+};
 
-export function BigButton({ children, type = "button", href, ...props }: ButtonProps) {
+function classes(...names: Array<string | false | null | undefined>): string {
+  return names.filter(Boolean).join(" ");
+}
+
+function ButtonBase({ base, children, type = "button", href, icon, className, ...props }: ButtonProps & { base: string }) {
+  const cls = classes("btn", base, className);
+  const content = (
+    <>
+      {icon ? <Icon name={icon} /> : null}
+      <span>{children}</span>
+    </>
+  );
   if (href) {
     return href.startsWith("/")
-      ? <Link className="big-button" href={href}>{children}</Link>
-      : <a className="big-button" href={href} rel="noopener noreferrer">{children}</a>;
+      ? <Link className={cls} href={href}>{content}</Link>
+      : <a className={cls} href={href} rel="noopener noreferrer">{content}</a>;
   }
   return (
-    <button type={type} className="big-button" {...props}>
-      {children}
+    <button type={type} className={cls} {...props}>
+      {content}
     </button>
   );
 }
 
+export function BigButton({ tone, ...props }: ButtonProps) {
+  return <ButtonBase base={tone ? `btn-${tone}` : "btn-primary"} {...props} />;
+}
+
+export function LineButton(props: ButtonProps) {
+  return <ButtonBase base="btn-line" {...props} />;
+}
+
 export function Screen({
   title,
+  lead,
   children,
   primary,
   secondary,
   center = false,
+  narrow = false,
   live,
   busy = false,
 }: {
   title?: string;
+  lead?: string;
   children?: ReactNode;
   primary?: ReactNode;
   secondary?: ReactNode;
   center?: boolean;
+  narrow?: boolean;
   live?: "polite" | "assertive";
   busy?: boolean;
 }) {
   return (
-    <main className={center ? "screen screen-center" : "screen"} aria-live={live} aria-busy={busy || undefined}>
-      {title ? <h1>{title}</h1> : null}
-      <div className="screen-body">{children}</div>
-      {secondary || primary ? (
-        <div className="screen-actions">
-          {secondary ? <div className="screen-secondary">{secondary}</div> : null}
-          {primary ? <div className="screen-action">{primary}</div> : null}
-        </div>
+    <main className={center ? "page page-center" : "page"} aria-live={live} aria-busy={busy || undefined}>
+      {title ? (
+        <header className="page-head">
+          <div className="wrap">
+            <h1>{title}</h1>
+            {lead ? <p className="lead">{lead}</p> : null}
+          </div>
+        </header>
       ) : null}
+      <div className={narrow || center ? "wrap page-main narrow" : "wrap page-main"}>
+        {children ? <div className="page-body">{children}</div> : null}
+        {secondary || primary ? (
+          <div className="page-actions">
+            {secondary ? <div className="page-secondary">{secondary}</div> : null}
+            {primary ? <div className="page-primary">{primary}</div> : null}
+          </div>
+        ) : null}
+      </div>
     </main>
   );
+}
+
+export function Section({
+  id,
+  title,
+  desc,
+  more,
+  className,
+  children,
+}: {
+  id: string;
+  title: string;
+  desc?: string;
+  more?: { href: string; label: string };
+  className?: string;
+  children: ReactNode;
+}) {
+  const headingId = `${id}-title`;
+  return (
+    <section id={id} className={classes("section", className)} aria-labelledby={headingId}>
+      <div className="wrap">
+        <div className="section-head">
+          <div>
+            <h2 id={headingId}>{title}</h2>
+            {desc ? <p>{desc}</p> : null}
+          </div>
+          {more ? (
+            <Link className="more" href={more.href}>
+              {more.label}
+              <Icon name="next" />
+            </Link>
+          ) : null}
+        </div>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+export function Grid({ kind, children }: { kind: "media" | "info"; children: ReactNode }) {
+  return <div className={`grid grid-${kind}`}>{children}</div>;
 }
 
 export function Field({
   label,
   multiline = false,
+  hideLabel = false,
   id,
   value,
   onChange,
@@ -57,19 +138,22 @@ export function Field({
 }: {
   label: string;
   multiline?: boolean;
+  hideLabel?: boolean;
   id: string;
   value: string;
   onChange: (event: { target: { value: string } }) => void;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "id">) {
   return (
     <label className="field" htmlFor={id}>
-      <span>{label}</span>
+      <span className={hideLabel ? "sr-only" : undefined}>{label}</span>
       {multiline
         ? <textarea id={id} value={value} placeholder={props.placeholder} maxLength={props.maxLength} onChange={onChange} />
         : <input id={id} value={value} onChange={onChange} {...props} />}
     </label>
   );
 }
+
+const RESULT_ICON: Record<"safe" | "danger" | "plain", IconName> = { safe: "check", danger: "alert", plain: "info" };
 
 export function Result({
   tone,
@@ -85,12 +169,27 @@ export function Result({
   secondary?: ReactNode;
 }) {
   return (
-    <main className={tone === "plain" ? "result" : `result ${tone}`} role="alert">
-      <h1 className="result-word">{word}</h1>
-      <p className="result-reason">{reason}</p>
-      <div className="screen-actions">
-        {secondary ? <div className="screen-secondary">{secondary}</div> : null}
-        <div className="screen-action">{primary}</div>
+    <main className={`result result-${tone}`} role="alert">
+      <div className="result-card">
+        <span className="result-icon"><Icon name={RESULT_ICON[tone]} /></span>
+        <h1 className="result-word">{word}</h1>
+        <p className="result-reason">{reason}</p>
+        <div className="result-actions">
+          {secondary}
+          {primary}
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export function Checking({ word, hint }: { word: string; hint?: string }) {
+  return (
+    <main className="result result-plain" aria-live="polite" aria-busy="true">
+      <div className="result-card">
+        <span className="spinner" aria-hidden="true" />
+        <h1 className="result-word">{word}</h1>
+        {hint ? <p className="result-reason">{hint}</p> : null}
       </div>
     </main>
   );
@@ -99,17 +198,9 @@ export function Result({
 export function Count({ value }: { value: number | null }) {
   return (
     <p className="count">
-      오늘 위험한 영상
+      <span className="count-label">오늘 위험한 영상</span>
       <span className="count-num">{value === null ? "…" : `${value}개`}</span>
     </p>
-  );
-}
-
-export function LineButton({ children, type = "button", ...props }: ButtonProps) {
-  return (
-    <button type={type} className="line-button" {...props}>
-      {children}
-    </button>
   );
 }
 
@@ -120,45 +211,90 @@ export function Status({ children }: { children: ReactNode }) {
 export function Group({ label, title, children }: { label: string; title?: string; children: ReactNode }) {
   return (
     <section className="group" aria-label={label}>
-      {title ? <h2>{title}</h2> : null}
-      {children}
+      {title ? <h2 className="group-title">{title}</h2> : null}
+      <div className="list">{children}</div>
     </section>
   );
 }
 
 export function Row({
   children,
+  meta,
   onClick,
   tone,
 }: {
   children: ReactNode;
+  meta?: string;
   onClick?: () => void;
   tone?: "safe" | "danger";
 }) {
   return (
-    <button type="button" className={tone ? `row ${tone}` : "row"} onClick={onClick} disabled={!onClick}>
-      <span>{children}</span>
-      {onClick ? <i aria-hidden="true">→</i> : null}
+    <button type="button" className={tone ? `row row-${tone}` : "row"} onClick={onClick} disabled={!onClick}>
+      <span className="row-text">{children}</span>
+      {meta ? <span className="row-meta">{meta}</span> : null}
+      {onClick ? <Icon name="next" className="row-arrow" /> : null}
     </button>
   );
 }
 
-export function Info({ title, lines }: { title: string; lines: Array<string | null | undefined | false> }) {
-  return (
-    <article className="info">
-      <strong>{title}</strong>
+export function Info({
+  title,
+  lines,
+  tag,
+  tone,
+  href,
+  more,
+}: {
+  title: string;
+  lines: Array<string | null | undefined | false>;
+  tag?: string;
+  tone?: "purple" | "green";
+  href?: string;
+  more?: string;
+}) {
+  const body = (
+    <>
+      {tag ? <span className="tag">{tag}</span> : null}
+      <strong className="info-title">{title}</strong>
       {lines.filter((line): line is string => Boolean(line)).map((line, index) => <p key={`${index}-${line}`}>{line}</p>)}
-    </article>
+      {href && more ? (
+        <span className="info-more">
+          {more}
+          <Icon name="arrow" />
+        </span>
+      ) : null}
+    </>
   );
+  const cls = classes("info", tone && `info-${tone}`, href && "info-link");
+  return href ? <a className={cls} href={href} rel="noopener noreferrer">{body}</a> : <article className={cls}>{body}</article>;
 }
 
-export function Media({ title, image, onClick }: { title: string; image: string; onClick: () => void }) {
-  return (
-    <button type="button" className="media" onClick={onClick}>
-      <img src={image} alt="" loading="lazy" decoding="async" />
-      <strong>{title}</strong>
-    </button>
+export function Media({
+  title,
+  image,
+  meta,
+  href,
+  onClick,
+}: {
+  title: string;
+  image: string;
+  meta?: string;
+  href?: string;
+  onClick?: () => void;
+}) {
+  const body = (
+    <>
+      <span className="thumb">
+        <img src={image} alt="" loading="lazy" decoding="async" />
+        <span className="thumb-play" aria-hidden="true" />
+      </span>
+      <strong className="media-title">{title}</strong>
+      {meta ? <span className="media-meta">{meta}</span> : null}
+    </>
   );
+  return href
+    ? <Link className="media" href={href}>{body}</Link>
+    : <button type="button" className="media" onClick={onClick}>{body}</button>;
 }
 
 export function Player({ title, src }: { title: string; src: string }) {

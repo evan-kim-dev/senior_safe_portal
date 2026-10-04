@@ -6,6 +6,10 @@ export const MAX_VIDEOS = 20;
 
 const VIDEO_ID = /^[\w-]{11}$/;
 
+export function isVideoId(value: unknown): value is string {
+  return typeof value === "string" && VIDEO_ID.test(value);
+}
+
 function records(value: unknown): Record<string, unknown>[] {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object" && !Array.isArray(item));

@@ -2,17 +2,17 @@
 export const SUPABASE_URL = "https://oweduuhfkiutlszfwukt.supabase.co";
 export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93ZWR1dWhma2l1dGxzemZ3dWt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NjMyNzUsImV4cCI6MjA5NzUzOTI3NX0.n25pwv-WuWOBIGY7cwJCYj1TxILYpy2XA2nn7a6ySMY";
 export const SEARCH_RESULTS_KEY = "sheriff-search-results";
-export const SITE_ASSET_VERSION = "20260910";
+export const SITE_ASSET_VERSION = "20261004";
 export const MASCOT_SRC = "assets/mascot-sheriff.png";
 export const MASCOT_POTATO_SRC = "assets/mascot-potato.png";
 
 export const SITE_NAV_ITEMS = [
-  { id: "home", page: "index", label: "홈" },
-  { id: "youtube", page: "youtube", label: "유튜브" },
-  { id: "news", page: "news", label: "뉴스" },
-  { id: "welfare", page: "welfare", label: "복지" },
-  { id: "board", page: "board", label: "자유게시판" },
-  { id: "info", page: "information", label: "정보" },
+  { id: "home", page: "index", label: "홈", icon: "home" },
+  { id: "youtube", page: "youtube", label: "유튜브", icon: "smart_display" },
+  { id: "news", page: "news", label: "뉴스", icon: "newspaper" },
+  { id: "welfare", page: "welfare", label: "복지", icon: "volunteer_activism" },
+  { id: "board", page: "board", label: "이야기", icon: "forum" },
+  { id: "info", page: "information", label: "안전정보", icon: "menu_book" },
 ];
 
 export const YOUTUBE_CATEGORIES = [
@@ -36,7 +36,7 @@ export const YOUTUBE_CATEGORIES = [
   },
   {
     id: "documentary",
-    label: "다큐",
+    label: "다큐멘터리",
     query: "다큐멘터리",
     queries: ["EBS 다큐프라임", "KBS 다큐멘터리", "역사 다큐", "자연 다큐"],
   },

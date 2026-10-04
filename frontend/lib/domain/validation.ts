@@ -24,7 +24,7 @@ export function isFamilyCode(value: unknown): value is string {
   return typeof value === "string" && FAMILY_CODE.test(value);
 }
 
-export type CheckInput = { url: string; familyCode: string };
+export type CheckInput = { url: string; familyCode: string; userId?: string };
 
 export function parseCheckInput(body: unknown): Result<CheckInput> {
   const url = trimmed(field(body, "url"));

@@ -4,11 +4,13 @@ import { getServerEnv } from "./env";
 import { createEdgeFunctionGateway } from "./gateways/edge-functions";
 import { logger } from "./logger";
 import { createActivityRepository } from "./repositories/activity-repository";
+import { createFamilyRepository } from "./repositories/family-repository";
 import { createFeedRepository } from "./repositories/feed-repository";
 import { createLinkCheckRepository } from "./repositories/link-check-repository";
 import { createActivityService, type ActivityService } from "./services/activity-service";
 import { ANALYZE_TIMEOUT_MS, createCheckService, type CheckService } from "./services/check-service";
 import { CHAT_TIMEOUT_MS, createChatService, type ChatService } from "./services/chat-service";
+import { createFamilyService, type FamilyService } from "./services/family-service";
 import { createFeedService, type FeedService } from "./services/feed-service";
 import { createRestClient } from "./supabase/rest-client";
 
@@ -17,6 +19,7 @@ export type Services = {
   chat: ChatService;
   feeds: FeedService;
   activity: ActivityService;
+  family: FamilyService;
 };
 
 let services: Services | null = null;
@@ -31,6 +34,7 @@ export function getServices(): Services {
   const edge = createEdgeFunctionGateway(env, log.child({ component: "edge-functions" }));
   const linkChecks = createLinkCheckRepository(rest);
   const activity = createActivityService(createActivityRepository(rest));
+  const family = createFamilyService(createFamilyRepository(rest), activity);
 
   if (!env.serviceRoleKey) {
     log.warn("service_role_missing", { effect: "link check cache and danger video count are disabled" });
@@ -41,7 +45,7 @@ export function getServices(): Services {
       findFresh: (urlKey) => linkChecks.findFresh(urlKey),
       analyze: (url) => edge.invoke("analyze-link", { url }, ANALYZE_TIMEOUT_MS),
       save: (urlKey, result) => linkChecks.save(urlKey, result),
-      recordDangerVideo: (familyCode) => activity.recordDangerVideo(familyCode),
+      recordDangerVideo: (familyCode, userId) => activity.recordDangerVideo(familyCode, userId),
       defer: (task) =>
         after(async () => {
           try {
@@ -57,6 +61,7 @@ export function getServices(): Services {
     }),
     feeds: createFeedService(createFeedRepository(rest)),
     activity,
+    family,
   };
   return services;
 }

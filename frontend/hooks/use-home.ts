@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { postJson } from "@/lib/client/api";
+import { authHeaders } from "@/lib/client/auth-headers";
 import { readPendingCheck } from "@/lib/client/check-bridge";
 import { clearClipboardAllowed, hasClipboardPermission, markClipboardAllowed, readClipboardHttpUrl } from "@/lib/client/clipboard";
 import { tellFamily } from "@/lib/client/family-notify";
@@ -48,7 +49,7 @@ export function useHome() {
         const data = await postJson<unknown>(
           "/api/check",
           { url: target, familyCode: loadGuardian().familyCode },
-          { timeoutMs: CHECK_TIMEOUT_MS },
+          { timeoutMs: CHECK_TIMEOUT_MS, headers: await authHeaders() },
         );
         if (!aliveRef.current) return;
         if (!isCheckResponse(data)) {

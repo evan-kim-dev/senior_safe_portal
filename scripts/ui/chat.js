@@ -36,26 +36,26 @@ export function getSiteChatHtml() {
               <h3 id="chat-title">보안관 단디</h3>
               <p class="chat-header-status">
                 <span class="chat-status-dot" aria-hidden="true"></span>
-                상담 가능
+                지금 물어볼 수 있습니다
               </p>
             </div>
           </div>
-          <button type="button" id="chat-close" class="chat-minimize-btn" aria-label="챗봇 최소화">
+          <button type="button" id="chat-close" class="chat-minimize-btn" aria-label="대화 창 접기">
             <span class="material-symbols-outlined" aria-hidden="true">remove</span>
           </button>
         </div>
         <div id="chat-messages" class="chat-messages" role="log" aria-live="polite"></div>
         <div class="chat-footer">
           <div class="chat-suggestions" role="group" aria-label="빠른 질문">
-            <button type="button" class="chat-chip" data-chat-prompt="보이스피싱이 뭐예요? 어떻게 예방하나요?">🛡️ 보이스피싱이 뭐예요?</button>
-            <button type="button" class="chat-chip" data-chat-prompt="의심스러운 링크를 받았을 때 어떻게 확인하나요?">🔗 링크 검사법</button>
-            <button type="button" class="chat-chip" data-chat-prompt="문자·카톡 사기를 당하지 않으려면 어떻게 해야 하나요?">📱 문자 사기 예방</button>
+            <button type="button" class="chat-chip" data-chat-prompt="보이스피싱이 뭐예요? 어떻게 예방하나요?">전화 사기가 뭐예요?</button>
+            <button type="button" class="chat-chip" data-chat-prompt="의심스러운 링크를 받았을 때 어떻게 확인하나요?">이상한 주소가 왔어요</button>
+            <button type="button" class="chat-chip" data-chat-prompt="문자·카톡 사기를 당하지 않으려면 어떻게 해야 하나요?">문자 사기, 어떻게 피하나요?</button>
           </div>
           <form id="chat-form" class="chat-form">
             <div class="chat-input-wrap">
-              <textarea id="chat-input" rows="1" class="chat-input" placeholder="메시지 입력" autocomplete="off" aria-label="메시지 입력"></textarea>
-              <button type="submit" class="chat-send-btn" aria-label="메시지 보내기">
-                <span class="material-symbols-outlined" aria-hidden="true">send</span>
+              <textarea id="chat-input" rows="1" class="chat-input" placeholder="궁금한 점을 적어 주세요" autocomplete="off" aria-label="궁금한 점을 적어 주세요"></textarea>
+              <button type="submit" class="chat-send-btn" aria-label="보내기">
+                <span>보내기</span>
               </button>
             </div>
           </form>
@@ -184,7 +184,7 @@ export const SiteChat = {
     const resultButton = document.createElement("button");
     resultButton.type = "button";
     resultButton.className = "chat-action-btn";
-    resultButton.textContent = "📋 상세 검사 결과 보기";
+    resultButton.textContent = "자세한 결과 보기";
     resultButton.addEventListener("click", () => {
       if (typeof SiteChat.onLinkResult === "function") {
         SiteChat.onLinkResult();

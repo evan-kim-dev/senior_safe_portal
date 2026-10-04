@@ -11,6 +11,8 @@ export default function BoardPage() {
     return (
       <Screen
         title="글쓰기"
+        lead="겪은 일이나 조심할 점을 나눠 주세요."
+        narrow
         secondary={<LineButton onClick={() => { board.setMessage(""); board.setView({ name: "list" }); }}>목록</LineButton>}
         primary={<BigButton type="submit" form="board-form">올리기</BigButton>}
       >
@@ -25,15 +27,12 @@ export default function BoardPage() {
   }
 
   if (board.view.name === "read") {
+    const { post } = board.view;
     return (
-      <Screen title="글보기" primary={<BigButton onClick={() => board.setView({ name: "list" })}>목록</BigButton>}>
+      <Screen title="글보기" narrow primary={<BigButton onClick={() => board.setView({ name: "list" })}>목록</BigButton>}>
         <Info
-          title={board.view.post.title}
-          lines={[
-            board.view.post.author_name,
-            board.formatDate(board.view.post.created_at),
-            board.view.post.content,
-          ]}
+          title={post.title}
+          lines={[`${post.author_name} · ${board.formatDate(post.created_at)}`, post.content]}
         />
       </Screen>
     );
@@ -42,15 +41,22 @@ export default function BoardPage() {
   return (
     <Screen
       title="게시판"
+      lead="서로 겪은 일을 나누고 조심할 점을 알려 주세요."
       secondary={board.user ? <LineButton onClick={() => void board.logout()}>로그아웃</LineButton> : null}
       primary={board.user
-        ? <BigButton onClick={() => { board.setMessage(""); board.setView({ name: "write" }); }}>글쓰기</BigButton>
+        ? <BigButton icon="board" onClick={() => { board.setMessage(""); board.setView({ name: "write" }); }}>글쓰기</BigButton>
         : <BigButton href="/login">로그인하고 글쓰기</BigButton>}
     >
       {board.message ? <Status>{board.message}</Status> : null}
       <Group label="게시판">
         {board.posts.map((post) => (
-          <Row key={post.id} onClick={() => board.setView({ name: "read", post })}>{post.title}</Row>
+          <Row
+            key={post.id}
+            meta={`${post.author_name} · ${board.formatDate(post.created_at)}`}
+            onClick={() => board.setView({ name: "read", post })}
+          >
+            {post.title}
+          </Row>
         ))}
       </Group>
     </Screen>

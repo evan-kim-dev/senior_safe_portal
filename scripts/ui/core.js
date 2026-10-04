@@ -635,7 +635,7 @@ async function loadHomeNewsRecommendations(container, query, options = {}) {
       container.innerHTML = wrapContentCardGrid(visibleArticles.map(renderNewsCard).join(""));
     }
   } catch {
-    container.innerHTML = mascotLoadingHtml("뉴스를 불러오지 못했습니다. Supabase에 search-news 배포 및 네이버 API 키를 확인해 주세요.");
+    container.innerHTML = mascotLoadingHtml("뉴스를 불러오지 못했습니다. 잠시 후 다시 열어 주세요.");
   }
 }
 
@@ -770,14 +770,14 @@ function filterLocalWelfareByRegion(services, apiData) {
 
 function formatWelfareLocationLabel(apiData, fallbackLabel, locationSource, nationalOnly = false) {
   if (nationalOnly) {
-    return "📍 위치 미확인 · 전국 복지 안내";
+    return "위치를 확인하지 못했습니다. 전국 복지를 보여 드립니다.";
   }
   const resolved = [apiData?.region, apiData?.city].filter(Boolean).join(" ");
-  const suffix = locationSource === "default" ? " (기본 위치 · 서울)" : "";
+  const suffix = locationSource === "default" ? " · 기본 위치는 서울입니다" : "";
   if (resolved) {
-    return `📍 ${resolved}${suffix} · 지역 맞춤 복지`;
+    return `${resolved}${suffix} · 우리 동네 복지`;
   }
-  return `📍 ${fallbackLabel}${suffix} · 지역 맞춤 복지`;
+  return `${fallbackLabel}${suffix} · 우리 동네 복지`;
 }
 
 const NATIONAL_WELFARE_API_REGION = "서울특별시";
@@ -1175,21 +1175,20 @@ async function loadHomeWelfareInfo(container, categoryId = "all", options = {}) 
       <div class="welfare-services welfare-services-browse">
         <section class="welfare-block">
           <h4 class="welfare-subheading">우리 지역 · 지자체 복지</h4>
-          <p class="welfare-source-note">${escapeHtml([data.region, data.city].filter(Boolean).join(" ") || categoryLabel)} · 지자체복지서비스 API</p>
+          <p class="welfare-source-note">${escapeHtml([data.region, data.city].filter(Boolean).join(" ") || categoryLabel)} · 우리 동네에서 안내하는 복지입니다</p>
           ${localHtml}
         </section>
         <section class="welfare-block">
           <h4 class="welfare-subheading">전국 · 중앙부처 복지</h4>
-          <p class="welfare-source-note">${escapeHtml(categoryLabel)} · 복지서비스정보 API</p>
+          <p class="welfare-source-note">${escapeHtml(categoryLabel)} · 나라에서 안내하는 복지입니다</p>
           ${nationalHtml}
         </section>
         ${renderWelfareQuickLinks(data.links)}
       </div>
     `;
   } catch (err) {
-    const detail = err instanceof Error ? err.message : "복지 정보를 불러오지 못했습니다.";
     container.innerHTML = mascotLoadingHtml(
-      `${detail} · Supabase search-welfare 배포 및 DATA_GO_KR_SERVICE_KEY(공공데이터포털 인증키)를 확인해 주세요.`,
+      sanitizeUserFacingMessage(err, "복지 정보를 불러오지 못했습니다. 잠시 후 다시 열어 주세요."),
     );
   }
 }
@@ -1356,11 +1355,11 @@ function getAuthFieldHtml({ id, type, label, autocomplete, minlength, placeholde
 
 function getAuthSocialButtonsHtml() {
   const googleButton = `
-    <button type="button" class="auth-social-btn auth-social-btn--google" data-social-provider="google" aria-label="Google로 로그인">
+    <button type="button" class="auth-social-btn auth-social-btn--google" data-social-provider="google" aria-label="구글로 로그인">
       <span class="auth-google-mark" aria-hidden="true">
         <img src="${assetUrl("assets/social-google-g.svg")}" alt="" width="16" height="16" />
       </span>
-      <span class="auth-google-label">Google로 로그인</span>
+      <span class="auth-google-label">구글로 로그인</span>
     </button>
   `;
 
@@ -1417,9 +1416,9 @@ function getLoginModalHtml() {
           ${getAuthFieldHtml({
             id: "login-email",
             type: "email",
-            label: "아이디",
+            label: "이메일",
             autocomplete: "username email",
-            placeholder: "example@example.com",
+            placeholder: "이메일 주소를 적어 주세요",
           })}
           ${getAuthFieldHtml({
             id: "login-password",
@@ -1440,13 +1439,13 @@ function getLoginModalHtml() {
           ${getAuthFieldHtml({
             id: "signup-email",
             type: "email",
-            label: "아이디 (이메일)",
+            label: "이메일",
             autocomplete: "username email",
           })}
           ${getAuthFieldHtml({
             id: "signup-password",
             type: "password",
-            label: "비밀번호 (6자 이상)",
+            label: "비밀번호 (6글자 이상)",
             autocomplete: "new-password",
             minlength: 6,
           })}
@@ -1457,7 +1456,7 @@ function getLoginModalHtml() {
             autocomplete: "new-password",
             minlength: 6,
           })}
-          <p class="modal-note auth-form-note">가입 후 이메일 확인이 필요할 수 있습니다. 메일함을 확인해 주세요.</p>
+          <p class="modal-note auth-form-note">가입한 뒤 메일함에서 확인 메일을 열어 주세요.</p>
           <div class="auth-form-footer">
             <button type="button" id="auth-link-login" class="auth-switch-link">로그인</button>
           </div>
@@ -1816,6 +1815,8 @@ function initSiteNavigation() {
     link.addEventListener("click", () => closeMobileNavMenu());
   });
 
+  injectAppTabBar(activeId);
+
   const mobileToggle = document.getElementById("mobile-menu-toggle");
   mobileToggle?.addEventListener("click", () => {
     if (!mobileNav) return;
@@ -1823,6 +1824,22 @@ function initSiteNavigation() {
     mobileNav.classList.toggle("hidden", !willOpen);
     mobileToggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
   });
+}
+
+function injectAppTabBar(activeId) {
+  if (document.querySelector(".app-tabbar")) return;
+  const layout = document.querySelector(".app-layout");
+  if (!layout) return;
+
+  const links = SITE_NAV_ITEMS.map(({ id, page, label, icon }) => {
+    const active = id === activeId ? " app-tabbar-link--active" : "";
+    return `<a class="app-tabbar-link${active}" href="${pageUrl(page)}" data-nav="${id}">
+      <span class="material-symbols-outlined" aria-hidden="true">${icon || "circle"}</span>
+      <span>${label}</span>
+    </a>`;
+  }).join("");
+
+  layout.insertAdjacentHTML("beforeend", `<nav class="app-tabbar" aria-label="화면 이동">${links}</nav>`);
 }
 
 function closeMobileNavMenu() {

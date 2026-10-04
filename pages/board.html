@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>자유게시판 - 시니어 디지털 보안관</title>
+  <title>이야기 - 시니어 디지털 보안관</title>
   <link rel="icon" type="image/png" sizes="192x192" href="../assets/favicon-192.png?v=4" />
   <link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon.png?v=4" />
   <link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch-icon.png?v=4" />
-  <link rel="stylesheet" href="../styles/style.css?v=20260907" />
-  <link rel="stylesheet" href="../styles/style-desktop.css?v=20260907" media="(min-width: 1024px)" />
-  <link rel="stylesheet" href="../styles/style-mobile.css?v=20260907" media="(max-width: 1023px)" />
+  <link rel="stylesheet" href="../styles/style.css?v=20261004" />
+  <link rel="stylesheet" href="../styles/style-desktop.css?v=20261004" media="(min-width: 1024px)" />
+  <link rel="stylesheet" href="../styles/style-mobile.css?v=20261004" media="(max-width: 1023px)" />
   <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 </head>
@@ -19,11 +19,12 @@
     <header class="site-header"></header>
 
     <main class="board-main">
-      <h1 class="board-page-title">자유게시판</h1>
+      <h1 class="board-page-title">이야기</h1>
+      <p class="board-page-lead">경험과 궁금한 점을 다른 분과 나누는 곳입니다.</p>
       <hr class="board-title-rule" />
 
       <div class="board-list-toolbar">
-        <p id="board-auth-hint" class="board-auth-hint">글을 쓰려면 우측 상단에서 로그인해 주세요.</p>
+        <p id="board-auth-hint" class="board-auth-hint">글을 쓰려면 오른쪽 위 「로그인」을 눌러 주세요.</p>
         <button type="button" id="board-write-btn" class="board-write-btn btn btn--primary">글쓰기</button>
       </div>
 
@@ -76,21 +77,21 @@
             </thead>
             <tbody id="board-table-body">
               <tr>
-                <td colspan="6" class="board-table-empty">게시글을 불러오고 있습니다...</td>
+                <td colspan="6" class="board-table-empty">글을 불러오고 있습니다.</td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <nav id="board-pagination" class="board-pagination" aria-label="게시판 페이지">
-          <button type="button" id="board-prev" class="board-page-btn" disabled>이전</button>
-          <span id="board-page-info" class="board-page-info">1 page / 1 pages</span>
-          <button type="button" id="board-next" class="board-page-btn" disabled>다음</button>
+          <button type="button" id="board-prev" class="board-page-btn" disabled>이전 쪽</button>
+          <span id="board-page-info" class="board-page-info">1쪽 / 전체 1쪽</span>
+          <button type="button" id="board-next" class="board-page-btn" disabled>다음 쪽</button>
         </nav>
 
         <div class="board-search-bar">
           <form id="board-search-form" class="search-form search-form--board" role="search">
-            <label for="board-search-input" class="form-label">게시글 검색</label>
+            <label for="board-search-input" class="form-label">글 찾기</label>
             <div class="search-row">
               <span class="search-mark" aria-hidden="true">
                 <span class="material-symbols-outlined search-mark-icon">forum</span>
@@ -100,9 +101,10 @@
                 type="search"
                 class="search-input"
                 autocomplete="off"
-                aria-label="게시글 검색"
+                placeholder="제목이나 내용을 적어 주세요"
+                aria-label="제목이나 내용을 적어 주세요"
               />
-              <button type="submit" class="search-submit-chip" aria-label="게시글 검색">
+              <button type="submit" class="search-submit-chip" aria-label="글 찾기">
                 <span class="material-symbols-outlined" aria-hidden="true">search</span>
                 <span class="search-submit-label">검색</span>
               </button>
@@ -114,6 +116,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script type="module" src="../scripts/main.js?v=20260910"></script>
+  <script type="module" src="../scripts/main.js?v=20261004"></script>
 </body>
 </html>

@@ -12,7 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-type RequestOptions = { timeoutMs?: number; signal?: AbortSignal };
+type RequestOptions = { timeoutMs?: number; signal?: AbortSignal; headers?: Record<string, string> };
 
 const DEFAULT_TIMEOUT_MS = 20_000;
 
@@ -56,13 +56,17 @@ async function requestJson<T>(path: string, init: RequestInit, options: RequestO
 export function postJson<T>(path: string, body: unknown, options?: RequestOptions): Promise<T> {
   return requestJson<T>(
     path,
-    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(body),
+    },
     options,
   );
 }
 
 export function getJson<T>(path: string, options?: RequestOptions): Promise<T> {
-  return requestJson<T>(path, { method: "GET" }, options);
+  return requestJson<T>(path, { method: "GET", headers: { ...options?.headers } }, options);
 }
 
 type CacheEntry = { expiresAt: number; promise: Promise<unknown> };

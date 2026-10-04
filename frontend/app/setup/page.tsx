@@ -16,6 +16,8 @@ export default function SetupPage() {
     return (
       <Screen
         title="이 설정을 넣을까요?"
+        lead="가족이 보낸 설정이 맞는지 확인해 주세요."
+        narrow
         secondary={<LineButton onClick={() => router.replace("/")}>홈으로</LineButton>}
         primary={<BigButton onClick={confirm}>넣기</BigButton>}
       >
@@ -33,6 +35,7 @@ export default function SetupPage() {
 
   return (
     <Screen
+      center
       title={state.name === "done" ? "이 폰에 넣었습니다" : "설정을 읽지 못했습니다"}
       primary={<BigButton href="/">홈으로</BigButton>}
     />
