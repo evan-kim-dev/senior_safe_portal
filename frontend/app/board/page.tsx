@@ -1,7 +1,8 @@
 "use client";
 
 import { BigButton, Field, Group, Info, LineButton, Row, Screen, Status } from "@/components/ui";
-import { useBoard } from "@/lib/use-board";
+import { useBoard } from "@/hooks/use-board";
+import { BOARD_LIMITS } from "@/lib/domain/board";
 
 export default function BoardPage() {
   const board = useBoard();
@@ -14,9 +15,9 @@ export default function BoardPage() {
         primary={<BigButton type="submit" form="board-form">올리기</BigButton>}
       >
         <form id="board-form" onSubmit={(event) => { event.preventDefault(); void board.savePost(); }}>
-          <Field id="board-name" label="이름" value={board.name} onChange={(event) => board.setName(event.target.value)} />
-          <Field id="board-title" label="제목" value={board.title} onChange={(event) => board.setTitle(event.target.value)} />
-          <Field id="board-content" label="내용" multiline value={board.content} onChange={(event) => board.setContent(event.target.value)} />
+          <Field id="board-name" label="이름" maxLength={BOARD_LIMITS.name} value={board.name} onChange={(event) => board.setName(event.target.value)} />
+          <Field id="board-title" label="제목" maxLength={BOARD_LIMITS.title} value={board.title} onChange={(event) => board.setTitle(event.target.value)} />
+          <Field id="board-content" label="내용" multiline maxLength={BOARD_LIMITS.content} value={board.content} onChange={(event) => board.setContent(event.target.value)} />
           {board.message ? <Status>{board.message}</Status> : null}
         </form>
       </Screen>

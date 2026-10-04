@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { sendToCheck } from "@/lib/check-bridge";
-import type { VideoItem } from "@/lib/types";
-import { useVideos } from "@/lib/use-cache";
 import { BigButton, LineButton, Media, Player, Screen, Status } from "@/components/ui";
+import { useVideos } from "@/hooks/use-feeds";
+import { sendToCheck } from "@/lib/client/check-bridge";
+import type { VideoItem } from "@/lib/domain/types";
+
+function embedUrl(id: string): string {
+  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3`;
+}
 
 export default function VideosPage() {
   const { videos, message } = useVideos();
@@ -17,7 +21,7 @@ export default function VideosPage() {
         secondary={playing.suspiciousUrl ? <LineButton onClick={() => sendToCheck(playing.suspiciousUrl)}>의심 주소 확인하기</LineButton> : null}
         primary={<BigButton onClick={() => setPlaying(null)}>목록</BigButton>}
       >
-        <Player title={playing.title} src={`https://www.youtube-nocookie.com/embed/${playing.id}?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3`} />
+        <Player title={playing.title} src={embedUrl(playing.id)} />
       </Screen>
     );
   }

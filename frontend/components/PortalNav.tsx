@@ -3,34 +3,25 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/lib/use-auth";
-
-const ITEMS = [
-  { href: "/", label: "검사" },
-  { href: "/videos", label: "영상" },
-  { href: "/news", label: "뉴스" },
-  { href: "/welfare", label: "복지" },
-  { href: "/board", label: "게시판" },
-];
+import { useAuth } from "@/hooks/use-auth";
+import { isCurrentRoute, isStandaloneRoute, NAV_ITEMS } from "@/lib/domain/routes";
 
 export function PortalNav() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const standalone = isStandaloneRoute(pathname);
 
   useEffect(() => {
-    document.body.dataset.care = pathname === "/care" || pathname === "/setup" ? "1" : "";
-  }, [pathname]);
+    document.body.dataset.care = standalone ? "1" : "";
+  }, [standalone]);
 
-  if (pathname === "/care" || pathname === "/setup") return null;
+  if (standalone) return null;
 
-  const links = ITEMS.map((item) => {
-    const current = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-    return (
-      <Link key={item.href} href={item.href} aria-current={current ? "page" : undefined}>
-        {item.label}
-      </Link>
-    );
-  });
+  const links = NAV_ITEMS.map((item) => (
+    <Link key={item.href} href={item.href} aria-current={isCurrentRoute(pathname, item.href) ? "page" : undefined}>
+      {item.label}
+    </Link>
+  ));
 
   return (
     <>

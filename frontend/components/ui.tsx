@@ -1,9 +1,14 @@
+import Link from "next/link";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode; href?: string };
 
 export function BigButton({ children, type = "button", href, ...props }: ButtonProps) {
-  if (href) return <a className="big-button" href={href}>{children}</a>;
+  if (href) {
+    return href.startsWith("/")
+      ? <Link className="big-button" href={href}>{children}</Link>
+      : <a className="big-button" href={href} rel="noopener noreferrer">{children}</a>;
+  }
   return (
     <button type={type} className="big-button" {...props}>
       {children}
@@ -60,7 +65,7 @@ export function Field({
     <label className="field" htmlFor={id}>
       <span>{label}</span>
       {multiline
-        ? <textarea id={id} value={value} placeholder={props.placeholder} onChange={onChange} />
+        ? <textarea id={id} value={value} placeholder={props.placeholder} maxLength={props.maxLength} onChange={onChange} />
         : <input id={id} value={value} onChange={onChange} {...props} />}
     </label>
   );
@@ -150,7 +155,7 @@ export function Info({ title, lines }: { title: string; lines: Array<string | nu
 export function Media({ title, image, onClick }: { title: string; image: string; onClick: () => void }) {
   return (
     <button type="button" className="media" onClick={onClick}>
-      <img src={image} alt="" />
+      <img src={image} alt="" loading="lazy" decoding="async" />
       <strong>{title}</strong>
     </button>
   );
@@ -163,6 +168,7 @@ export function Player({ title, src }: { title: string; src: string }) {
       title={title}
       src={src}
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      referrerPolicy="strict-origin-when-cross-origin"
       allowFullScreen
     />
   );

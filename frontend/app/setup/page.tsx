@@ -1,47 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { applySetup } from "@/lib/guardian";
-import { BigButton, Screen } from "@/components/ui";
-import type { TextSize } from "@/lib/types";
-
-function isTextSize(value: unknown): value is TextSize {
-  return value === "normal" || value === "large" || value === "xlarge";
-}
+import { useRouter } from "next/navigation";
+import { BigButton, Info, LineButton, Screen } from "@/components/ui";
+import { useSetup } from "@/hooks/use-setup";
+import { textSizeLabel } from "@/lib/domain/setup";
 
 export default function SetupPage() {
-  const [done, setDone] = useState(false);
+  const router = useRouter();
+  const { state, confirm } = useSetup();
 
-  useEffect(() => {
-    const hash = window.location.hash.replace(/^#/, "");
-    if (!hash) return;
+  if (state.name === "reading") return <Screen />;
 
-    try {
-      const parsed = JSON.parse(decodeURIComponent(hash)) as {
-        name?: unknown;
-        phone?: unknown;
-        textSize?: unknown;
-        channels?: unknown;
-        familyCode?: unknown;
-      };
-      applySetup({
-        name: typeof parsed.name === "string" ? parsed.name : "",
-        phone: typeof parsed.phone === "string" ? parsed.phone : "",
-        textSize: isTextSize(parsed.textSize) ? parsed.textSize : "normal",
-        channels: Array.isArray(parsed.channels) ? parsed.channels.filter((item) => typeof item === "string") : [],
-        familyCode: typeof parsed.familyCode === "string" ? parsed.familyCode : "",
-      });
-      setDone(true);
-    } catch {
-      setDone(false);
-    }
-
-    window.history.replaceState(null, "", "/setup");
-  }, []);
+  if (state.name === "confirm") {
+    const { payload } = state;
+    return (
+      <Screen
+        title="이 설정을 넣을까요?"
+        secondary={<LineButton onClick={() => router.replace("/")}>홈으로</LineButton>}
+        primary={<BigButton onClick={confirm}>넣기</BigButton>}
+      >
+        <Info
+          title="보호자 설정"
+          lines={[
+            payload.name ? `받을 사람 ${payload.name}` : null,
+            payload.phone ? `받을 전화번호 ${payload.phone}` : null,
+            `글자 크기 ${textSizeLabel(payload.textSize)}`,
+          ]}
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen
-      title={done ? "이 폰에 넣었습니다" : "설정을 읽지 못했습니다"}
+      title={state.name === "done" ? "이 폰에 넣었습니다" : "설정을 읽지 못했습니다"}
       primary={<BigButton href="/">홈으로</BigButton>}
     />
   );

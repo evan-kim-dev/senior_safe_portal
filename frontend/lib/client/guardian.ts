@@ -1,0 +1,70 @@
+import { isTextSize, sanitizeChannels, sanitizeName, sanitizePhone, type SetupPayload } from "@/lib/domain/setup";
+import type { GuardianSettings, TextSize } from "@/lib/domain/types";
+import { isFamilyCode } from "@/lib/domain/validation";
+import { readJson, writeJson } from "./storage";
+
+const KEY = "senior-safe-guardian";
+
+const EMPTY: GuardianSettings = {
+  name: "",
+  phone: "",
+  textSize: "normal",
+  channels: [],
+  familyCode: "",
+  region: "",
+};
+
+export function loadGuardian(): GuardianSettings {
+  const parsed = readJson(KEY);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return { ...EMPTY };
+  const value = parsed as Partial<Record<keyof GuardianSettings, unknown>>;
+  return {
+    name: typeof value.name === "string" ? value.name : "",
+    phone: typeof value.phone === "string" ? value.phone : "",
+    textSize: isTextSize(value.textSize) ? value.textSize : "normal",
+    channels: sanitizeChannels(value.channels),
+    familyCode: typeof value.familyCode === "string" ? value.familyCode : "",
+    region: typeof value.region === "string" ? value.region : "",
+  };
+}
+
+function store(next: GuardianSettings) {
+  writeJson(KEY, next);
+  applyTextSize(next.textSize);
+}
+
+export function ensureFamilyCode(): string {
+  const current = loadGuardian();
+  if (isFamilyCode(current.familyCode)) return current.familyCode;
+  const familyCode = crypto.randomUUID();
+  writeJson(KEY, { ...current, familyCode });
+  return familyCode;
+}
+
+export function applySetup(settings: SetupPayload) {
+  store({
+    ...loadGuardian(),
+    name: sanitizeName(settings.name),
+    phone: sanitizePhone(settings.phone),
+    textSize: settings.textSize,
+    channels: sanitizeChannels(settings.channels),
+    familyCode: settings.familyCode,
+  });
+}
+
+export function saveCare(settings: Pick<GuardianSettings, "name" | "phone" | "textSize" | "channels">): GuardianSettings {
+  const next: GuardianSettings = {
+    ...loadGuardian(),
+    name: sanitizeName(settings.name),
+    phone: sanitizePhone(settings.phone),
+    textSize: settings.textSize,
+    channels: sanitizeChannels(settings.channels),
+  };
+  store(next);
+  return next;
+}
+
+export function applyTextSize(size: TextSize) {
+  if (typeof document === "undefined") return;
+  document.documentElement.dataset.text = size;
+}

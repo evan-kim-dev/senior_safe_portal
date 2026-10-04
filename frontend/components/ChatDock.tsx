@@ -1,15 +1,17 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { sendToCheck } from "@/lib/check-bridge";
-import { useChat } from "@/lib/use-chat";
+import { useChat } from "@/hooks/use-chat";
+import { sendToCheck } from "@/lib/client/check-bridge";
+import { isStandaloneRoute } from "@/lib/domain/routes";
+import { MAX_CHAT_MESSAGE_LENGTH } from "@/lib/domain/validation";
 import { BigButton, Field, LineButton, Status } from "@/components/ui";
 
 export function ChatDock() {
   const pathname = usePathname();
   const chat = useChat();
 
-  if (pathname === "/care" || pathname === "/setup") return null;
+  if (isStandaloneRoute(pathname)) return null;
 
   if (!chat.open) {
     return (
@@ -28,7 +30,7 @@ export function ChatDock() {
           <div key={`${turn.role}-${index}`}>
             <p className={turn.role === "user" ? "chat-bubble user" : "chat-bubble"}>{turn.content}</p>
             {turn.linkUrl ? (
-              <LineButton onClick={() => sendToCheck(turn.linkUrl!, true)}>이 주소 검사하기</LineButton>
+              <LineButton onClick={() => sendToCheck(turn.linkUrl ?? "", true)}>이 주소 검사하기</LineButton>
             ) : null}
           </div>
         ))}
@@ -41,7 +43,15 @@ export function ChatDock() {
           void chat.send();
         }}
       >
-        <Field id="chat-text" label="질문" multiline value={chat.text} placeholder="궁금한 점을 적어 주세요" onChange={(event) => chat.setText(event.target.value)} />
+        <Field
+          id="chat-text"
+          label="질문"
+          multiline
+          value={chat.text}
+          placeholder="궁금한 점을 적어 주세요"
+          maxLength={MAX_CHAT_MESSAGE_LENGTH}
+          onChange={(event) => chat.setText(event.target.value)}
+        />
         <BigButton type="submit" disabled={chat.busy}>보내기</BigButton>
         <LineButton onClick={() => chat.setOpen(false)}>닫기</LineButton>
       </form>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { applyTextSize, loadGuardian } from "@/lib/guardian";
+import { applyTextSize, loadGuardian } from "@/lib/client/guardian";
 
 export function TextSize() {
   useEffect(() => {

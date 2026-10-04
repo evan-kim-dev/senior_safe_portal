@@ -1,12 +1,9 @@
-import { NextResponse } from "next/server";
-import { countDangerVideosToday, isFamilyCode } from "@/lib/activity";
+import { getServices } from "@/lib/server/container";
+import { json } from "@/lib/server/http/respond";
+import { withRoute } from "@/lib/server/http/route";
 
-export async function GET(request: Request) {
+export const GET = withRoute("activity", { rateLimit: { limit: 60, windowMs: 60_000 } }, async (request) => {
   const familyCode = new URL(request.url).searchParams.get("familyCode") ?? "";
-  if (!isFamilyCode(familyCode)) {
-    return NextResponse.json({ count: 0 });
-  }
-
-  const count = await countDangerVideosToday(familyCode);
-  return NextResponse.json({ count });
-}
+  const count = await getServices().activity.countDangerVideosToday(familyCode);
+  return json({ count });
+});

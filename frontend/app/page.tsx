@@ -1,9 +1,9 @@
 "use client";
 
 import { BigButton, Field, Group, LineButton, Result, Row, Screen, Status } from "@/components/ui";
-import { useHome } from "@/lib/use-home";
-import { headlineFor } from "@/lib/verdict";
-import { kindLabel } from "@/lib/url";
+import { useHome } from "@/hooks/use-home";
+import { kindLabel, MAX_URL_LENGTH } from "@/lib/domain/url";
+import { headlineFor } from "@/lib/domain/verdict";
 
 export default function HomePage() {
   const home = useHome();
@@ -56,7 +56,7 @@ export default function HomePage() {
         secondary={<LineButton onClick={() => home.removeNote(noteId)}>지우기</LineButton>}
         primary={<BigButton onClick={() => home.saveNote(noteId)}>저장</BigButton>}
       >
-        <Field id="note-edit" label="내용" multiline value={home.noteDraft} onChange={(event) => home.setNoteDraft(event.target.value)} />
+        <Field id="note-edit" label="내용" multiline maxLength={2000} value={home.noteDraft} onChange={(event) => home.setNoteDraft(event.target.value)} />
       </Screen>
     );
   }
@@ -83,6 +83,7 @@ export default function HomePage() {
           spellCheck={false}
           inputMode="url"
           enterKeyHint="go"
+          maxLength={MAX_URL_LENGTH}
           onChange={(event) => home.setUrl(event.target.value)}
         />
       </form>
