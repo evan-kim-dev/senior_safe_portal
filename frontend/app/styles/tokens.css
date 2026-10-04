@@ -1,0 +1,44 @@
+:root {
+  --bg: #F7F4EC;
+  --ink: #1A1A1A;
+  --muted: #3F3A32;
+  --button: #1B3A4B;
+  --button-ink: #FFFFFF;
+  --safe-bg: #E5F4E8;
+  --safe-ink: #14532D;
+  --danger-bg: #FDECEC;
+  --danger-ink: #9B1C1C;
+  --border: #D9D1C3;
+  --font: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  --font-body: 20px;
+  --font-result: 32px;
+  --line: 1.5;
+  --radius: 12px;
+  --pad-x: 20px;
+  --space-8: 8px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --button-height: 56px;
+  --dock: 145px;
+  --header: 73px;
+  --bar: 73px;
+  --shell: 480px;
+  --content: 640px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --shell: 960px;
+  }
+}
+
+html[data-text="large"] {
+  --font-body: 24px;
+  --font-result: 40px;
+}
+
+html[data-text="xlarge"] {
+  --font-body: 28px;
+  --font-result: 48px;
+}
