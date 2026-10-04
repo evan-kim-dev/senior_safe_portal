@@ -7,7 +7,7 @@ import {
   isInviteCode,
   normalizeInviteCode,
 } from "@/lib/domain/family";
-import { safeNextPath } from "@/lib/client/supabase-browser";
+import { safeNextPath, validateEmailPassword } from "@/lib/client/supabase-browser";
 
 describe("invite code", () => {
   it("8자리 영문·숫자만 허용한다", () => {
@@ -53,5 +53,15 @@ describe("safeNextPath", () => {
     expect(safeNextPath("/\\evil.com")).toBe("/board");
     expect(safeNextPath("/foo@bar")).toBe("/board");
     expect(safeNextPath(null, "/care")).toBe("/care");
+  });
+});
+
+describe("validateEmailPassword", () => {
+  it("이메일·비밀번호 기본 규칙을 검사한다", () => {
+    expect(validateEmailPassword("", "password1")).toBe("이메일을 적어 주세요.");
+    expect(validateEmailPassword("a@", "password1")).toBe("이메일 형식을 확인해 주세요.");
+    expect(validateEmailPassword("a@b.com", "")).toBe("비밀번호를 적어 주세요.");
+    expect(validateEmailPassword("a@b.com", "short")).toBe("비밀번호는 8자 이상으로 적어 주세요.");
+    expect(validateEmailPassword("a@b.com", "password1")).toBe("");
   });
 });
