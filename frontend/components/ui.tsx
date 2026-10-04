@@ -169,29 +169,29 @@ export function Result({
   secondary?: ReactNode;
 }) {
   return (
-    <main className={`result result-${tone}`} role="alert">
+    <div className={`result result-${tone}`} role="alertdialog" aria-modal="true" aria-labelledby="result-word">
       <div className="result-card">
         <span className="result-icon"><Icon name={RESULT_ICON[tone]} /></span>
-        <h1 className="result-word">{word}</h1>
+        <h2 id="result-word" className="result-word">{word}</h2>
         <p className="result-reason">{reason}</p>
         <div className="result-actions">
           {secondary}
           {primary}
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 
 export function Checking({ word, hint }: { word: string; hint?: string }) {
   return (
-    <main className="result result-plain" aria-live="polite" aria-busy="true">
+    <div className="result result-plain" role="dialog" aria-modal="true" aria-labelledby="checking-word" aria-busy="true">
       <div className="result-card">
         <span className="spinner" aria-hidden="true" />
-        <h1 className="result-word">{word}</h1>
+        <h2 id="checking-word" className="result-word">{word}</h2>
         {hint ? <p className="result-reason">{hint}</p> : null}
       </div>
-    </main>
+    </div>
   );
 }
 

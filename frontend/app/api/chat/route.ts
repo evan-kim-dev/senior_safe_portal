@@ -8,7 +8,7 @@ import { withRoute } from "@/lib/server/http/route";
 export const maxDuration = 60;
 
 export const POST = withRoute("chat", { rateLimit: { limit: 30, windowMs: 60_000 } }, async (request) => {
-  const body = await readJsonBody(request, 128 * 1024);
+  const body = await readJsonBody(request, 1_200_000);
   if (!body.ok) {
     return body.reason === "too-large"
       ? json({ ok: false, message: MESSAGES.bodyTooLarge }, { status: 413 })

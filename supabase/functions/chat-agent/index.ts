@@ -11,7 +11,10 @@ type HistoryItem = { role: ChatRole; content: string };
 
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_HISTORY = 12;
-const MAX_REQUEST_LENGTH = 128 * 1024;
+const MAX_REQUEST_LENGTH = 1_200_000;
+const MAX_IMAGE_BASE64 = 900_000;
+const ALLOWED_IMAGE_MIME = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const DEFAULT_IMAGE_PROMPT = "이 사진을 보고 위험한지 알려 주세요.";
 
 const SYSTEM_INSTRUCTION = `You are "단디" (디지털 보안관), a warm and trustworthy conversational agent for Korean seniors (60+).
 Your name is 단디. Introduce yourself as 디지털 보안관 단디 when appropriate.
@@ -19,7 +22,8 @@ Your name is 단디. Introduce yourself as 디지털 보안관 단디 when appro
 Your job:
 - Help seniors stay safe online: phishing, smishing, voice phishing, fake news, scam ads, suspicious links.
 - Explain simply in Korean. Use short sentences. Be polite and reassuring.
-- If the user shares suspicious text or a link, explain risks clearly and give practical next steps (do not click, call 112/1332, ask family, etc.).
+- If the user shares suspicious text, a link, or a photo/screenshot, explain risks clearly and give practical next steps (do not click, call 112/1332, ask family, etc.).
+- When an image is attached, describe what you see briefly and warn about scam signs if present.
 - If link analysis data is provided, use it in your answer.
 - You may also answer general digital life questions (smartphone, YouTube, kakao) in a senior-friendly way.
 - Never ask for passwords, OTP codes, or bank account numbers.
@@ -60,6 +64,31 @@ async function readRequestJson(req: Request): Promise<Record<string, unknown>> {
   throw new BadRequestError("요청 형식이 올바르지 않습니다.");
 }
 
+type ChatImage = { mimeType: string; data: string };
+
+function parseImage(raw: unknown): ChatImage | null {
+  if (raw == null) return null;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new BadRequestError("사진은 JPG, PNG, WEBP, GIF 만 보낼 수 있어요.");
+  }
+  const mimeType = typeof (raw as { mimeType?: unknown }).mimeType === "string"
+    ? (raw as { mimeType: string }).mimeType.trim()
+    : "";
+  const data = typeof (raw as { data?: unknown }).data === "string"
+    ? (raw as { data: string }).data.replace(/\s+/g, "")
+    : "";
+  if (!ALLOWED_IMAGE_MIME.has(mimeType)) {
+    throw new BadRequestError("사진은 JPG, PNG, WEBP, GIF 만 보낼 수 있어요.");
+  }
+  if (!data || !/^[A-Za-z0-9+/]+=*$/.test(data)) {
+    throw new BadRequestError("사진을 준비하지 못했어요. 다른 사진을 골라 주세요.");
+  }
+  if (data.length > MAX_IMAGE_BASE64) {
+    throw new BadRequestError("사진이 너무 큽니다. 더 작은 사진을 골라 주세요.");
+  }
+  return { mimeType, data };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: buildCorsHeaders(req) });
@@ -84,11 +113,19 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await readRequestJson(req);
-    const message = typeof body.message === "string" ? body.message.trim() : "";
-    if (!message) throw new BadRequestError("메시지가 비어 있습니다.");
-    if (message.length > MAX_MESSAGE_LENGTH) throw new BadRequestError("질문은 2000자 이내로 적어 주세요.");
+    const image = parseImage(body.image);
+    const rawMessage = typeof body.message === "string" ? body.message.trim() : "";
+    if (!rawMessage && !image) throw new BadRequestError("메시지가 비어 있습니다.");
+    if (rawMessage.length > MAX_MESSAGE_LENGTH) throw new BadRequestError("질문은 2000자 이내로 적어 주세요.");
+    const message = rawMessage || DEFAULT_IMAGE_PROMPT;
 
     const history = sanitizeHistory(body.history);
+    const userParts = image
+      ? [
+          { inlineData: { mimeType: image.mimeType, data: image.data } },
+          { text: message },
+        ]
+      : message;
 
     const reply = await sendGeminiChatMessage(
       geminiApiKey,
@@ -97,7 +134,7 @@ Deno.serve(async (req: Request) => {
         role: item.role === "assistant" ? "model" : "user",
         parts: [{ text: item.content }],
       })),
-      message,
+      userParts,
     );
 
     if (!reply) {

@@ -111,6 +111,20 @@ const PATHS = {
   text: <path d="M4 7V5h16v2M12 5v14M9 19h6" />,
   sparkle: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />,
   home: <path d="M4 11l8-7 8 7M6 9.5V20h12V9.5" />,
+  menu: (
+    <>
+      <path d="M4 7h16M4 12h16M4 17h16" />
+    </>
+  ),
+  plus: <path d="M12 5v14M5 12h14" />,
+  image: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <circle cx="9" cy="10" r="1.5" />
+      <path d="M3 16l5-4 4 3 3-2 6 5" />
+    </>
+  ),
+  send: <path d="M4.5 12l15-7.5L12 19.5 10 13.5 4.5 12z" />,
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof PATHS;

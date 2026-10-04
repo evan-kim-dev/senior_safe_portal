@@ -1,45 +1,27 @@
 "use client";
 
+import { useEffect } from "react";
 import { NewsSection, VideoRail, WelfareSection } from "@/components/home/HomeFeeds";
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomeRecords } from "@/components/home/HomeRecords";
 import { Hotlines, QuickMenu, ScamRail } from "@/components/home/HomeSections";
 import { BigButton, Checking, Field, LineButton, Result, Screen } from "@/components/ui";
 import { useHome } from "@/hooks/use-home";
-import { kindLabel } from "@/lib/domain/url";
+import { formatCheckReason } from "@/lib/domain/url";
 
 export default function HomePage() {
   const home = useHome();
+  const overlayOpen =
+    home.screen.name === "checking" || home.screen.name === "result" || home.screen.name === "error";
 
-  if (home.screen.name === "checking") {
-    return <Checking word="확인하고 있어요" hint="잠시만 기다려 주세요." />;
-  }
-
-  if (home.screen.name === "result") {
-    const { result } = home.screen;
-    return (
-      <Result
-        tone={result.verdict === "safe" ? "safe" : "danger"}
-        word={result.headline}
-        reason={`${kindLabel(result.kind)}. ${result.reason}`}
-        secondary={result.verdict === "danger" && home.familyPhone ? (
-          <LineButton icon="phone" onClick={() => home.tellFamily(result.url)}>가족에게 말하기</LineButton>
-        ) : null}
-        primary={<BigButton onClick={home.backHome}>다시 검사</BigButton>}
-      />
-    );
-  }
-
-  if (home.screen.name === "error") {
-    return (
-      <Result
-        tone="plain"
-        word="확인하지 못했어요"
-        reason={home.screen.message}
-        primary={<BigButton onClick={home.backHome}>다시 검사</BigButton>}
-      />
-    );
-  }
+  useEffect(() => {
+    if (!overlayOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [overlayOpen]);
 
   if (home.screen.name === "note") {
     const noteId = home.screen.id;
@@ -55,22 +37,61 @@ export default function HomePage() {
     );
   }
 
+  const checkResult = home.screen.name === "result" ? home.screen.result : null;
+
   return (
-    <main className="home">
-      <HomeHero
-        url={home.url}
-        message={home.homeMessage}
-        onUrl={home.setUrl}
-        onSubmit={() => void home.submitCheck()}
-        onPaste={() => void home.pasteAndCheck()}
-      />
-      <QuickMenu />
-      <ScamRail />
-      <VideoRail />
-      <NewsSection />
-      <WelfareSection />
-      <HomeRecords recent={home.recent} notes={home.notes} onOpenNote={home.openNote} />
-      <Hotlines />
-    </main>
+    <>
+      <main className="home">
+        <HomeHero
+          url={home.url}
+          message={home.homeMessage}
+          onUrl={home.setUrl}
+          onSubmit={() => void home.submitCheck()}
+          onPaste={() => void home.pasteAndCheck()}
+        />
+        <QuickMenu />
+        <ScamRail />
+        <VideoRail />
+        <NewsSection />
+        <WelfareSection />
+        <HomeRecords recent={home.recent} notes={home.notes} onOpenNote={home.openNote} />
+        <Hotlines />
+      </main>
+
+      {home.screen.name === "checking" ? (
+        <Checking word="확인하고 있어요" hint="잠시만 기다려 주세요." />
+      ) : null}
+
+      {checkResult ? (
+        <Result
+          tone={checkResult.verdict === "safe" ? "safe" : "danger"}
+          word={checkResult.headline}
+          reason={formatCheckReason(checkResult.url, checkResult.kind, checkResult.reason)}
+          secondary={
+            checkResult.verdict === "safe" ? (
+              <LineButton onClick={home.backHome}>다시 검사</LineButton>
+            ) : home.familyPhone ? (
+              <LineButton icon="phone" onClick={() => home.tellFamily(checkResult.url)}>가족에게 말하기</LineButton>
+            ) : undefined
+          }
+          primary={
+            checkResult.verdict === "safe" ? (
+              <BigButton href={checkResult.url} icon="arrow">바로가기</BigButton>
+            ) : (
+              <BigButton onClick={home.backHome}>다시 검사</BigButton>
+            )
+          }
+        />
+      ) : null}
+
+      {home.screen.name === "error" ? (
+        <Result
+          tone="plain"
+          word="확인하지 못했어요"
+          reason={home.screen.message}
+          primary={<BigButton onClick={home.backHome}>다시 검사</BigButton>}
+        />
+      ) : null}
+    </>
   );
 }

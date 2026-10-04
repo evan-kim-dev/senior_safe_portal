@@ -91,6 +91,18 @@ export function kindLabel(kind: CheckKind): "영상" | "링크" {
   return kind === "video" ? "영상" : "링크";
 }
 
+/** 한글은 받침, 그 외는 끝글자 발음 느낌으로 은/는을 고른다. */
+export function topicParticle(word: string): "은" | "는" {
+  const trimmed = word.trim();
+  if (!trimmed) return "는";
+  const last = [...trimmed].at(-1) ?? "";
+  const code = last.codePointAt(0) ?? 0;
+  if (code >= 0xac00 && code <= 0xd7a3) {
+    return (code - 0xac00) % 28 === 0 ? "는" : "은";
+  }
+  return /[aeiouAEIOUlLmMnNrR0-9]$/.test(last) ? "은" : "는";
+}
+
 export function toTwoLineReason(reason: string): string {
   const clean = collapseSpaces(reason);
   if (!clean) return "이유를 확인하지 못했습니다. 주소를 다시 검사해 주세요.";
@@ -98,6 +110,36 @@ export function toTwoLineReason(reason: string): string {
   const parts = clean.split(/(?<=[.!?。])\s+/).filter(Boolean);
   if (parts.length >= 2) return `${parts[0]} ${parts[1]}`;
   return clean;
+}
+
+/** AI 설명에서 주어·연결 표현을 걷어 내 앞문장과 이어지게 한다. */
+export function cleanCheckReasonBody(reason: string): string {
+  let text = collapseSpaces(reason)
+    .replace(/^(링크|영상)\.\s*/u, "")
+    .replace(/^입력하신\s+(링크|영상).+?[은는]\s*/u, "")
+    .replace(/^(해당|이|그)\s*(링크|주소|사이트|페이지|URL|url|영상)[은는]?\s*/u, "")
+    .replace(/^(링크|주소|사이트|페이지|영상)[은는]\s*/u, "");
+
+  text = text
+    .replace(/(웹사이트|사이트|페이지|언론사)로\s*연결되며/gu, "$1이며")
+    .replace(/(웹사이트|사이트|페이지|언론사)으로\s*연결되며/gu, "$1이며")
+    .replace(/로\s*연결되며/gu, "이며")
+    .replace(/으로\s*연결되며/gu, "이며")
+    .replace(/(웹사이트|사이트|페이지)로\s*연결됩니다/gu, "$1입니다")
+    .replace(/로\s*연결됩니다/gu, "입니다");
+
+  return toTwoLineReason(text);
+}
+
+/** 화면에 보여줄 검사 결과 설명. 예: 입력하신 링크 mydaily.co.kr은 …이며, … */
+export function formatCheckReason(url: string, kind: CheckKind, reason: string): string {
+  const label = kindLabel(kind);
+  const target = hostnameOf(url) || collapseSpaces(url) || "주소";
+  const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const body = cleanCheckReasonBody(reason)
+    .replace(new RegExp(`^(https?:\\/\\/)?(www\\.)?${escaped}[은는]?\\s*`, "i"), "")
+    .replace(new RegExp(`^${escaped}[은는]\\s*`, "i"), "");
+  return `입력하신 ${label} ${target}${topicParticle(target)} ${body}`;
 }
 
 export function titleFromUrl(url: string, scrapedTitle?: string): string {

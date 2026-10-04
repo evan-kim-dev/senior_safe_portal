@@ -5,6 +5,9 @@ import { MAX_URL_LENGTH } from "./url";
 
 export const MAX_CHAT_MESSAGE_LENGTH = 2000;
 export const MAX_CHAT_HISTORY = 12;
+export const MAX_CHAT_IMAGE_BASE64 = 900_000;
+export const CHAT_IMAGE_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
+export const DEFAULT_CHAT_IMAGE_PROMPT = "이 사진을 보고 위험한지 알려 주세요.";
 
 const FAMILY_CODE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CATEGORY_ID = /^[a-z0-9_-]{1,40}$/i;
@@ -34,7 +37,12 @@ export function parseCheckInput(body: unknown): Result<CheckInput> {
   return ok({ url, familyCode: isFamilyCode(familyCode) ? familyCode : "" });
 }
 
-export type ChatInput = { message: string; history: ChatTurn[] };
+export type ChatImageInput = {
+  mimeType: (typeof CHAT_IMAGE_MIME)[number];
+  data: string;
+};
+
+export type ChatInput = { message: string; history: ChatTurn[]; image?: ChatImageInput };
 
 export function sanitizeHistory(raw: unknown): ChatTurn[] {
   if (!Array.isArray(raw)) return [];
@@ -48,11 +56,30 @@ export function sanitizeHistory(raw: unknown): ChatTurn[] {
     .map((item) => ({ role: item.role, content: item.content.slice(0, MAX_CHAT_MESSAGE_LENGTH) }));
 }
 
+function parseChatImage(raw: unknown): Result<ChatImageInput | undefined> {
+  if (raw == null) return ok(undefined);
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return err(MESSAGES.chatImageUnsupported);
+  const mimeType = trimmed((raw as { mimeType?: unknown }).mimeType);
+  const data = typeof (raw as { data?: unknown }).data === "string" ? (raw as { data: string }).data.replace(/\s+/g, "") : "";
+  if (!(CHAT_IMAGE_MIME as readonly string[]).includes(mimeType)) return err(MESSAGES.chatImageUnsupported);
+  if (!data || !/^[A-Za-z0-9+/]+=*$/.test(data)) return err(MESSAGES.chatImageFailed);
+  if (data.length > MAX_CHAT_IMAGE_BASE64) return err(MESSAGES.chatImageTooLarge);
+  return ok({ mimeType: mimeType as ChatImageInput["mimeType"], data });
+}
+
 export function parseChatInput(body: unknown): Result<ChatInput> {
+  const imageResult = parseChatImage(field(body, "image"));
+  if (!imageResult.ok) return imageResult;
+
   const message = trimmed(field(body, "message"));
-  if (!message) return err(MESSAGES.chatEmpty);
+  if (!message && !imageResult.value) return err(MESSAGES.chatEmpty);
   if (message.length > MAX_CHAT_MESSAGE_LENGTH) return err(MESSAGES.chatTooLong);
-  return ok({ message, history: sanitizeHistory(field(body, "history")) });
+
+  return ok({
+    message: message || DEFAULT_CHAT_IMAGE_PROMPT,
+    history: sanitizeHistory(field(body, "history")),
+    image: imageResult.value,
+  });
 }
 
 /** 영상·뉴스 분류. 비어 있으면 전체를 읽는다. */

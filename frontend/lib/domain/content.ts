@@ -10,12 +10,16 @@ export type QuickLink = { href: string; label: string; icon: ContentIcon; tone: 
 
 export const QUICK_LINKS: readonly QuickLink[] = [
   { href: "/videos", label: "추천 영상", icon: "play", tone: "red" },
-  { href: "/news", label: "보안 뉴스", icon: "news", tone: "purple" },
+  { href: "/news", label: "실시간 뉴스", icon: "news", tone: "purple" },
   { href: "/welfare", label: "복지 혜택", icon: "heart", tone: "green" },
   { href: "/board", label: "게시판", icon: "board", tone: "orange" },
-  { href: "/care", label: "자녀 대시보드", icon: "users", tone: "blue" },
-  { href: "/link", label: "부모 연결", icon: "users", tone: "purple" },
   { href: "/#hotline", label: "신고 전화", icon: "phone", tone: "red" },
+];
+
+/** 헤더 계정 메뉴에만 두는 가족 연동 링크. */
+export const FAMILY_LINKS: readonly { href: string; label: string }[] = [
+  { href: "/care", label: "자녀 대시보드" },
+  { href: "/link", label: "부모 계정 연결" },
 ];
 
 export type ScamType = {

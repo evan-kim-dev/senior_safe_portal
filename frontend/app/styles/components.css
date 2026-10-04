@@ -267,6 +267,63 @@ img {
   color: var(--primary);
 }
 
+.family-menu {
+  position: relative;
+}
+
+.family-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.family-menu-btn:hover,
+.family-menu-btn[aria-expanded="true"] {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.family-menu-btn .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.family-menu-panel {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  min-width: 11rem;
+  padding: 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #FFFFFF;
+  box-shadow: var(--shadow-lift);
+}
+
+.family-menu-panel a {
+  display: block;
+  padding: 0.75rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.family-menu-panel a:hover,
+.family-menu-panel a[aria-current="page"] {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
 .text-switch {
   display: inline-flex;
   align-items: center;
@@ -1001,15 +1058,7 @@ button.mosaic-lead {
   justify-content: center;
   overflow-y: auto;
   padding: 1.5rem var(--gutter) calc(1.5rem + env(safe-area-inset-bottom));
-  background: var(--bg);
-}
-
-.result-safe {
-  background: linear-gradient(180deg, #E8F8EF 0%, #F6FDF9 100%);
-}
-
-.result-danger {
-  background: linear-gradient(180deg, #FEECEC 0%, #FFF8F8 100%);
+  background: rgba(17, 24, 39, 0.45);
 }
 
 .result-card {
@@ -1018,7 +1067,26 @@ button.mosaic-lead {
   align-items: center;
   gap: 1rem;
   width: min(100%, 30rem);
+  padding: 2rem 1.5rem;
+  border: 1px solid rgba(228, 231, 238, 0.9);
+  border-radius: var(--radius-l);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 50px rgba(17, 24, 39, 0.28);
   text-align: center;
+}
+
+.result-safe .result-card,
+.result-danger .result-card,
+.result-plain .result-card {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.result-safe .result-card {
+  border-color: rgba(183, 228, 199, 0.95);
+}
+
+.result-danger .result-card {
+  border-color: rgba(243, 180, 174, 0.95);
 }
 
 .result-icon {
@@ -1051,6 +1119,7 @@ button.mosaic-lead {
   font-size: 2.25rem;
   font-weight: 800;
   line-height: 1.25;
+  color: var(--ink);
 }
 
 .result-safe .result-word {
@@ -1263,7 +1332,7 @@ button.mosaic-lead {
 /* ---------- 홈: 바로가기 ---------- */
 
 .quick {
-  padding: 1.25rem 0 0.5rem;
+  padding: 2.25rem 0 0.5rem;
 }
 
 .quick-inner {
@@ -1932,8 +2001,16 @@ body:has(.page-actions) .chat-fab {
   width: 2.5rem;
   height: 2.5rem;
   flex: none;
+  overflow: hidden;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: #FFFFFF;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.55);
+}
+
+.chat-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .chat-title {
@@ -1990,7 +2067,7 @@ body:has(.page-actions) .chat-fab {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: 0.25rem;
   max-width: 88%;
 }
 
@@ -2016,29 +2093,254 @@ body:has(.page-actions) .chat-fab {
   color: #FFFFFF;
 }
 
+.chat-time {
+  padding: 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.chat-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.75rem;
+  padding: 0.875rem 1.125rem;
+}
+
+.chat-typing span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--primary);
+  opacity: 0.35;
+  animation: chat-typing-bounce 1.2s ease-in-out infinite;
+}
+
+.chat-typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.chat-typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes chat-typing-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+
+  40% {
+    transform: translateY(-0.25rem);
+    opacity: 1;
+  }
+}
+
+.chat-turn .btn {
+  margin-top: 0.25rem;
+}
+
+.chat-bubble-media {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: hidden;
+  padding: 0.5rem;
+}
+
+.chat-bubble-media p {
+  margin: 0;
+  padding: 0.25rem 0.5rem 0.375rem;
+}
+
+.chat-image {
+  display: block;
+  width: 100%;
+  max-width: 14rem;
+  max-height: 14rem;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
 .chat-form {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
   gap: 0.5rem;
-  padding: 0.75rem var(--gutter) calc(0.75rem + env(safe-area-inset-bottom));
+  padding: 0.625rem var(--gutter) calc(0.75rem + env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
   background: #FFFFFF;
 }
 
-.chat-form .field {
+.chat-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.chat-attach-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.375rem 0.375rem 0.375rem 0.375rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.chat-attach-thumb {
+  width: 2.25rem;
+  height: 2.25rem;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.chat-attach-name {
   flex: 1;
+  min-width: 0;
+  max-width: 10rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.chat-form .field textarea {
-  field-sizing: content;
-  min-height: 3rem;
-  max-height: 8rem;
-  resize: none;
-}
-
-.chat-form .btn {
+.chat-attach-remove {
+  display: grid;
+  place-items: center;
   flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-right: 0.125rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.chat-attach-remove:hover {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.chat-attach-remove .icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.chat-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
   min-height: 3rem;
+  padding: 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.chat-composer:focus-within {
+  border-color: var(--primary);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.chat-attach {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.chat-attach:hover:not(:disabled) {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.chat-attach:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.chat-attach .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.chat-input textarea {
+  width: 100%;
+  field-sizing: content;
+  min-height: 2.5rem;
+  max-height: 7rem;
+  margin: 0;
+  padding: 0.55rem 0.25rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  resize: none;
+  outline: none;
+}
+
+.chat-input textarea:disabled {
+  opacity: 0.7;
+}
+
+.chat-send {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
+.chat-send:hover:not(:disabled) {
+  background: var(--primary-strong);
+}
+
+.chat-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chat-send .icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-left: 0.1rem;
 }
 
 /* ---------- 태블릿 ---------- */
@@ -2049,7 +2351,7 @@ body:has(.page-actions) .chat-fab {
   }
 
   .quick-inner {
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .rail-poster {

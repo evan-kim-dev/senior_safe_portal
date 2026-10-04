@@ -9,8 +9,13 @@ import { HOTLINES, QUICK_LINKS, SCAM_TYPES, telHref } from "@/lib/domain/content
 
 export function QuickMenu() {
   return (
-    <nav className="quick" aria-label="빠른 메뉴">
+    <nav className="quick" aria-labelledby="quick-title">
       <div className="wrap">
+        <div className="section-head">
+          <div>
+            <h2 id="quick-title">바로가기</h2>
+          </div>
+        </div>
         <div className="quick-inner">
           {QUICK_LINKS.map((item) => (
             <Link key={item.href} href={item.href} className="quick-item">

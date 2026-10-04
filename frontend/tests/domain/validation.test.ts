@@ -58,6 +58,25 @@ describe("parseChatInput", () => {
     expect(parseChatInput({ message: "  " })).toEqual({ ok: false, message: MESSAGES.chatEmpty });
     expect(parseChatInput({ message: "가".repeat(2001) })).toEqual({ ok: false, message: MESSAGES.chatTooLong });
   });
+
+  it("사진만 있으면 기본 질문으로 받는다", () => {
+    const result = parseChatInput({
+      message: "",
+      image: { mimeType: "image/jpeg", data: "aGVsbG8=" },
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.message).toContain("사진");
+      expect(result.value.image?.mimeType).toBe("image/jpeg");
+    }
+  });
+
+  it("지원하지 않는 사진은 거절", () => {
+    expect(parseChatInput({ message: "hi", image: { mimeType: "application/pdf", data: "aGVsbG8=" } })).toEqual({
+      ok: false,
+      message: MESSAGES.chatImageUnsupported,
+    });
+  });
 });
 
 describe("parseFeedInput", () => {

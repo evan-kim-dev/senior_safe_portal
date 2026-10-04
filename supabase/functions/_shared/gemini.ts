@@ -13,7 +13,9 @@ export class GeminiUnavailableError extends Error {
   }
 }
 
-type ContentPart = { text: string };
+type TextPart = { text: string };
+type InlineDataPart = { inlineData: { mimeType: string; data: string } };
+export type ContentPart = TextPart | InlineDataPart;
 
 export type GeminiModelOptions = {
   systemInstruction?: string;
@@ -89,7 +91,7 @@ export async function sendGeminiChatMessage(
   apiKey: string,
   modelOptions: GeminiModelOptions,
   history: ChatHistoryItem[],
-  userMessage: string,
+  userMessage: string | ContentPart[],
 ): Promise<string> {
   return runWithGeminiFallback(async (modelName) => {
     const genAI = new GoogleGenerativeAI(apiKey);

@@ -4,9 +4,11 @@ import {
   classifyKind,
   extractHttpUrl,
   extractRawHttpUrls,
+  formatCheckReason,
   isCheckableAddress,
   normalizeSubmittedUrl,
   titleFromUrl,
+  topicParticle,
   toTwoLineReason,
   tryCacheUrlKey,
 } from "@/lib/domain/url";
@@ -79,6 +81,36 @@ describe("toTwoLineReason", () => {
 
   it("비어 있으면 안내 문장", () => {
     expect(toTwoLineReason("  ")).toBe("이유를 확인하지 못했습니다. 주소를 다시 검사해 주세요.");
+  });
+});
+
+describe("topicParticle", () => {
+  it("받침에 따라 은/를 고른다", () => {
+    expect(topicParticle("링크")).toBe("는");
+    expect(topicParticle("영상")).toBe("은");
+    expect(topicParticle("mydaily.co.kr")).toBe("은");
+  });
+});
+
+describe("formatCheckReason", () => {
+  it("입력하신 링크 + 주소 + 은/는 형태로 만든다", () => {
+    expect(
+      formatCheckReason(
+        "https://www.mydaily.co.kr/news/1",
+        "link",
+        "해당 링크는 마이데일리 뉴스 웹사이트로 연결되며, 피싱 또는 스미싱 위험이 없습니다.",
+      ),
+    ).toBe("입력하신 링크 mydaily.co.kr은 마이데일리 뉴스 웹사이트이며, 피싱 또는 스미싱 위험이 없습니다.");
+  });
+
+  it("본문에 같은 주소가 반복되면 한 번만 남긴다", () => {
+    expect(
+      formatCheckReason(
+        "https://www.mydaily.co.kr/news/1",
+        "link",
+        "mydaily.co.kr은 신뢰할 수 있는 언론사 웹사이트이며, 링크와 내용은 정상적인 뉴스 기사입니다.",
+      ),
+    ).toBe("입력하신 링크 mydaily.co.kr은 신뢰할 수 있는 언론사 웹사이트이며, 링크와 내용은 정상적인 뉴스 기사입니다.");
   });
 });
 
