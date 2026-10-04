@@ -14,6 +14,7 @@
 import {
   buildCorsHeaders,
   clampLimit,
+  isAllowedCaller,
   jsonResponse,
   sanitizeSearchQuery,
   toClientSafeMessage,
@@ -250,6 +251,10 @@ Deno.serve(async (req: Request) => {
   try {
     if (req.method !== "POST") {
       return jsonResponse(req, { error: "Method not allowed" }, 405);
+    }
+
+    if (!isAllowedCaller(req)) {
+      return jsonResponse(req, { error: "Unauthorized" }, 401);
     }
 
     const youtubeApiKey = Deno.env.get("YOUTUBE_API_KEY");

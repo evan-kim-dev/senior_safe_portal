@@ -5,7 +5,7 @@ import { BigButton, Screen, Status } from "@/components/ui";
 import { getSupabase, safeNextPath } from "@/lib/client/supabase-browser";
 
 export default function AuthCallbackPage() {
-  const [message, setMessage] = useState("로그인 확인 중이에요…");
+  const [message, setMessage] = useState("확인하고 있어요…");
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export default function AuthCallbackPage() {
       if (!supabase) {
         if (!cancelled) {
           setFailed(true);
-          setMessage("로그인 설정을 불러오지 못했어요.");
+          setMessage("지금 로그인할 수 없어요.");
         }
         return;
       }
@@ -42,7 +42,7 @@ export default function AuthCallbackPage() {
       } catch {
         if (!cancelled) {
           setFailed(true);
-          setMessage("인증 링크가 만료되었거나 올바르지 않아요. 다시 로그인해 주세요.");
+          setMessage("링크가 만료됐어요. 다시 로그인해 주세요.");
         }
       }
     }
@@ -54,9 +54,9 @@ export default function AuthCallbackPage() {
   }, []);
 
   return (
-    <Screen title="로그인 확인" lead="잠시만 기다려 주세요." narrow busy={!failed}>
+    <Screen title="로그인" lead="잠시만 기다려 주세요." narrow busy={!failed}>
       <Status>{message}</Status>
-      {failed ? <BigButton href="/login">로그인으로</BigButton> : null}
+      {failed ? <BigButton href="/login">다시 로그인</BigButton> : null}
     </Screen>
   );
 }

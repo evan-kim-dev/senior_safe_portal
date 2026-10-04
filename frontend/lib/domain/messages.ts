@@ -17,6 +17,7 @@ export const MESSAGES = {
   chatImageFailed: "사진을 준비하지 못했어요. 다른 사진을 골라 주세요.",
   bodyTooLarge: "보낸 내용이 너무 깁니다.",
   tooManyRequests: "너무 자주 눌렀어요. 잠시 후 다시 눌러 주세요.",
+  guestLimitReached: "비회원은 하루 3번까지 쓸 수 있어요. 로그인하면 더 사용할 수 있어요.",
   unexpected: "문제가 생겼어요. 잠시 후 다시 눌러 주세요.",
   boardDraftRequired: "이름, 제목, 내용을 모두 적어 주세요.",
   loginRequired: "로그인해 주세요.",

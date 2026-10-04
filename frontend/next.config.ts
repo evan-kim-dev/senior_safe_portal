@@ -16,13 +16,13 @@ const supabaseOrigin = originOf(process.env.NEXT_PUBLIC_SUPABASE_URL);
 
 /**
  * 정적 페이지를 유지하려고 nonce 대신 'unsafe-inline' 을 쓴다.
- * 이미지·영상·접속 대상은 실제로 쓰는 곳(YouTube 썸네일·임베드, Supabase)만 연다.
+ * 스크립트·연결은 좁히고, 이미지는 뉴스·복지 썸네일(여러 언론 CDN) 때문에 https 를 연다.
  */
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://i.ytimg.com https://img.youtube.com",
+  "img-src 'self' data: blob: https:",
   "font-src 'self'",
   `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""}${isDev ? " ws: wss:" : ""}`,
   "frame-src https://www.youtube-nocookie.com",

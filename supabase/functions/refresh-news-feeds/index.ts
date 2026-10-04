@@ -56,12 +56,14 @@ Deno.serve(async (req: Request) => {
 
   for (const category of categories) {
     try {
+      const internalSecret = Deno.env.get("INTERNAL_API_SECRET") ?? Deno.env.get("EDGE_INTERNAL_SECRET") ?? "";
       const response = await fetch(`${supabaseUrl}/functions/v1/search-news`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${serviceKey}`,
           apikey: serviceKey,
           "Content-Type": "application/json",
+          ...(internalSecret ? { "x-internal-secret": internalSecret } : {}),
         },
         body: JSON.stringify({ query: category.query, display: 8 }),
       });

@@ -380,7 +380,7 @@ function constantTimeEqual(a: string, b: string): boolean {
  */
 export function isAllowedCaller(req: Request): boolean {
   const secret = Deno.env.get("INTERNAL_API_SECRET") ?? Deno.env.get("EDGE_INTERNAL_SECRET");
-  if (!secret) return true;
+  if (!secret) return false;
   return constantTimeEqual(req.headers.get("x-internal-secret") ?? "", secret);
 }
 

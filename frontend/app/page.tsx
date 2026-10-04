@@ -7,6 +7,7 @@ import { HomeRecords } from "@/components/home/HomeRecords";
 import { Hotlines, QuickMenu, ScamRail } from "@/components/home/HomeSections";
 import { BigButton, Checking, Field, LineButton, Result, Screen } from "@/components/ui";
 import { useHome } from "@/hooks/use-home";
+import { MESSAGES } from "@/lib/domain/messages";
 import { formatCheckReason } from "@/lib/domain/url";
 
 export default function HomePage() {
@@ -88,10 +89,19 @@ export default function HomePage() {
       {home.screen.name === "error" ? (
         <Result
           tone="plain"
-          word="확인하지 못했어요"
+          word={home.screen.message === MESSAGES.guestLimitReached ? "하루 이용 횟수" : "확인하지 못했어요"}
           reason={home.screen.message}
           onDismiss={home.backHome}
-          primary={<BigButton onClick={home.backHome}>다시 검사</BigButton>}
+          secondary={
+            home.screen.message === MESSAGES.guestLimitReached
+              ? <LineButton onClick={home.backHome}>홈으로</LineButton>
+              : undefined
+          }
+          primary={
+            home.screen.message === MESSAGES.guestLimitReached
+              ? <BigButton href="/login?next=/">로그인하고 더 쓰기</BigButton>
+              : <BigButton onClick={home.backHome}>다시 검사</BigButton>
+          }
         />
       ) : null}
     </>

@@ -67,15 +67,9 @@ export function VideoRail() {
 
 function LeadCard({
   article,
-  index,
-  total,
-  paused,
   onPaused,
 }: {
   article: NewsItem | undefined;
-  index: number;
-  total: number;
-  paused: boolean;
   onPaused: (value: boolean) => void;
 }) {
   if (!article) {
@@ -102,9 +96,6 @@ function LeadCard({
         <strong>{article.title}</strong>
         <span className="mosaic-meta">{newsMeta(article)}</span>
       </span>
-      {total > 1 ? (
-        <span className="mosaic-count" aria-hidden="true">{index + 1} / {total}</span>
-      ) : null}
       <span className="info-more">기사 보기 <Icon name="arrow" /></span>
     </>
   );
@@ -114,9 +105,7 @@ function LeadCard({
     onMouseLeave: () => onPaused(false),
     onFocus: () => onPaused(true),
     onBlur: () => onPaused(false),
-    "aria-label": paused || total <= 1
-      ? article.title
-      : `${article.title} (${index + 1}/${total})`,
+    "aria-label": article.title,
   };
   return href
     ? <a className={className} href={href} rel="noopener noreferrer" {...pauseProps}>{body}</a>
@@ -156,9 +145,6 @@ export function NewsSection() {
       <div className="mosaic mosaic-news">
         <LeadCard
           article={lead}
-          index={safeIndex}
-          total={pool.length}
-          paused={paused}
           onPaused={setPaused}
         />
         {sideNews.length

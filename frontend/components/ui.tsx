@@ -131,6 +131,7 @@ export function Field({
   label,
   multiline = false,
   hideLabel = false,
+  required = false,
   id,
   value,
   onChange,
@@ -139,16 +140,22 @@ export function Field({
   label: string;
   multiline?: boolean;
   hideLabel?: boolean;
+  required?: boolean;
   id: string;
   value: string;
   onChange: (event: { target: { value: string } }) => void;
-} & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "id">) {
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "id" | "required">) {
   return (
     <label className="field" htmlFor={id}>
-      <span className={hideLabel ? "sr-only" : undefined}>{label}</span>
+      <span className={hideLabel ? "sr-only" : undefined}>
+        {label}
+        {required ? (
+          <abbr className="field-required" title="필수">*</abbr>
+        ) : null}
+      </span>
       {multiline
-        ? <textarea id={id} value={value} placeholder={props.placeholder} maxLength={props.maxLength} onChange={onChange} />
-        : <input id={id} value={value} onChange={onChange} {...props} />}
+        ? <textarea id={id} value={value} placeholder={props.placeholder} maxLength={props.maxLength} required={required || undefined} onChange={onChange} />
+        : <input id={id} value={value} required={required || undefined} onChange={onChange} {...props} />}
     </label>
   );
 }

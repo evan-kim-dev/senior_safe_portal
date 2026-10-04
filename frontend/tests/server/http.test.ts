@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { MESSAGES } from "@/lib/domain/messages";
 import { readJsonBody } from "@/lib/server/http/body";
 import { clientIp } from "@/lib/server/http/client-ip";
+import { GUEST_FEATURE_LIMIT, GUEST_FEATURE_WINDOW_MS } from "@/lib/server/http/guest-quota";
 import { RateLimiter } from "@/lib/server/http/rate-limit";
 
 function post(body: BodyInit, headers: Record<string, string> = {}) {
@@ -72,5 +74,24 @@ describe("RateLimiter", () => {
 
   it("잘못된 규칙은 만들 수 없다", () => {
     expect(() => new RateLimiter({ limit: 0, windowMs: 1 })).toThrow(RangeError);
+  });
+});
+
+describe("guest feature quota", () => {
+  it("비회원은 하루 3회 한도로 설정돼 있다", () => {
+    expect(GUEST_FEATURE_LIMIT).toBe(3);
+    expect(GUEST_FEATURE_WINDOW_MS).toBe(24 * 60 * 60 * 1000);
+    expect(MESSAGES.guestLimitReached).toContain("3번");
+  });
+
+  it("비회원 한도 창에서 4번째는 막힌다", () => {
+    let now = 0;
+    const limiter = new RateLimiter({ limit: GUEST_FEATURE_LIMIT, windowMs: GUEST_FEATURE_WINDOW_MS }, () => now);
+    expect(limiter.hit("guest:1.1.1.1").allowed).toBe(true);
+    expect(limiter.hit("guest:1.1.1.1").allowed).toBe(true);
+    expect(limiter.hit("guest:1.1.1.1").allowed).toBe(true);
+    expect(limiter.hit("guest:1.1.1.1").allowed).toBe(false);
+    now = GUEST_FEATURE_WINDOW_MS;
+    expect(limiter.hit("guest:1.1.1.1").allowed).toBe(true);
   });
 });
