@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Provider } from "@supabase/supabase-js";
 import { BigButton, Screen, Status } from "@/components/ui";
+import { useAuth } from "@/hooks/use-auth";
 import { safeNextPath, signInWith } from "@/lib/client/supabase-browser";
 
 function readNext(): string {
@@ -11,6 +12,7 @@ function readNext(): string {
 }
 
 export default function LoginPage() {
+  const { user, ready } = useAuth();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [next, setNext] = useState("/board");
@@ -19,12 +21,17 @@ export default function LoginPage() {
     setNext(readNext());
   }, []);
 
+  useEffect(() => {
+    if (!ready || !user) return;
+    window.location.replace(readNext());
+  }, [ready, user]);
+
   const lead = next === "/care" || next === "/link"
     ? "가족 연동을 하려면 로그인해 주세요."
     : "글을 쓰려면 로그인해 주세요.";
 
   async function login(provider: Provider) {
-    if (busy) return;
+    if (busy || user) return;
     setBusy(true);
     setMessage("");
     const failure = await signInWith(provider, readNext());

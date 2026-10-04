@@ -23,12 +23,12 @@ describe("parseCheckInput", () => {
     expect(parseCheckInput({ url: `https://a.com/${"x".repeat(3000)}` })).toEqual({ ok: false, message: MESSAGES.urlTooLong });
   });
 
-  it("형식이 틀린 가족 코드는 비운다", () => {
+  it("본문의 familyCode 는 무시하고 url 만 받는다", () => {
     expect(parseCheckInput({ url: " https://a.com ", familyCode: "nope" })).toEqual({
       ok: true,
-      value: { url: "https://a.com", familyCode: "" },
+      value: { url: "https://a.com" },
     });
-    expect(parseCheckInput({ url: "a.com", familyCode: FAMILY })).toEqual({ ok: true, value: { url: "a.com", familyCode: FAMILY } });
+    expect(parseCheckInput({ url: "a.com", familyCode: FAMILY })).toEqual({ ok: true, value: { url: "a.com" } });
   });
 });
 

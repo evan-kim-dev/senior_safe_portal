@@ -4,7 +4,7 @@ export type CheckKind = "link" | "video";
 export type CheckVerdict = "safe" | "danger";
 export type CheckHeadline = "괜찮아요" | "누르지 마세요";
 
-export type CheckRequest = { url: string; familyCode?: string };
+export type CheckRequest = { url: string };
 
 export type CheckSuccess = {
   ok: true;
@@ -65,7 +65,7 @@ export type WelfareCard = {
 export type VideosResponse = { ok: boolean; videos?: VideoItem[]; message?: string };
 export type NewsResponse = { ok: boolean; articles?: NewsItem[]; message?: string };
 export type WelfareResponse = { ok: boolean; place?: string; cards?: WelfareCard[]; message?: string };
-export type ActivityResponse = { count?: number };
+export type ActivityResponse = { ok?: boolean; count?: number; message?: string };
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 

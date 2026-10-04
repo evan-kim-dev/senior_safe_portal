@@ -15,7 +15,9 @@ export function getSupabase(): SupabaseClient | null {
 
 /** `/login?next=/care` 처럼 안전한 내부 경로만 허용한다. */
 export function safeNextPath(next: string | null | undefined, fallback = "/board"): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.includes("://")) return fallback;
+  if (!next || typeof next !== "string") return fallback;
+  if (!next.startsWith("/") || next.startsWith("//") || next.includes("://")) return fallback;
+  if (next.includes("\\") || next.includes("@") || /[\u0000-\u001F\u007F]/.test(next)) return fallback;
   return next;
 }
 

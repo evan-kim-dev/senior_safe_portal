@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useChat } from "@/hooks/use-chat";
 import { sendToCheck } from "@/lib/client/check-bridge";
@@ -50,7 +51,7 @@ export function ChatDock() {
     );
   }
 
-  const canSend = Boolean(chat.text.trim() || chat.attachment) && !chat.busy;
+  const canSend = Boolean(chat.text.trim() || chat.attachment) && !chat.busy && !chat.needsLogin;
 
   return (
     <section className="chat-panel" role="dialog" aria-label="단디와 대화">
@@ -68,7 +69,14 @@ export function ChatDock() {
         </button>
       </header>
       <div className="chat-log" role="log" ref={logRef}>
-        {chat.turns.length === 0 ? <Status>궁금한 점을 적어 주세요. 사진도 보낼 수 있어요.</Status> : null}
+        {chat.needsLogin ? (
+          <Status>
+            단디와 대화하려면{" "}
+            <Link href="/login?next=/">로그인해 주세요</Link>.
+          </Status>
+        ) : chat.turns.length === 0 ? (
+          <Status>궁금한 점을 적어 주세요. 사진도 보낼 수 있어요.</Status>
+        ) : null}
         {chat.turns.map((turn, index) => (
           <div key={`${turn.role}-${index}`} className={turn.role === "user" ? "chat-turn user" : "chat-turn"}>
             {turn.imageUrl ? (

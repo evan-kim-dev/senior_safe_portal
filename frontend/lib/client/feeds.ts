@@ -1,5 +1,6 @@
 import { channelChoices, toNewsView, toVideoView, toWelfareView, type NewsView, type VideoView, type WelfareView } from "@/lib/domain/feed-view";
 import type { ActivityResponse, NewsResponse, VideosResponse, WelfareResponse } from "@/lib/domain/types";
+import { authHeaders } from "./auth-headers";
 import { cachedPostJson, getJson } from "./api";
 import { loadGuardian } from "./guardian";
 
@@ -37,9 +38,9 @@ export async function loadChannelChoices(): Promise<string[]> {
   return channelChoices(data?.videos ?? []);
 }
 
-export async function loadDangerCount(familyCode: string): Promise<number> {
+export async function loadDangerCount(): Promise<number> {
   try {
-    const data = await getJson<ActivityResponse>(`/api/activity?familyCode=${encodeURIComponent(familyCode)}`);
+    const data = await getJson<ActivityResponse>("/api/activity", { headers: await authHeaders() });
     return typeof data.count === "number" ? data.count : 0;
   } catch {
     return 0;

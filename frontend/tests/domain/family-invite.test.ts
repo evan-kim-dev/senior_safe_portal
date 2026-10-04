@@ -50,6 +50,8 @@ describe("safeNextPath", () => {
     expect(safeNextPath("/link")).toBe("/link");
     expect(safeNextPath("//evil.com")).toBe("/board");
     expect(safeNextPath("https://evil.com")).toBe("/board");
+    expect(safeNextPath("/\\evil.com")).toBe("/board");
+    expect(safeNextPath("/foo@bar")).toBe("/board");
     expect(safeNextPath(null, "/care")).toBe("/care");
   });
 });

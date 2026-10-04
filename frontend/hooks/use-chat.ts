@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { postJson } from "@/lib/client/api";
+import { authHeaders } from "@/lib/client/auth-headers";
 import { onOpenChat } from "@/lib/client/chat-bridge";
 import { prepareChatImage, type ChatImagePayload } from "@/lib/client/chat-image";
 import { MESSAGES } from "@/lib/domain/messages";
 import type { ChatResponse, ChatTurn } from "@/lib/domain/types";
 import { MAX_CHAT_HISTORY, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/domain/validation";
 import { useAliveRef } from "./use-alive";
+import { useAuth } from "./use-auth";
 
 const CHAT_TIMEOUT_MS = 65_000;
 const MAX_TURNS_KEPT = 100;
@@ -15,6 +17,7 @@ const MAX_TURNS_KEPT = 100;
 export type Turn = ChatTurn & { linkUrl?: string; at: number; imageUrl?: string };
 
 export function useChat() {
+  const { user, ready } = useAuth();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -73,6 +76,10 @@ export function useChat() {
     const message = text.trim().slice(0, MAX_CHAT_MESSAGE_LENGTH);
     const image = attachment;
     if ((!message && !image) || sendingRef.current) return;
+    if (ready && !user) {
+      setError(MESSAGES.loginRequired);
+      return;
+    }
     sendingRef.current = true;
     setText("");
     setError("");
@@ -100,7 +107,7 @@ export function useChat() {
           history,
           image: image ? { mimeType: image.mimeType, data: image.data } : undefined,
         },
-        { timeoutMs: CHAT_TIMEOUT_MS },
+        { timeoutMs: CHAT_TIMEOUT_MS, headers: await authHeaders() },
       );
       if (!aliveRef.current) return;
       if (!data?.ok || !data.reply) {
@@ -139,5 +146,6 @@ export function useChat() {
     attachFile,
     clearAttachment,
     send,
+    needsLogin: ready && !user,
   };
 }

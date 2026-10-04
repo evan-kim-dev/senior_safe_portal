@@ -48,7 +48,7 @@ export function useHome() {
       try {
         const data = await postJson<unknown>(
           "/api/check",
-          { url: target, familyCode: loadGuardian().familyCode },
+          { url: target },
           { timeoutMs: CHECK_TIMEOUT_MS, headers: await authHeaders() },
         );
         if (!aliveRef.current) return;

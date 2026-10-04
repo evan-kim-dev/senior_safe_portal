@@ -29,12 +29,9 @@ function start() {
     return;
   }
   supabase.auth.onAuthStateChange((_event, session) => {
-    const next = session?.user ?? null;
-    const same = next?.id === currentUser?.id && next?.updated_at === currentUser?.updated_at;
-    currentUser = next;
+    currentUser = session?.user ?? null;
     ready = true;
-    if (!same) emit();
-    else emit();
+    emit();
   });
 }
 

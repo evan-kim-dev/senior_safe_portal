@@ -17,8 +17,9 @@ export function SiteFooter() {
         <div className="footer-brand">
           <strong className="footer-name">시니어 디지털 보안관</strong>
           <p className="footer-desc">
-            받은 링크와 영상이 괜찮은지 AI가 먼저 살펴 드려요. 부모님과 가족이 함께 쓰는 안심 서비스입니다.
-            검사·상담 결과는 참고용이며, 돈이나 개인정보를 요구받으면 가족이나 112에 먼저 확인하세요.
+            어르신과 가족이 함께 쓰는 디지털 안심 도우미입니다.
+            <br />
+            모르는 링크는 누르기 전에 먼저 확인해 보세요.
           </p>
         </div>
         <div className="footer-bar">

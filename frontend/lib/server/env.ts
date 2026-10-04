@@ -41,7 +41,8 @@ export function parseServerEnv(source: EnvSource): ServerEnv {
     supabaseUrl: normalizeBaseUrl(source.SUPABASE_URL ?? source.NEXT_PUBLIC_SUPABASE_URL),
     anonKey: nonEmpty(source.SUPABASE_ANON_KEY ?? source.NEXT_PUBLIC_SUPABASE_ANON_KEY),
     serviceRoleKey: nonEmpty(source.SUPABASE_SERVICE_ROLE_KEY),
-    edgeInternalSecret: nonEmpty(source.EDGE_INTERNAL_SECRET),
+    // Vercel: EDGE_INTERNAL_SECRET / Supabase Edge: INTERNAL_API_SECRET — 값만 같으면 된다.
+    edgeInternalSecret: nonEmpty(source.EDGE_INTERNAL_SECRET ?? source.INTERNAL_API_SECRET),
     logLevel: logLevelOf(source.LOG_LEVEL),
   };
 }
