@@ -5,6 +5,11 @@ import { Icon } from "@/components/icons";
 import { Rail } from "@/components/Rail";
 import { TipCard } from "@/components/SafetyTips";
 import { Info, Media, Section, Status } from "@/components/ui";
+
+function hideBrokenPhoto(event: { currentTarget: HTMLImageElement }) {
+  const box = event.currentTarget.closest(".mosaic-photo");
+  if (box instanceof HTMLElement) box.hidden = true;
+}
 import { useNews, useVideos, useWelfare } from "@/hooks/use-feeds";
 import { openChat } from "@/lib/client/chat-bridge";
 import { SAFETY_TIPS } from "@/lib/domain/content";
@@ -65,7 +70,7 @@ function LeadCard({ article }: { article: NewsItem | undefined }) {
       <span className="tag tag-light">오늘의 보안 뉴스</span>
       {article.image ? (
         <span className="mosaic-photo">
-          <img src={article.image} alt="" loading="lazy" decoding="async" />
+          <img src={article.image} alt="" loading="lazy" decoding="async" onError={hideBrokenPhoto} />
         </span>
       ) : null}
       <strong>{article.title}</strong>

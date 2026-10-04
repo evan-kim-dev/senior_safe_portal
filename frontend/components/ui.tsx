@@ -161,15 +161,25 @@ export function Result({
   reason,
   primary,
   secondary,
+  onDismiss,
 }: {
   tone: "safe" | "danger" | "plain";
   word: string;
   reason: string;
   primary: ReactNode;
   secondary?: ReactNode;
+  onDismiss?: () => void;
 }) {
   return (
-    <div className={`result result-${tone}`} role="alertdialog" aria-modal="true" aria-labelledby="result-word">
+    <div
+      className={`result result-${tone}`}
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="result-word"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onDismiss?.();
+      }}
+    >
       <div className="result-card">
         <span className="result-icon"><Icon name={RESULT_ICON[tone]} /></span>
         <h2 id="result-word" className="result-word">{word}</h2>
@@ -237,6 +247,11 @@ export function Row({
   );
 }
 
+function hideBrokenPhoto(event: { currentTarget: HTMLImageElement }) {
+  const box = event.currentTarget.closest(".info-photo, .mosaic-photo");
+  if (box instanceof HTMLElement) box.hidden = true;
+}
+
 export function Info({
   title,
   lines,
@@ -259,7 +274,7 @@ export function Info({
       {tag ? <span className="tag">{tag}</span> : null}
       {image ? (
         <span className="info-photo">
-          <img src={image} alt="" loading="lazy" decoding="async" />
+          <img src={image} alt="" loading="lazy" decoding="async" onError={hideBrokenPhoto} />
         </span>
       ) : null}
       <strong className="info-title">{title}</strong>

@@ -15,7 +15,7 @@ export function HomeRecords({
 }) {
   return (
     <Section id="mine" title="내 검사 기록" desc="이 기기에서 검사한 주소와 적어 둔 말이에요." className="section-rank">
-      <span className="watermark" aria-hidden="true">My Safe Check</span>
+      <span className="watermark" aria-hidden="true">안심 기록</span>
       <div className="mine-grid">
         <section className="mine-col" aria-labelledby="recent-title">
           <h3 id="recent-title">최근 검사</h3>

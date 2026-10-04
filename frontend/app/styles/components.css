@@ -411,7 +411,8 @@ img {
 
 .site-footer {
   margin-top: auto;
-  padding: 2.5rem 0 2rem;
+  padding: 2.75rem 0 calc(2rem + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   background: var(--footer-bg);
   color: var(--footer-ink);
   font-size: 0.875rem;
@@ -420,36 +421,70 @@ img {
 .footer-inner {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1.5rem;
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
 }
 
 .footer-name {
   color: #FFFFFF;
   font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .footer-desc {
-  max-width: 42rem;
+  max-width: 40rem;
   margin: 0;
   line-height: 1.65;
   color: #B8C0CC;
+}
+
+.footer-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer-legal {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem 1.25rem;
+  gap: 0.5rem 0;
+}
+
+.footer-legal-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.footer-sep {
+  width: 1px;
+  height: 0.875rem;
+  margin: 0 0.875rem;
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .footer-legal a {
-  color: #FFFFFF;
+  color: rgba(255, 255, 255, 0.92);
   font-weight: 700;
+  text-decoration: none;
+}
+
+.footer-legal a:hover {
+  color: #FFFFFF;
   text-decoration: underline;
-  text-underline-offset: 0.15em;
+  text-underline-offset: 0.18em;
 }
 
 .footer-copy {
+  margin: 0;
   font-size: 0.8125rem;
   color: #8B93A1;
 }
@@ -1913,11 +1948,13 @@ button.mosaic-lead {
 .rank-title {
   flex: 1;
   min-width: 0;
+  display: -webkit-box;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: 0.9375rem;
   font-weight: 600;
+  line-height: 1.4;
 }
 
 /* ---------- 홈: 신고 전화 ---------- */
@@ -2440,6 +2477,17 @@ body:has(.page-actions) .chat-fab {
 
   .tab-bar {
     display: none;
+  }
+
+  .footer-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .footer-copy {
+    flex: none;
   }
 
   .header-row {

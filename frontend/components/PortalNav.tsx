@@ -99,7 +99,7 @@ export function PortalNav() {
       <header className="site-header">
         <div className="wrap header-row">
           <Link href="/" className="brand" aria-label="시니어 디지털 보안관 홈">
-            <img src="/logo.png" alt="" width={36} height={36} />
+            <img src="/logo.png" alt="" width={36} height={36} decoding="async" />
             <span>시니어 <br />디지털 보안관</span>
           </Link>
           <nav className="main-nav" aria-label="주 메뉴">

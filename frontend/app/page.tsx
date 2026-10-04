@@ -67,6 +67,7 @@ export default function HomePage() {
           tone={checkResult.verdict === "safe" ? "safe" : "danger"}
           word={checkResult.headline}
           reason={formatCheckReason(checkResult.url, checkResult.kind, checkResult.reason)}
+          onDismiss={home.backHome}
           secondary={
             checkResult.verdict === "safe" ? (
               <LineButton onClick={home.backHome}>다시 검사</LineButton>
@@ -89,6 +90,7 @@ export default function HomePage() {
           tone="plain"
           word="확인하지 못했어요"
           reason={home.screen.message}
+          onDismiss={home.backHome}
           primary={<BigButton onClick={home.backHome}>다시 검사</BigButton>}
         />
       ) : null}
