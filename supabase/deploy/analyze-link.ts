@@ -8,10 +8,9 @@
  */
 
 const DEFAULT_ALLOWED_ORIGINS = [
-  "https://rlarlgns-evan.github.io",
-  "http://localhost:5500",
-  "http://127.0.0.1:5500",
-  "http://localhost:8080",
+  "https://senior-safe-portal.vercel.app",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
 ];
 
 export function resolveAllowedOrigins(): string[] {
