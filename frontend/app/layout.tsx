@@ -8,6 +8,13 @@ import "./styles/components.css";
 export const metadata: Metadata = {
   title: "이 링크, 괜찮나요?",
   description: "받은 주소가 괜찮은지 확인해 드립니다.",
+  icons: {
+    icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {
