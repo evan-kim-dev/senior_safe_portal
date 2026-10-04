@@ -21,10 +21,13 @@ export type FamilyRepository = {
   findMembership(userId: string): Promise<FamilyMemberRow | null>;
   createFamily(userId: string, familyId: string): Promise<boolean>;
   addMember(familyId: string, userId: string, role: FamilyRole): Promise<boolean>;
+  removeMember(familyId: string, userId: string): Promise<boolean>;
   findActiveInvite(familyId: string, nowIso: string): Promise<FamilyInviteRow | null>;
   findInvite(code: string): Promise<FamilyInviteRow | null>;
   insertInvite(invite: { code: string; familyId: string; createdBy: string; expiresAt: string }): Promise<boolean>;
-  markInviteUsed(code: string, userId: string, usedAt: string): Promise<boolean>;
+  /** used_at 이 비어 있고 만료 전일 때만 사용 처리. 성공 시 초대 행 반환. */
+  claimInvite(code: string, userId: string, usedAt: string, nowIso: string): Promise<FamilyInviteRow | null>;
+  releaseInvite(code: string): Promise<boolean>;
 };
 
 export function createFamilyRepository(rest: RestClient): FamilyRepository {
@@ -63,6 +66,18 @@ export function createFamilyRepository(rest: RestClient): FamilyRepository {
 
     addMember,
 
+    async removeMember(familyId, userId) {
+      const result = await rest.request("service", {
+        path:
+          `family_members?family_id=eq.${encodeURIComponent(familyId)}` +
+          `&user_id=eq.${encodeURIComponent(userId)}`,
+        method: "DELETE",
+        headers: { Prefer: "return=minimal" },
+        timeoutMs: 4_000,
+      });
+      return result.ok;
+    },
+
     async findActiveInvite(familyId, nowIso) {
       const result = await rest.request<FamilyInviteRow[]>("service", {
         path:
@@ -100,12 +115,26 @@ export function createFamilyRepository(rest: RestClient): FamilyRepository {
       return result.ok;
     },
 
-    async markInviteUsed(code, userId, usedAt) {
+    async claimInvite(code, userId, usedAt, nowIso) {
+      const result = await rest.request<FamilyInviteRow[]>("service", {
+        path:
+          `family_invites?code=eq.${encodeURIComponent(code)}` +
+          `&used_at=is.null&expires_at=gt.${encodeURIComponent(nowIso)}`,
+        method: "PATCH",
+        headers: { Prefer: "return=representation" },
+        body: { used_by: userId, used_at: usedAt },
+        timeoutMs: 4_000,
+      });
+      if (!result.ok || !Array.isArray(result.data) || !result.data[0]) return null;
+      return result.data[0];
+    },
+
+    async releaseInvite(code) {
       const result = await rest.request("service", {
         path: `family_invites?code=eq.${encodeURIComponent(code)}`,
         method: "PATCH",
         headers: { Prefer: "return=minimal" },
-        body: { used_by: userId, used_at: usedAt },
+        body: { used_by: null, used_at: null },
         timeoutMs: 4_000,
       });
       return result.ok;

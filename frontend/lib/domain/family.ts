@@ -52,25 +52,28 @@ export type FamilyJoinResponse = {
   message: string;
 };
 
-export const INVITE_CODE_LENGTH = 6;
+/** 혼동 글자(0/O, 1/I)를 뺀 8자리. 약 1.1조 조합. */
+export const INVITE_CODE_LENGTH = 8;
 export const INVITE_TTL_MS = 24 * 60 * 60 * 1000;
+export const INVITE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 
-const INVITE_CODE = /^\d{6}$/;
+const INVITE_CODE = new RegExp(`^[${INVITE_ALPHABET}]{${INVITE_CODE_LENGTH}}$`);
 
 export function isInviteCode(value: unknown): value is string {
-  return typeof value === "string" && INVITE_CODE.test(value.trim());
+  return typeof value === "string" && INVITE_CODE.test(normalizeInviteCode(value));
 }
 
 export function normalizeInviteCode(value: unknown): string {
-  return typeof value === "string" ? value.trim().replace(/\s+/g, "") : "";
+  return typeof value === "string" ? value.trim().replace(/\s+/g, "").toUpperCase() : "";
 }
 
-/** 암호학적으로 안전한 6자리 숫자 코드. */
+/** 암호학적으로 안전한 초대 코드. */
 export function generateInviteCode(): string {
-  const bytes = new Uint8Array(4);
+  const bytes = new Uint8Array(INVITE_CODE_LENGTH);
   crypto.getRandomValues(bytes);
-  const num = ((bytes[0]! << 24) | (bytes[1]! << 16) | (bytes[2]! << 8) | bytes[3]!) >>> 0;
-  return String(num % 1_000_000).padStart(INVITE_CODE_LENGTH, "0");
+  let out = "";
+  for (const byte of bytes) out += INVITE_ALPHABET[byte % INVITE_ALPHABET.length];
+  return out;
 }
 
 export function isFamilyRole(value: unknown): value is FamilyRole {

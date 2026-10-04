@@ -28,7 +28,7 @@ async function renderQr(link: string): Promise<string> {
 }
 
 export function useCare() {
-  const { user } = useAuth();
+  const { user, ready } = useAuth();
   const [name, setNameState] = useState("");
   const [phone, setPhoneState] = useState("");
   const [textSize, setTextSizeState] = useState<TextSize>("normal");
@@ -59,6 +59,10 @@ export function useCare() {
   }, [aliveRef]);
 
   useEffect(() => {
+    if (!ready) {
+      setFamilyLoading(true);
+      return;
+    }
     if (!user) {
       setFamilyLoading(false);
       setNeedsFamily(false);
@@ -97,7 +101,7 @@ export function useCare() {
     return () => {
       active = false;
     };
-  }, [user]);
+  }, [user, ready]);
 
   function edited() {
     setSaved(false);
@@ -124,12 +128,12 @@ export function useCare() {
     setChannels((current) => (current.includes(channel) ? current.filter((item) => item !== channel) : [...current, channel]));
   }
 
-  async function createFamilyGroup() {
+  async function createFamilyGroup(refresh = false) {
     if (familyBusy) return;
     setFamilyBusy(true);
     setFamilyMessage("");
     try {
-      const data = await createFamily();
+      const data = await createFamily({ refresh });
       if (!aliveRef.current) return;
       if (!data.ok || !("familyId" in data)) {
         setFamilyMessage(("message" in data && data.message) || MESSAGES.familyCreateFailed);
@@ -147,6 +151,7 @@ export function useCare() {
         setTodayItems(me.todayItems);
         setInviteCode(me.inviteCode || data.inviteCode);
       }
+      if (refresh) setFamilyMessage("새 초대 코드를 만들었어요.");
     } catch {
       if (aliveRef.current) setFamilyMessage(MESSAGES.familyCreateFailed);
     } finally {
@@ -189,6 +194,7 @@ export function useCare() {
 
   return {
     user,
+    ready,
     name,
     phone,
     textSize,
@@ -211,6 +217,7 @@ export function useCare() {
     toggleChannel,
     save,
     createFamilyGroup,
+    refreshInvite: () => createFamilyGroup(true),
     copyInvite,
   };
 }

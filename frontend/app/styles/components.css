@@ -606,11 +606,12 @@ textarea::placeholder {
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
-  font-size: clamp(1.75rem, 6vw, 2.5rem);
+  font-size: clamp(1.25rem, 4.5vw, 1.75rem);
   font-weight: 800;
-  letter-spacing: 0.35em;
+  letter-spacing: 0.18em;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  word-break: break-all;
 }
 
 .list {

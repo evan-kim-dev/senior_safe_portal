@@ -57,10 +57,6 @@ export function PortalNav() {
             ) : (
               <Link href="/login" className="header-link" aria-current={pathname === "/login" ? "page" : undefined}>로그인</Link>
             )}
-            <Link href="/#check" className="btn btn-primary btn-sm header-cta">
-              <Icon name="search" />
-              <span>링크 검사</span>
-            </Link>
           </div>
         </div>
       </header>

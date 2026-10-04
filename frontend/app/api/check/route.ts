@@ -19,7 +19,8 @@ export const POST = withRoute("check", { rateLimit: { limit: 20, windowMs: 60_00
   const input = parseCheckInput(body.value);
   if (!input.ok) return json({ ok: false, message: input.message }, { status: 400 });
 
-  let familyCode = input.value.familyCode;
+  // 활동 기록은 로그인·가족 멤버만. 클라이언트 familyCode 는 신뢰하지 않는다.
+  let familyCode = "";
   let userId: string | undefined;
   const user = await requireUser(request);
   if (user) {

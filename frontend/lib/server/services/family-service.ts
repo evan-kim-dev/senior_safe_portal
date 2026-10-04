@@ -32,7 +32,7 @@ export type FamilyMeResult =
   | { ok: false; message: string; status: number; needsFamily?: boolean };
 
 export type FamilyService = {
-  create(userId: string): Promise<FamilyCreateResult>;
+  create(userId: string, options?: { refresh?: boolean }): Promise<FamilyCreateResult>;
   join(userId: string, code: unknown): Promise<FamilyJoinResult>;
   me(userId: string, now?: Date): Promise<FamilyMeResult>;
   resolveFamilyForUser(userId: string): Promise<{ familyId: string; role: FamilyRole } | null>;
@@ -56,26 +56,31 @@ export function createFamilyService(repo: FamilyRepository, activity: ActivitySe
       return { familyId: membership.family_id, role: membership.role };
     },
 
-    async create(userId) {
+    async create(userId, options = {}) {
       const existing = await repo.findMembership(userId);
       if (existing) {
-        const now = new Date();
-        let invite = await repo.findActiveInvite(existing.family_id, now.toISOString());
-        if (!invite) {
-          const issued = await issueInvite(repo, existing.family_id, userId, now);
-          if (!issued) return { ok: false, message: MESSAGES.familyCreateFailed, status: 502 };
-          return {
-            ok: true,
-            familyId: existing.family_id,
-            inviteCode: issued.code,
-            inviteExpiresAt: issued.expiresAt,
-          };
+        if (existing.role !== "guardian") {
+          return { ok: false, message: MESSAGES.familyGuardianOnly, status: 403 };
         }
+        const now = new Date();
+        if (!options.refresh) {
+          const invite = await repo.findActiveInvite(existing.family_id, now.toISOString());
+          if (invite) {
+            return {
+              ok: true,
+              familyId: existing.family_id,
+              inviteCode: invite.code,
+              inviteExpiresAt: invite.expires_at,
+            };
+          }
+        }
+        const issued = await issueInvite(repo, existing.family_id, userId, now);
+        if (!issued) return { ok: false, message: MESSAGES.familyCreateFailed, status: 502 };
         return {
           ok: true,
           familyId: existing.family_id,
-          inviteCode: invite.code,
-          inviteExpiresAt: invite.expires_at,
+          inviteCode: issued.code,
+          inviteExpiresAt: issued.expiresAt,
         };
       }
 
@@ -106,12 +111,24 @@ export function createFamilyService(repo: FamilyRepository, activity: ActivitySe
         return { ok: false, message: MESSAGES.familyInviteInvalid, status: 400 };
       }
 
-      const added = await repo.addMember(invite.family_id, userId, "senior");
-      if (!added) return { ok: false, message: MESSAGES.familyJoinFailed, status: 502 };
-
       const usedAt = new Date().toISOString();
-      await repo.markInviteUsed(code, userId, usedAt);
-      return { ok: true, familyId: invite.family_id, role: "senior" };
+      const nowIso = usedAt;
+      const claimed = await repo.claimInvite(code, userId, usedAt, nowIso);
+      if (!claimed) {
+        const again = await repo.findInvite(code);
+        if (again?.used_at) return { ok: false, message: MESSAGES.familyInviteUsed, status: 409 };
+        if (again && new Date(again.expires_at).getTime() <= Date.now()) {
+          return { ok: false, message: MESSAGES.familyInviteExpired, status: 410 };
+        }
+        return { ok: false, message: MESSAGES.familyJoinFailed, status: 409 };
+      }
+
+      const added = await repo.addMember(claimed.family_id, userId, "senior");
+      if (!added) {
+        await repo.releaseInvite(code);
+        return { ok: false, message: MESSAGES.familyJoinFailed, status: 502 };
+      }
+      return { ok: true, familyId: claimed.family_id, role: "senior" };
     },
 
     async me(userId, now = new Date()) {
@@ -123,14 +140,8 @@ export function createFamilyService(repo: FamilyRepository, activity: ActivitySe
       let inviteCode = "";
       let inviteExpiresAt = "";
       if (membership.role === "guardian") {
-        let invite = await repo.findActiveInvite(membership.family_id, now.toISOString());
-        if (!invite) {
-          const issued = await issueInvite(repo, membership.family_id, userId, now);
-          if (issued) {
-            inviteCode = issued.code;
-            inviteExpiresAt = issued.expiresAt;
-          }
-        } else {
+        const invite = await repo.findActiveInvite(membership.family_id, now.toISOString());
+        if (invite) {
           inviteCode = invite.code;
           inviteExpiresAt = invite.expires_at;
         }

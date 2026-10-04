@@ -11,6 +11,7 @@ import { getSupabase } from "./supabase-browser";
 type Listener = () => void;
 
 let currentUser: User | null = null;
+let ready = false;
 let started = false;
 const listeners = new Set<Listener>();
 
@@ -22,12 +23,18 @@ function start() {
   if (started) return;
   started = true;
   const supabase = getSupabase();
-  if (!supabase) return;
+  if (!supabase) {
+    ready = true;
+    emit();
+    return;
+  }
   supabase.auth.onAuthStateChange((_event, session) => {
     const next = session?.user ?? null;
-    if (next?.id === currentUser?.id && next?.updated_at === currentUser?.updated_at) return;
+    const same = next?.id === currentUser?.id && next?.updated_at === currentUser?.updated_at;
     currentUser = next;
-    emit();
+    ready = true;
+    if (!same) emit();
+    else emit();
   });
 }
 
@@ -43,8 +50,16 @@ export function getAuthUser(): User | null {
   return currentUser;
 }
 
+export function getAuthReady(): boolean {
+  return ready;
+}
+
 export function getServerAuthUser(): User | null {
   return null;
+}
+
+export function getServerAuthReady(): boolean {
+  return false;
 }
 
 export async function signOut(): Promise<void> {
@@ -52,6 +67,7 @@ export async function signOut(): Promise<void> {
     await getSupabase()?.auth.signOut();
   } finally {
     currentUser = null;
+    ready = true;
     emit();
   }
 }

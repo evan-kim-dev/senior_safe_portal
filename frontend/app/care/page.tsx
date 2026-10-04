@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FamilyBand } from "@/components/FamilyBand";
 import { BigButton, Count, Field, LineButton, Screen, Status } from "@/components/ui";
 import { useCare } from "@/hooks/use-care";
+import { INVITE_CODE_LENGTH } from "@/lib/domain/family";
 import { MAX_NAME_LENGTH, MAX_PHONE_LENGTH } from "@/lib/domain/setup";
 import type { TextSize } from "@/lib/domain/types";
 
@@ -15,6 +16,17 @@ const SIZES: { id: TextSize; label: string }[] = [
 
 export default function CarePage() {
   const care = useCare();
+
+  if (!care.ready || (!care.user && care.familyLoading)) {
+    return (
+      <main className="care">
+        <FamilyBand />
+        <div className="wrap care-follow">
+          <Status>로그인 상태를 확인하고 있어요. 잠시만 기다려 주세요.</Status>
+        </div>
+      </main>
+    );
+  }
 
   if (!care.user) {
     return (
@@ -59,7 +71,7 @@ export default function CarePage() {
           )}
         />
         <div className="wrap care-follow">
-          <Status>자녀 계정으로 가족을 만든 뒤, 부모님께 6자리 초대 코드를 알려 주세요.</Status>
+          <Status>자녀 계정으로 가족을 만든 뒤, 부모님께 {INVITE_CODE_LENGTH}자리 초대 코드를 알려 주세요.</Status>
           {care.familyMessage ? <Status>{care.familyMessage}</Status> : null}
         </div>
       </main>
@@ -79,12 +91,21 @@ export default function CarePage() {
       >
         <Count value={care.dangerCount} />
 
-        {care.role === "guardian" && care.inviteCode ? (
+        {care.role === "guardian" ? (
           <div className="group">
             <h2 className="group-title">부모 초대 코드</h2>
-            <p className="invite-code" aria-label="초대 코드">{care.inviteCode}</p>
-            <LineButton onClick={() => void care.copyInvite()}>코드 복사</LineButton>
-            <Status>부모님이 <Link href="/link">부모 연결</Link>에서 로그인한 뒤 이 코드를 넣으면 연결돼요.</Status>
+            {care.inviteCode ? (
+              <>
+                <p className="invite-code" aria-label="초대 코드">{care.inviteCode}</p>
+                <LineButton onClick={() => void care.copyInvite()}>코드 복사</LineButton>
+                <Status>부모님이 <Link href="/link">부모 연결</Link>에서 로그인한 뒤 이 코드를 넣으면 연결돼요. 유효 시간은 24시간입니다.</Status>
+              </>
+            ) : (
+              <Status>초대 코드가 없거나 만료됐어요. 새 코드를 받아 주세요.</Status>
+            )}
+            <LineButton disabled={care.familyBusy} onClick={() => void care.refreshInvite()}>
+              새 초대 코드 받기
+            </LineButton>
           </div>
         ) : null}
 

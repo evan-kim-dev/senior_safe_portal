@@ -25,6 +25,7 @@ export const MESSAGES = {
   familyAlreadyMember: "이미 가족에 연결되어 있어요.",
   familyNotFound: "연결된 가족이 없어요.",
   familyLoadFailed: "가족 정보를 불러오지 못했어요.",
+  familyGuardianOnly: "자녀(보호자) 계정에서만 가족을 만들 수 있어요.",
 } as const;
 
 export const FEED_MESSAGES = {

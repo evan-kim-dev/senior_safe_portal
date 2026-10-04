@@ -4,8 +4,8 @@ import type { FamilyJoinResponse, FamilyMeResponse } from "@/lib/domain/family";
 import { getJson, postJson } from "./api";
 import { authHeaders } from "./auth-headers";
 
-export async function createFamily(): Promise<FamilyMeResponse | { ok: true; familyId: string; inviteCode: string; inviteExpiresAt: string }> {
-  return postJson("/api/family", {}, { headers: await authHeaders() });
+export async function createFamily(options?: { refresh?: boolean }): Promise<FamilyMeResponse | { ok: true; familyId: string; inviteCode: string; inviteExpiresAt: string }> {
+  return postJson("/api/family", { refresh: options?.refresh === true }, { headers: await authHeaders() });
 }
 
 export async function joinFamily(code: string): Promise<FamilyJoinResponse> {

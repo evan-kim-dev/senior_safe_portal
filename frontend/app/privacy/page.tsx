@@ -26,7 +26,7 @@ export default function PrivacyPage() {
       <ul>
         <li><strong>회원(로그인):</strong> OAuth 제공자가 전달하는 고유 식별값, 이메일·표시명(제공 범위에 따름), 인증 세션</li>
         <li><strong>게시판:</strong> 작성자 이름, 제목·내용, 작성 시각, 회원 식별값</li>
-        <li><strong>가족 연동:</strong> 가족 그룹 소속·역할, 초대 코드 발급·사용 기록</li>
+        <li><strong>가족 연동:</strong> 가족 그룹 소속·역할(자녀 guardian / 부모 senior), 8자리 초대 코드 발급·사용 기록</li>
         <li><strong>위험 영상 활동:</strong> 검사 시각(주소·제목 등 내용은 저장하지 않음)</li>
         <li><strong>링크·상담 입력:</strong> 검사 URL, 챗봇 대화 내용(서비스 제공 목적 범위에서 처리)</li>
         <li><strong>자동 수집:</strong> 접속 IP, 브라우저·OS, 접속 일시, 오류 로그, 기기 설정(글자 크기·채널 등 localStorage)</li>

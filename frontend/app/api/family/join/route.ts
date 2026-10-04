@@ -6,7 +6,7 @@ import { json } from "@/lib/server/http/respond";
 import { withRoute } from "@/lib/server/http/route";
 
 /** 부모가 초대 코드로 가족에 연결된다. */
-export const POST = withRoute("family.join", { rateLimit: { limit: 20, windowMs: 60_000 } }, async (request) => {
+export const POST = withRoute("family.join", { rateLimit: { limit: 5, windowMs: 60_000 } }, async (request) => {
   const user = await requireUser(request);
   if (!user) return json({ ok: false, message: MESSAGES.loginRequired }, { status: 401 });
 
