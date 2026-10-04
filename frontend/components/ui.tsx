@@ -244,6 +244,7 @@ export function Info({
   tone,
   href,
   more,
+  image,
 }: {
   title: string;
   lines: Array<string | null | undefined | false>;
@@ -251,10 +252,16 @@ export function Info({
   tone?: "purple" | "green";
   href?: string;
   more?: string;
+  image?: string;
 }) {
   const body = (
     <>
       {tag ? <span className="tag">{tag}</span> : null}
+      {image ? (
+        <span className="info-photo">
+          <img src={image} alt="" loading="lazy" decoding="async" />
+        </span>
+      ) : null}
       <strong className="info-title">{title}</strong>
       {lines.filter((line): line is string => Boolean(line)).map((line, index) => <p key={`${index}-${line}`}>{line}</p>)}
       {href && more ? (
@@ -265,7 +272,7 @@ export function Info({
       ) : null}
     </>
   );
-  const cls = classes("info", tone && `info-${tone}`, href && "info-link");
+  const cls = classes("info", tone && `info-${tone}`, href && "info-link", image && "info-has-photo");
   return href ? <a className={cls} href={href} rel="noopener noreferrer">{body}</a> : <article className={cls}>{body}</article>;
 }
 

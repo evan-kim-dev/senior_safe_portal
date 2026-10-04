@@ -20,6 +20,7 @@ export default function NewsPage() {
               title={article.title}
               lines={[`출처 ${article.source}`, article.date ? `날짜 ${article.date}` : null]}
               href={isHttpUrl(article.url) ? article.url : undefined}
+              image={article.image || undefined}
               more="기사 보기"
             />
           ))}

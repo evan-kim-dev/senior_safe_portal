@@ -1,4 +1,5 @@
 import type { RecentCheck } from "@/lib/domain/types";
+import { decodeText } from "@/lib/domain/text";
 import { isVerdict } from "@/lib/domain/verdict";
 import { readJson, writeJson } from "./storage";
 
@@ -11,15 +12,19 @@ function isRecentCheck(value: unknown): value is RecentCheck {
   return typeof row.url === "string" && typeof row.title === "string" && isVerdict(row.verdict);
 }
 
+function normalizeRecent(item: RecentCheck): RecentCheck {
+  return { ...item, title: decodeText(item.title) };
+}
+
 export function loadRecent(): RecentCheck[] {
   const parsed = readJson(STORAGE_KEY);
   if (!Array.isArray(parsed)) return [];
-  return parsed.filter(isRecentCheck).slice(0, MAX_RECENT);
+  return parsed.filter(isRecentCheck).map(normalizeRecent).slice(0, MAX_RECENT);
 }
 
 /** 이 폰에 저장하지 못해도 이번 결과 목록은 돌려준다. */
 export function rememberCheck(item: RecentCheck): RecentCheck[] {
-  const next = [item, ...loadRecent().filter((row) => row.url !== item.url)].slice(0, MAX_RECENT);
+  const next = [normalizeRecent(item), ...loadRecent().filter((row) => row.url !== item.url)].slice(0, MAX_RECENT);
   writeJson(STORAGE_KEY, next);
   return next;
 }

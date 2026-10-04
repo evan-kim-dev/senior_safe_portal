@@ -119,6 +119,15 @@ describe("titleFromUrl", () => {
     expect(titleFromUrl("https://a.com", "가".repeat(100))).toHaveLength(80);
   });
 
+  it("HTML 엔티티를 사람이 읽는 글자로 바꾼다", () => {
+    expect(
+      titleFromUrl(
+        "https://a.com",
+        "재반박&hellip;최승호 PD &quot;`암살자(들)&quot; [전문]",
+      ),
+    ).toBe("재반박…최승호 PD \"`암살자(들)\" [전문]");
+  });
+
   it("제목이 없으면 호스트, 주소도 아니면 '주소'", () => {
     expect(titleFromUrl("https://www.a.com/x")).toBe("a.com");
     expect(titleFromUrl("???")).toBe("주소");

@@ -40,12 +40,25 @@ describe("mapNews", () => {
     const result = mapNews([
       {
         articles: [
-          { title: "&quot;속보&quot;", originallink: "https://www.news.co.kr/1", pubDate: "Mon" },
+          {
+            title: "&quot;속보&quot;",
+            originallink: "https://www.news.co.kr/1",
+            pubDate: "Mon",
+            thumbnail: "https://cdn.news.co.kr/a.jpg",
+          },
           { title: "주소 없음", link: "" },
         ],
       },
     ]);
-    expect(result).toEqual([{ title: "\"속보\"", source: "news.co.kr", date: "Mon", url: "https://www.news.co.kr/1" }]);
+    expect(result).toEqual([
+      {
+        title: "\"속보\"",
+        source: "news.co.kr",
+        date: "Mon",
+        url: "https://www.news.co.kr/1",
+        image: "https://cdn.news.co.kr/a.jpg",
+      },
+    ]);
   });
 });
 

@@ -25,6 +25,22 @@ function safeHttpsUrl(raw: unknown): string {
   }
 }
 
+/** 뉴스 썸네일. https 우선, http 는 https 로 올려 본다. */
+function safeImageUrl(raw: unknown): string {
+  if (typeof raw !== "string") return "";
+  try {
+    const url = new URL(raw.trim());
+    if (url.protocol === "https:") return url.toString();
+    if (url.protocol === "http:") {
+      url.protocol = "https:";
+      return url.toString();
+    }
+    return "";
+  } catch {
+    return "";
+  }
+}
+
 /** 설명 속 주소 중 유튜브 밖으로 나가는 첫 주소. */
 export function suspiciousUrlIn(description: string): string {
   return extractRawHttpUrls(description).find((url) => !/youtube\.com|youtu\.be/i.test(url)) ?? "";
@@ -70,6 +86,7 @@ export function mapNews(rows: ReadonlyArray<{ articles?: unknown }>): NewsItem[]
         source: sourceName(url, asString(article.publisher)),
         date: decodeText(asString(article.pubDate)),
         url,
+        image: safeImageUrl(article.thumbnail) || safeImageUrl(article.image),
       };
     })
     .filter((article) => article.url.startsWith("http"));

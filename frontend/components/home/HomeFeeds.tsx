@@ -63,6 +63,11 @@ function LeadCard({ article }: { article: NewsItem | undefined }) {
   const body = (
     <>
       <span className="tag tag-light">오늘의 보안 뉴스</span>
+      {article.image ? (
+        <span className="mosaic-photo">
+          <img src={article.image} alt="" loading="lazy" decoding="async" />
+        </span>
+      ) : null}
       <strong>{article.title}</strong>
       <span className="mosaic-meta">{newsMeta(article)}</span>
       <span className="info-more">기사 보기 <Icon name="arrow" /></span>
@@ -97,6 +102,7 @@ export function NewsSection() {
               title={article.title}
               lines={[newsMeta(article)]}
               href={newsHref(article)}
+              image={article.image || undefined}
               more="기사 보기"
             />
           ))

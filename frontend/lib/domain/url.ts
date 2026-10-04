@@ -1,5 +1,5 @@
 import type { CheckKind } from "./types";
-import { collapseSpaces } from "./text";
+import { collapseSpaces, decodeText } from "./text";
 
 export const MAX_URL_LENGTH = 2048;
 
@@ -143,7 +143,7 @@ export function formatCheckReason(url: string, kind: CheckKind, reason: string):
 }
 
 export function titleFromUrl(url: string, scrapedTitle?: string): string {
-  const title = scrapedTitle ? collapseSpaces(scrapedTitle) : "";
+  const title = scrapedTitle ? decodeText(scrapedTitle) : "";
   if (title) return title.slice(0, 80);
   return hostnameOf(url) || "주소";
 }

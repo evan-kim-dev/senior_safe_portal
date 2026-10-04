@@ -52,6 +52,7 @@ export type NewsItem = {
   source: string;
   date: string;
   url: string;
+  image: string;
 };
 
 export type WelfareCard = {
