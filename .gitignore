@@ -16,6 +16,7 @@ desktop.ini
 
 # Supabase 로컬
 .supabase/
+supabase/.temp/
 
 # Next.js
 frontend/node_modules/
