@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Icon } from "@/components/icons";
 import { Grid, LineButton, Media, Player, Screen, Status } from "@/components/ui";
 import { useVideos } from "@/hooks/use-feeds";
+import { reportActivity } from "@/lib/client/activity";
 import { sendToCheck } from "@/lib/client/check-bridge";
 import { findVideo } from "@/lib/domain/feed-view";
 import type { VideoItem } from "@/lib/domain/types";
 
-const RECOMMEND_COUNT = 4;
+const RECOMMEND_COUNT = 5;
+const WATCH_HEARTBEAT_MS = 30_000;
+const WATCH_CHUNK_SEC = 30;
 
 function embedUrl(id: string): string {
   return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3`;
@@ -28,6 +30,16 @@ export default function VideosPage() {
     if (found) setPlaying(found);
   }, [videos]);
 
+  useEffect(() => {
+    if (!playing) return;
+    const summary = playing.title.slice(0, 80);
+    void reportActivity({ kind: "video_watch", summary, durationSec: WATCH_CHUNK_SEC });
+    const timer = window.setInterval(() => {
+      void reportActivity({ kind: "video_watch", summary, durationSec: WATCH_CHUNK_SEC });
+    }, WATCH_HEARTBEAT_MS);
+    return () => window.clearInterval(timer);
+  }, [playing]);
+
   const recommended = useMemo(() => {
     if (!playing) return [];
     return videos.filter((video) => video.id !== playing.id).slice(0, RECOMMEND_COUNT);
@@ -40,19 +52,29 @@ export default function VideosPage() {
 
   if (playing) {
     return (
-      <Screen>
+      <Screen
+        secondary={<LineButton onClick={backToList}>목록으로</LineButton>}
+      >
         <div className="watch-layout">
           <div className="watch-stage">
-            <div className="watch-player">
-              <Player title={playing.title} src={embedUrl(playing.id)} />
+            <div className="watch-player-box">
+              <div className="watch-player">
+                <Player title={playing.title} src={embedUrl(playing.id)} />
+              </div>
+              <h2 className="watch-now-title">{playing.title}</h2>
+              {playing.channel ? <p className="watch-now-meta">{playing.channel}</p> : null}
+              {playing.suspiciousUrl ? (
+                <div className="watch-now-actions">
+                  <LineButton icon="link" onClick={() => sendToCheck(playing.suspiciousUrl)}>의심 주소 확인하기</LineButton>
+                </div>
+              ) : null}
             </div>
             {recommended.length > 0 ? (
               <aside className="watch-side" aria-label="추천 영상">
                 <div className="watch-side-head">
                   <h2 className="watch-side-title">추천 영상</h2>
-                  <button type="button" className="more watch-side-more" onClick={backToList}>
-                    더보기
-                    <Icon name="next" />
+                  <button type="button" className="watch-side-more" onClick={backToList}>
+                    더보기&gt;
                   </button>
                 </div>
                 <div className="watch-side-list">
@@ -67,15 +89,6 @@ export default function VideosPage() {
                   ))}
                 </div>
               </aside>
-            ) : null}
-          </div>
-          <div className="watch-now">
-            <h2 className="watch-now-title">{playing.title}</h2>
-            {playing.channel ? <p className="watch-now-meta">{playing.channel}</p> : null}
-            {playing.suspiciousUrl ? (
-              <div className="watch-now-actions">
-                <LineButton icon="link" onClick={() => sendToCheck(playing.suspiciousUrl)}>의심 주소 확인하기</LineButton>
-              </div>
             ) : null}
           </div>
         </div>

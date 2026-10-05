@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { loadChannelChoices } from "@/lib/client/feeds";
-import { createFamily, loadFamilyMe } from "@/lib/client/family-api";
-import { ensureFamilyCode, loadGuardian, saveCare, setFamilyCode } from "@/lib/client/guardian";
-import type { FamilyActivityItem, FamilyRole } from "@/lib/domain/family";
+import { createFamily, leaveFamily, loadFamilyMe, resetFamily } from "@/lib/client/family-api";
+import { clearFamilyCode, loadGuardian, saveCare, setFamilyCode } from "@/lib/client/guardian";
+import type { FamilyActivityItem, FamilyRole, FamilySenior } from "@/lib/domain/family";
 import { MESSAGES } from "@/lib/domain/messages";
 import { buildSetupLink } from "@/lib/domain/setup";
 import type { TextSize } from "@/lib/domain/types";
@@ -12,6 +12,7 @@ import { useAliveRef } from "./use-alive";
 import { useAuth } from "./use-auth";
 
 const QR_WIDTH = 280;
+const POLL_MS = 5 * 60_000;
 
 function cssColor(name: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -35,10 +36,15 @@ export function useCare() {
   const [channels, setChannels] = useState<string[]>([]);
   const [choices, setChoices] = useState<string[]>([]);
   const [dangerCount, setDangerCount] = useState<number | null>(null);
+  const [newsCount, setNewsCount] = useState(0);
+  const [watchSec, setWatchSec] = useState(0);
   const [todayItems, setTodayItems] = useState<FamilyActivityItem[]>([]);
   const [inviteCode, setInviteCode] = useState("");
   const [role, setRole] = useState<FamilyRole | null>(null);
   const [familyId, setFamilyId] = useState("");
+  const [seniorCount, setSeniorCount] = useState(0);
+  const [seniors, setSeniors] = useState<FamilySenior[]>([]);
+  const [connected, setConnected] = useState(false);
   const [familyLoading, setFamilyLoading] = useState(true);
   const [familyMessage, setFamilyMessage] = useState("");
   const [familyBusy, setFamilyBusy] = useState(false);
@@ -58,6 +64,59 @@ export function useCare() {
     });
   }, [aliveRef]);
 
+  const applyMe = useCallback(
+    (data: Awaited<ReturnType<typeof loadFamilyMe>>) => {
+      if (!data.ok) {
+        setNeedsFamily(data.needsFamily === true);
+        setRole(null);
+        setInviteCode("");
+        setFamilyId("");
+        setSeniorCount(0);
+        setSeniors([]);
+        setConnected(false);
+        setDangerCount(null);
+        setNewsCount(0);
+        setWatchSec(0);
+        setTodayItems([]);
+        if (!data.needsFamily) setFamilyMessage(data.message || MESSAGES.familyLoadFailed);
+        return;
+      }
+      setNeedsFamily(false);
+      setFamilyId(data.familyId);
+      setRole(data.role);
+      setInviteCode(data.inviteCode);
+      setSeniorCount(data.seniorCount ?? 0);
+      setSeniors(data.seniors ?? []);
+      setConnected(data.connected === true || (data.seniorCount ?? 0) > 0);
+      setDangerCount(data.todayCount);
+      setNewsCount(data.todayNewsCount ?? 0);
+      setWatchSec(data.todayWatchSec ?? 0);
+      setTodayItems(data.todayItems);
+      setFamilyCode(data.familyId);
+    },
+    [],
+  );
+
+  const refreshMe = useCallback(
+    async (opts?: { quiet?: boolean }) => {
+      if (!user) return;
+      if (!opts?.quiet) {
+        setFamilyLoading(true);
+        setFamilyMessage("");
+      }
+      try {
+        const data = await loadFamilyMe();
+        if (!aliveRef.current) return;
+        applyMe(data);
+      } catch {
+        if (aliveRef.current && !opts?.quiet) setFamilyMessage(MESSAGES.familyLoadFailed);
+      } finally {
+        if (aliveRef.current && !opts?.quiet) setFamilyLoading(false);
+      }
+    },
+    [aliveRef, applyMe, user],
+  );
+
   useEffect(() => {
     if (!ready) {
       setFamilyLoading(true);
@@ -69,7 +128,12 @@ export function useCare() {
       setRole(null);
       setInviteCode("");
       setFamilyId("");
+      setSeniorCount(0);
+      setSeniors([]);
+      setConnected(false);
       setDangerCount(null);
+      setNewsCount(0);
+      setWatchSec(0);
       setTodayItems([]);
       return;
     }
@@ -80,28 +144,21 @@ export function useCare() {
     void loadFamilyMe().then((data) => {
       if (!active) return;
       setFamilyLoading(false);
-      if (!data.ok) {
-        setNeedsFamily(data.needsFamily === true);
-        setRole(null);
-        setInviteCode("");
-        setFamilyId("");
-        setDangerCount(null);
-        setTodayItems([]);
-        if (!data.needsFamily) setFamilyMessage(data.message || MESSAGES.familyLoadFailed);
-        return;
-      }
-      setNeedsFamily(false);
-      setFamilyId(data.familyId);
-      setRole(data.role);
-      setInviteCode(data.inviteCode);
-      setDangerCount(data.todayCount);
-      setTodayItems(data.todayItems);
-      setFamilyCode(data.familyId);
+      applyMe(data);
     });
     return () => {
       active = false;
     };
-  }, [user, ready]);
+  }, [user, ready, applyMe]);
+
+  // 연결 후 보호자 대시보드는 주기적으로 오늘 활동을 갱신한다.
+  useEffect(() => {
+    if (!user || role !== "guardian" || !connected) return;
+    const timer = window.setInterval(() => {
+      void refreshMe({ quiet: true });
+    }, POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [user, role, connected, refreshMe]);
 
   function edited() {
     setSaved(false);
@@ -144,13 +201,7 @@ export function useCare() {
       setRole("guardian");
       setInviteCode(data.inviteCode);
       setFamilyCode(data.familyId);
-      const me = await loadFamilyMe();
-      if (!aliveRef.current) return;
-      if (me.ok) {
-        setDangerCount(me.todayCount);
-        setTodayItems(me.todayItems);
-        setInviteCode(me.inviteCode || data.inviteCode);
-      }
+      await refreshMe({ quiet: true });
       if (refresh) setFamilyMessage("새 초대 코드를 만들었어요.");
     } catch {
       if (aliveRef.current) setFamilyMessage(MESSAGES.familyCreateFailed);
@@ -169,16 +220,79 @@ export function useCare() {
     }
   }
 
+  async function leaveConnection(confirm: string) {
+    if (familyBusy) return;
+    setFamilyBusy(true);
+    setFamilyMessage("");
+    try {
+      const result = await leaveFamily(confirm);
+      if (!aliveRef.current) return;
+      if (!result.ok) {
+        setFamilyMessage(result.message || MESSAGES.familyLeaveFailed);
+        return;
+      }
+      clearFamilyCode();
+      setNeedsFamily(true);
+      setRole(null);
+      setInviteCode("");
+      setFamilyId("");
+      setSeniorCount(0);
+      setSeniors([]);
+      setConnected(false);
+      setDangerCount(null);
+      setNewsCount(0);
+      setWatchSec(0);
+      setTodayItems([]);
+      setFamilyMessage("가족 연결을 해제했어요. 다시 만들거나 코드를 넣을 수 있어요.");
+    } catch {
+      if (aliveRef.current) setFamilyMessage(MESSAGES.familyLeaveFailed);
+    } finally {
+      if (aliveRef.current) setFamilyBusy(false);
+    }
+  }
+
+  async function resetConnection(confirm: string) {
+    if (familyBusy) return;
+    setFamilyBusy(true);
+    setFamilyMessage("");
+    try {
+      const result = await resetFamily(confirm);
+      if (!aliveRef.current) return;
+      if (!result.ok) {
+        setFamilyMessage(result.message || MESSAGES.familyResetFailed);
+        return;
+      }
+      if (result.action === "reset" && result.inviteCode) {
+        setInviteCode(result.inviteCode);
+      }
+      setSeniorCount(0);
+      setSeniors([]);
+      setConnected(false);
+      setDangerCount(0);
+      setNewsCount(0);
+      setWatchSec(0);
+      setTodayItems([]);
+      setFamilyMessage("연결을 초기화했어요. 새 초대 코드로 다시 연결해 주세요.");
+      await refreshMe({ quiet: true });
+    } catch {
+      if (aliveRef.current) setFamilyMessage(MESSAGES.familyResetFailed);
+    } finally {
+      if (aliveRef.current) setFamilyBusy(false);
+    }
+  }
+
   async function save() {
-    ensureFamilyCode();
+    if (!familyId) {
+      setFamilyMessage("가족을 먼저 만든 뒤 설정 QR을 저장해 주세요.");
+      return;
+    }
     const stored = saveCare({ name, phone, textSize, channels });
-    const code = familyId || stored.familyCode;
     const link = buildSetupLink(window.location.origin, {
       name: stored.name,
       phone: stored.phone,
       textSize: stored.textSize,
       channels: stored.channels,
-      familyCode: code,
+      familyCode: familyId,
     });
 
     let image = "";
@@ -201,10 +315,15 @@ export function useCare() {
     channels,
     choices,
     dangerCount,
+    newsCount,
+    watchSec,
     todayItems,
     inviteCode,
     role,
     familyId,
+    seniorCount,
+    seniors,
+    connected,
     familyLoading,
     familyMessage,
     familyBusy,
@@ -219,5 +338,8 @@ export function useCare() {
     createFamilyGroup,
     refreshInvite: () => createFamilyGroup(true),
     copyInvite,
+    leaveConnection,
+    resetConnection,
+    refreshMe,
   };
 }

@@ -22,12 +22,12 @@ export const POST = withRoute("check", { rateLimit: { limit: 20, windowMs: 60_00
   const quota = await consumeGuestFeatureQuota(request, "check");
   if (!quota.ok) return quota.response;
 
-  // 활동 기록은 로그인·가족 멤버만. 클라이언트 familyCode 는 신뢰하지 않는다.
+  // 활동 기록은 로그인·어르신(시니어) 멤버만. 클라이언트 familyCode 는 신뢰하지 않는다.
   let familyCode = "";
   let userId: string | undefined;
   if (quota.userId) {
     const membership = await getServices().family.resolveFamilyForUser(quota.userId);
-    if (membership) {
+    if (membership?.role === "senior") {
       familyCode = membership.familyId;
       userId = quota.userId;
     }

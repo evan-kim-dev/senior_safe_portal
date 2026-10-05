@@ -26,6 +26,20 @@ describe("mapVideos", () => {
   it("videos 가 배열이 아니어도 깨지지 않는다", () => {
     expect(mapVideos([{ videos: "oops" }, {}])).toEqual([]);
   });
+
+  it("카테고리별로 번갈아 넣어 한쪽만 앞줄을 채우지 않는다", () => {
+    const music = ["aaaaaaaaaaa", "bbbbbbbbbbb", "ccccccccccc"].map((id) => video(id));
+    const news = ["ddddddddddd", "eeeeeeeeeee", "fffffffffff"].map((id) => video(id));
+    const result = mapVideos([{ videos: music }, { videos: news }]);
+    expect(result.map((item) => item.id)).toEqual([
+      "aaaaaaaaaaa",
+      "ddddddddddd",
+      "bbbbbbbbbbb",
+      "eeeeeeeeeee",
+      "ccccccccccc",
+      "fffffffffff",
+    ]);
+  });
 });
 
 describe("suspiciousUrlIn", () => {
@@ -75,8 +89,8 @@ describe("mapWelfare", () => {
     );
     expect(result.place).toBe("서울 강남구");
     expect(result.cards).toEqual([
-      { title: "돌봄 지원", target: "65세 이상", apply: "주민센터 방문", kind: "우리 동네" },
-      { title: "기초연금", target: "소득 하위", apply: "온라인으로 신청할 수 있습니다.", kind: "전국" },
+      { title: "돌봄 지원", target: "65세 이상", apply: "주민센터 방문", kind: "우리 동네", href: "https://www.bokjiro.go.kr/" },
+      { title: "기초연금", target: "소득 하위", apply: "온라인으로 신청할 수 있습니다.", kind: "전국", href: "https://www.bokjiro.go.kr/" },
     ]);
   });
 

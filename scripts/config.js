@@ -18,33 +18,33 @@ export const SITE_NAV_ITEMS = [
 export const YOUTUBE_CATEGORIES = [
   {
     id: "music",
-    label: "음악",
+    label: "노래",
     query: "트로트 명곡",
-    queries: ["트로트 명곡 모음", "7080 추억의 가요", "국민가요 베스트", "트로트 인기곡"],
+    queries: ["트로트 명곡 모음 7080", "7080 추억의 가요", "국민가요 베스트", "임영웅 명곡"],
   },
   {
     id: "affairs",
     label: "시사",
     query: "시사 뉴스",
-    queries: ["KBS 시사뉴스", "뉴스9 하이라이트", "오늘의 시사", "MBC 뉴스"],
+    queries: ["KBS 뉴스9", "MBC 뉴스데스크", "오늘의 시사", "뉴스 하이라이트"],
+  },
+  {
+    id: "history",
+    label: "역사",
+    query: "한국사 다큐",
+    queries: ["한국사 다큐멘터리", "EBS 역사 특강", "근현대사 다큐", "우리 역사 이야기"],
   },
   {
     id: "entertainment",
     label: "예능",
     query: "예능",
-    queries: ["유퀴즈 온더블럭", "놀면 뭐하니", "1박 2일", "한국 예능 하이라이트"],
-  },
-  {
-    id: "documentary",
-    label: "다큐멘터리",
-    query: "다큐멘터리",
-    queries: ["EBS 다큐프라임", "KBS 다큐멘터리", "역사 다큐", "자연 다큐"],
+    queries: ["유퀴즈 온더블럭", "전국노래자랑", "1박 2일", "놀면 뭐하니"],
   },
   {
     id: "health",
     label: "건강",
     query: "시니어 건강",
-    queries: ["어르신 건강체조", "국민건강체조", "노인 스트레칭", "시니어 운동"],
+    queries: ["어르신 건강체조", "국민건강체조", "시니어 스트레칭", "노인 근력 운동"],
   },
 ];
 export const YOUTUBE_CATEGORY_FALLBACK = {
@@ -58,17 +58,15 @@ export const YOUTUBE_CATEGORY_FALLBACK = {
     { video_id: "21X5lGlqIxs", title: "KBS 뉴스 9", channel: "KBS News", status: "안전" },
     { video_id: "Ap-EL2N2XgM", title: "MBC 뉴스데스크", channel: "MBCNEWS", status: "안전" },
   ],
+  history: [
+    { video_id: "cLVugRBot1c", title: "EBS 다큐프라임", channel: "EBS 다큐", status: "안전" },
+    { video_id: "8jPQjjsBbIc", title: "EBS 다큐프라임", channel: "EBS Documentary", status: "안전" },
+    { video_id: "ZXsQAXuYbo0", title: "KBS 다큐멘터리", channel: "KBS Documentary", status: "안전" },
+  ],
   entertainment: [
     { video_id: "Nob6hMO60NE", title: "운동으로 꿈을 가르치는 지한구 선생님 [유퀴즈]", channel: "유 퀴즈 온 더 튜브", status: "안전" },
     { video_id: "lwycbWG8gJI", title: "유퀴즈 온더블럭 하이라이트", channel: "tvN D ENT", status: "안전" },
     { video_id: "kOYS9l8X8Hs", title: "놀면 뭐하니?", channel: "MBC Entertainment", status: "안전" },
-    { video_id: "j4dMnAPZuGM", title: "유퀴즈 온 더 블럭 클립", channel: "tvN D ENT", status: "안전" },
-    { video_id: "R82-N9mP6TU", title: "유퀴즈 온 더 블럭 베스트", channel: "tvN D ENT", status: "안전" },
-  ],
-  documentary: [
-    { video_id: "cLVugRBot1c", title: "EBS 다큐프라임 - 공부의 배신 1부", channel: "EBS 다큐", status: "안전" },
-    { video_id: "8jPQjjsBbIc", title: "EBS 다큐프라임", channel: "EBS Documentary", status: "안전" },
-    { video_id: "ZXsQAXuYbo0", title: "KBS 다큐멘터리", channel: "KBS Documentary", status: "안전" },
   ],
   health: [
     { video_id: "oq0eugtuMas", title: "국민건강체조 (새천년건강체조)", channel: "국민체육진흥공단", status: "안전" },

@@ -40,24 +40,43 @@ export function getServices(): Services {
     log.warn("service_role_missing", { effect: "link check cache and danger video count are disabled" });
   }
 
+  const check = createCheckService({
+    findFresh: (urlKey) => linkChecks.findFresh(urlKey),
+    analyze: (url) => edge.invoke("analyze-link", { url }, ANALYZE_TIMEOUT_MS),
+    save: (urlKey, result) => linkChecks.save(urlKey, result),
+    recordDanger: (familyCode, kind, userId, summary) =>
+      activity.record(familyCode, kind, { userId, summary }),
+    defer: (task) =>
+      after(async () => {
+        try {
+          await task();
+        } catch (error) {
+          log.error("deferred_task_failed", { error });
+        }
+      }),
+    log: log.child({ service: "check" }),
+  });
+
   services = {
-    check: createCheckService({
-      findFresh: (urlKey) => linkChecks.findFresh(urlKey),
-      analyze: (url) => edge.invoke("analyze-link", { url }, ANALYZE_TIMEOUT_MS),
-      save: (urlKey, result) => linkChecks.save(urlKey, result),
-      recordDangerVideo: (familyCode, userId) => activity.recordDangerVideo(familyCode, userId),
+    check,
+    chat: createChatService({
+      ask: (payload) => edge.invoke("chat-agent", payload, CHAT_TIMEOUT_MS),
+      checkLink: (input) =>
+        check.check({
+          url: input.url,
+          familyCode: input.familyCode,
+          userId: input.userId,
+        }),
+      recordChatDanger: (familyCode, userId, summary) =>
+        activity.record(familyCode, "danger_chat", { userId, summary }),
       defer: (task) =>
         after(async () => {
           try {
             await task();
           } catch (error) {
-            log.error("deferred_task_failed", { error });
+            log.error("deferred_task_failed", { error, source: "chat" });
           }
         }),
-      log: log.child({ service: "check" }),
-    }),
-    chat: createChatService({
-      ask: (payload) => edge.invoke("chat-agent", payload, CHAT_TIMEOUT_MS),
     }),
     feeds: createFeedService(createFeedRepository(rest)),
     activity,

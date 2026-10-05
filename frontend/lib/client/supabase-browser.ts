@@ -137,6 +137,9 @@ export async function signUpWithEmail(input: SignUpFormInput, next?: string | nu
           full_name: checked.value.name,
           nickname: checked.value.nickname,
           phone: checked.value.phone,
+          account_role: checked.value.accountRole,
+          birth_year: checked.value.birthYear,
+          interests: checked.value.interests,
         },
       },
     });

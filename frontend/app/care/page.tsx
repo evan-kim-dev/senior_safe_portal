@@ -1,10 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { FamilyBand } from "@/components/FamilyBand";
+import { useMemo, useState } from "react";
+import { CareInviteBlock } from "@/components/CareInviteBlock";
+import { CareSeniorDetail, CareSeniorRoster } from "@/components/CareSeniorRoster";
+import { FamilyConnectionActions } from "@/components/FamilyConnectionActions";
+import { FlowPage } from "@/components/FlowPage";
+import { StatusBanner } from "@/components/StatusBanner";
 import { BigButton, Count, Field, LineButton, Screen, Status } from "@/components/ui";
 import { useCare } from "@/hooks/use-care";
-import { INVITE_CODE_LENGTH } from "@/lib/domain/family";
+import { formatWatchDuration } from "@/lib/domain/duration";
+import { INVITE_CODE_LENGTH, type FamilySeniorStatus } from "@/lib/domain/family";
+import { filterActivityBySenior } from "@/lib/domain/senior-roster";
 import { MAX_NAME_LENGTH, MAX_PHONE_LENGTH } from "@/lib/domain/setup";
 import type { TextSize } from "@/lib/domain/types";
 
@@ -16,119 +22,204 @@ const SIZES: { id: TextSize; label: string }[] = [
 
 export default function CarePage() {
   const care = useCare();
+  const [selectedSeniorId, setSelectedSeniorId] = useState<string | null>(null);
+  const [rosterFilter, setRosterFilter] = useState<"all" | FamilySeniorStatus>("all");
+  const [rosterQuery, setRosterQuery] = useState("");
+
+  const selectedSenior = useMemo(
+    () => care.seniors.find((item) => item.userId === selectedSeniorId) ?? null,
+    [care.seniors, selectedSeniorId],
+  );
+  const visibleItems = useMemo(
+    () => filterActivityBySenior(care.todayItems, selectedSeniorId),
+    [care.todayItems, selectedSeniorId],
+  );
+  const attentionCount = care.seniors.filter((item) => item.status === "attention").length;
 
   if (!care.ready || (!care.user && care.familyLoading)) {
     return (
-      <main className="care">
-        <FamilyBand />
-        <div className="wrap care-follow">
-          <Status>로그인 상태를 확인하고 있어요. 잠시만 기다려 주세요.</Status>
-        </div>
-      </main>
+      <FlowPage title="대시보드" lead="연결된 어르신 활동을 한눈에 확인해요." busy>
+        <Status>로그인 상태를 확인하고 있어요. 잠시만 기다려 주세요.</Status>
+      </FlowPage>
     );
   }
 
   if (!care.user) {
     return (
-      <main className="care">
-        <FamilyBand
-          actions={(
-            <>
-              <BigButton href="/login?next=/care" icon="users">로그인하기</BigButton>
-              <LineButton href="/link">부모 계정 연결</LineButton>
-            </>
-          )}
-        />
-        <div className="wrap care-follow">
-          <Status>자녀 계정으로 로그인한 뒤 가족을 만들고, 부모님께 초대 코드를 알려 주세요.</Status>
-        </div>
-      </main>
+      <FlowPage
+        title="대시보드"
+        lead="관리자 계정으로 로그인한 뒤 그룹을 만들고 초대 코드를 알려 주세요."
+        bandActions={(
+          <>
+            <BigButton href="/login?next=/care" icon="users">로그인하기</BigButton>
+            <LineButton href="/link">계정연결</LineButton>
+          </>
+        )}
+      >
+        <Status>요양원·복지관·가족 담당자가 여러 어르신을 목록으로 관리할 수 있어요.</Status>
+      </FlowPage>
     );
   }
 
   if (care.familyLoading) {
     return (
-      <main className="care">
-        <FamilyBand />
-        <div className="wrap care-follow">
-          <Status>가족 정보를 불러오고 있어요. 잠시만 기다려 주세요.</Status>
-        </div>
-      </main>
+      <FlowPage title="대시보드" lead="연결 정보를 불러오고 있어요." busy>
+        <Status>잠시만 기다려 주세요.</Status>
+      </FlowPage>
     );
   }
 
   if (care.needsFamily) {
     return (
-      <main className="care">
-        <FamilyBand
-          actions={(
-            <>
-              <BigButton disabled={care.familyBusy} onClick={() => void care.createFamilyGroup()} icon="users">
-                가족 만들기
-              </BigButton>
-              <LineButton href="/link">부모님이 코드 입력하는 화면</LineButton>
-            </>
-          )}
+      <FlowPage
+        title="대시보드"
+        lead={`관리 그룹을 만든 뒤 어르신께 ${INVITE_CODE_LENGTH}자리 초대 코드를 알려 주세요.`}
+        bandActions={(
+          <>
+            <BigButton disabled={care.familyBusy} onClick={() => void care.createFamilyGroup()} icon="users">
+              관리 그룹 만들기
+            </BigButton>
+            <LineButton href="/link">계정연결 화면</LineButton>
+          </>
+        )}
+      >
+        {care.familyMessage ? <Status>{care.familyMessage}</Status> : null}
+      </FlowPage>
+    );
+  }
+
+  if (care.role === "senior") {
+    return (
+      <Screen
+        className="page-flow"
+        title="계정 연결됨"
+        lead="이 계정의 위험 검사·영상·뉴스 활동이 관리자 대시보드에 보여요."
+        narrow
+        primary={<BigButton href="/">홈으로</BigButton>}
+      >
+        <StatusBanner
+          variant="connected"
+          title="관리자와 연결되어 있어요"
+          text="링크 검사, 영상 시청, 기사 열람이 담당자에게 전달됩니다."
         />
-        <div className="wrap care-follow">
-          <Status>자녀 계정으로 가족을 만든 뒤, 부모님께 {INVITE_CODE_LENGTH}자리 초대 코드를 알려 주세요.</Status>
-          {care.familyMessage ? <Status>{care.familyMessage}</Status> : null}
+        <Status>대시보드 설정과 활동 확인은 관리자 계정에서 해 주세요.</Status>
+        <LineButton href="/link">연결 상태 보기</LineButton>
+        <FamilyConnectionActions
+          role="senior"
+          busy={care.familyBusy}
+          onLeave={(confirm) => care.leaveConnection(confirm)}
+        />
+        {care.familyMessage ? <Status>{care.familyMessage}</Status> : null}
+      </Screen>
+    );
+  }
+
+  if (!care.connected) {
+    return (
+      <FlowPage
+        title="대시보드"
+        lead="아직 연결된 어르신이 없어요. 초대 코드를 알려 연결을 완료하세요."
+      >
+        <StatusBanner
+          variant="waiting"
+          title="연결 대기 중"
+          text="연결되면 어르신별 위험·시청·기사 활동이 목록으로 나타납니다."
+        />
+
+        <CareInviteBlock
+          inviteCode={care.inviteCode}
+          busy={care.familyBusy}
+          onCopy={() => void care.copyInvite()}
+          onRefresh={() => void care.refreshInvite()}
+        />
+
+        <div className="group">
+          <h2 className="group-title">연결 후 보이는 것</h2>
+          <ul className="care-preview-list">
+            <li>어르신별 오늘 위험·시청·기사 요약</li>
+            <li>주의가 필요한 분 우선 정렬</li>
+            <li>선택한 분의 활동만 따로 보기</li>
+          </ul>
         </div>
-      </main>
+
+        <FamilyConnectionActions
+          role="guardian"
+          busy={care.familyBusy}
+          onLeave={(confirm) => care.leaveConnection(confirm)}
+          onReset={(confirm) => care.resetConnection(confirm)}
+        />
+
+        {care.familyMessage ? <Status>{care.familyMessage}</Status> : null}
+      </FlowPage>
     );
   }
 
   return (
-    <>
-      <FamilyBand
-        actions={care.role === "guardian" ? <LineButton href="/link">부모 계정 연결 안내</LineButton> : undefined}
-      />
-      <Screen
-        title="자녀 대시보드"
-        lead="부모 계정 활동을 보고, 설정 QR로 부모님 폰 글자·채널도 맞출 수 있어요."
-        narrow
-        primary={care.role === "guardian" ? <BigButton type="submit" form="care-form" icon="qr">설정 저장</BigButton> : undefined}
-      >
-        <Count value={care.dangerCount} />
-
-        {care.role === "guardian" ? (
-          <div className="group">
-            <h2 className="group-title">부모 초대 코드</h2>
-            {care.inviteCode ? (
-              <>
-                <p className="invite-code" aria-label="초대 코드">{care.inviteCode}</p>
-                <LineButton onClick={() => void care.copyInvite()}>코드 복사</LineButton>
-                <Status>부모님이 <Link href="/link">부모 연결</Link>에서 로그인한 뒤 이 코드를 넣으면 연결돼요. 유효 시간은 24시간입니다.</Status>
-              </>
-            ) : (
-              <Status>초대 코드가 없거나 만료됐어요. 새 코드를 받아 주세요.</Status>
-            )}
-            <LineButton disabled={care.familyBusy} onClick={() => void care.refreshInvite()}>
-              새 초대 코드 받기
-            </LineButton>
-          </div>
-        ) : null}
-
-        {care.role === "senior" ? (
-          <Status>이 계정은 부모(어르신)로 연결되어 있어요. 자녀 대시보드 설정은 자녀 계정에서 해 주세요.</Status>
-        ) : null}
-
-        {care.todayItems.length ? (
-          <div className="group">
-            <h2 className="group-title">오늘 위험 영상</h2>
-            <ul className="list">
-              {care.todayItems.map((item) => (
-                <li key={item.id} className="row">
-                  <span className="row-text">{item.label}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+    <FlowPage
+      title="대시보드"
+      lead={
+        selectedSenior
+          ? `${selectedSenior.displayName} 님의 오늘 활동을 확인해요.`
+          : "어르신 박스를 눌러 상세 활동을 확인하세요."
+      }
+      bandActions={
+        selectedSenior ? (
+          <LineButton onClick={() => setSelectedSeniorId(null)}>목록으로</LineButton>
         ) : (
-          <Status>오늘 기록된 위험한 영상은 아직 없어요.</Status>
-        )}
+          <LineButton href="/link">계정연결 안내</LineButton>
+        )
+      }
+      primary={
+        selectedSenior ? undefined : <BigButton type="submit" form="care-form" icon="qr">설정 저장</BigButton>
+      }
+    >
+      {selectedSenior ? (
+        <CareSeniorDetail
+          senior={selectedSenior}
+          items={visibleItems}
+          onBack={() => setSelectedSeniorId(null)}
+          onRefresh={() => void care.refreshMe({ quiet: true })}
+        />
+      ) : (
+        <>
+          <StatusBanner
+            variant="connected"
+            title={`관리 중 · ${care.seniorCount}명`}
+            text={
+              attentionCount > 0
+                ? `오늘 주의 ${attentionCount}명 · 위험 감지 ${care.dangerCount ?? 0}건`
+                : `오늘 위험 감지 ${care.dangerCount ?? 0}건`
+            }
+          />
 
-        {care.role === "guardian" ? (
+          <div className="care-stats care-stats-overview">
+            <Count value={care.dangerCount} label="오늘 위험 감지" />
+            <p className="care-stat">
+              <span className="care-stat-label">영상 시청</span>
+              <span className="care-stat-value">{formatWatchDuration(care.watchSec)}</span>
+            </p>
+            <p className="care-stat">
+              <span className="care-stat-label">기사 열람</span>
+              <span className="care-stat-value">{care.newsCount}건</span>
+            </p>
+          </div>
+
+          <CareSeniorRoster
+            seniors={care.seniors}
+            filter={rosterFilter}
+            query={rosterQuery}
+            onFilterChange={setRosterFilter}
+            onQueryChange={setRosterQuery}
+            onOpen={setSelectedSeniorId}
+          />
+
+          <CareInviteBlock
+            inviteCode={care.inviteCode}
+            busy={care.familyBusy}
+            onCopy={() => void care.copyInvite()}
+            onRefresh={() => void care.refreshInvite()}
+          />
+
           <form
             id="care-form"
             onSubmit={(event) => {
@@ -136,8 +227,22 @@ export default function CarePage() {
               void care.save();
             }}
           >
-            <Field id="care-name" label="받을 사람 이름" maxLength={MAX_NAME_LENGTH} value={care.name} onChange={(event) => care.setName(event.target.value)} />
-            <Field id="care-phone" label="받을 전화번호" inputMode="tel" maxLength={MAX_PHONE_LENGTH} value={care.phone} onChange={(event) => care.setPhone(event.target.value)} />
+            <h2 className="group-title">어르신 폰 설정 QR</h2>
+            <Field
+              id="care-name"
+              label="받을 사람 이름"
+              maxLength={MAX_NAME_LENGTH}
+              value={care.name}
+              onChange={(event) => care.setName(event.target.value)}
+            />
+            <Field
+              id="care-phone"
+              label="받을 전화번호"
+              inputMode="tel"
+              maxLength={MAX_PHONE_LENGTH}
+              value={care.phone}
+              onChange={(event) => care.setPhone(event.target.value)}
+            />
             <fieldset>
               <legend>글자 크기</legend>
               {SIZES.map((item) => (
@@ -157,18 +262,29 @@ export default function CarePage() {
               {care.choices.length === 0 ? <p>저장된 영상이 없어 채널을 고를 수 없습니다.</p> : null}
               {care.choices.map((channel) => (
                 <label key={channel}>
-                  <input type="checkbox" checked={care.channels.includes(channel)} onChange={() => care.toggleChannel(channel)} />
+                  <input
+                    type="checkbox"
+                    checked={care.channels.includes(channel)}
+                    onChange={() => care.toggleChannel(channel)}
+                  />
                   {channel}
                 </label>
               ))}
             </fieldset>
           </form>
-        ) : null}
 
-        {care.familyMessage ? <Status>{care.familyMessage}</Status> : null}
-        {care.saved ? <Status>저장했어요</Status> : null}
-        {care.qr ? <img className="qr" src={care.qr} alt="어르신 폰에 넣을 설정" /> : null}
-      </Screen>
-    </>
+          {care.familyMessage ? <Status>{care.familyMessage}</Status> : null}
+          {care.saved ? <Status>저장했어요</Status> : null}
+          {care.qr ? <img className="qr" src={care.qr} alt="어르신 폰에 넣을 설정" /> : null}
+
+          <FamilyConnectionActions
+            role="guardian"
+            busy={care.familyBusy}
+            onLeave={(confirm) => care.leaveConnection(confirm)}
+            onReset={(confirm) => care.resetConnection(confirm)}
+          />
+        </>
+      )}
+    </FlowPage>
   );
 }

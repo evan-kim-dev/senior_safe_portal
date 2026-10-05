@@ -22,6 +22,13 @@ export const POST = withRoute("chat", { rateLimit: { limit: 15, windowMs: 60_000
   const input = parseChatInput(body.value);
   if (!input.ok) return json({ ok: false, message: input.message }, { status: 400 });
 
-  const outcome = await getServices().chat.ask(input.value);
+  const services = getServices();
+  const membership = await services.family.resolveFamilyForUser(user.id);
+  const senior =
+    membership?.role === "senior"
+      ? { userId: user.id, familyCode: membership.familyId }
+      : undefined;
+
+  const outcome = await services.chat.ask(input.value, senior);
   return json(outcome.body, { status: outcome.status });
 });

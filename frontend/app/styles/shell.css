@@ -1,0 +1,79 @@
+/* 웹(≥1024) · 앱(<1024) · 단독(/setup) 레이아웃 */
+
+:root {
+  --shell-tab: var(--nav-h);
+  --shell-actions-bottom: calc(var(--shell-tab) + env(safe-area-inset-bottom));
+}
+
+body[data-standalone="1"] {
+  padding-bottom: 0;
+  --shell-tab: 0px;
+  --shell-actions-bottom: env(safe-area-inset-bottom);
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --shell-tab: 0px;
+    --shell-actions-bottom: 0px;
+  }
+}
+
+.page-actions {
+  bottom: var(--shell-actions-bottom);
+}
+
+body[data-standalone="1"] .page-actions {
+  bottom: 0;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+.chat-fab {
+  bottom: calc(var(--shell-tab) + env(safe-area-inset-bottom) + 0.75rem);
+}
+
+body:has(.page-actions) .chat-fab {
+  bottom: calc(var(--shell-tab) + var(--actions-h) + env(safe-area-inset-bottom) + 1rem);
+}
+
+/* ---------- 앱(모바일) ---------- */
+
+body[data-shell="app"] .page-head {
+  padding: 1.25rem 0 1.125rem;
+}
+
+body[data-shell="app"] .page-head h1 {
+  font-size: 1.375rem;
+}
+
+body[data-shell="app"] .page-main {
+  padding-top: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+body[data-shell="app"] .page-body {
+  gap: 1.25rem;
+}
+
+body[data-shell="app"] .page-flow .page-head {
+  padding-top: 1rem;
+}
+
+body[data-shell="app"][data-flow="1"] .site-footer {
+  padding-bottom: calc(2rem + var(--shell-tab) + env(safe-area-inset-bottom));
+}
+
+/* ---------- 웹(데스크톱) ---------- */
+
+body[data-shell="web"] .page-flow .page-head {
+  padding-top: 1.75rem;
+}
+
+body[data-shell="web"] .flow-band + .page-flow .page-head,
+body[data-shell="web"] .band + .page-flow .page-head {
+  border-top: 0;
+}
+
+body[data-shell="web"] .page-body .group + .group,
+body[data-shell="web"] .page-body form + .group {
+  margin-top: 0.25rem;
+}

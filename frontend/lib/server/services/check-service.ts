@@ -15,7 +15,7 @@ export type CheckServiceDeps = {
   findFresh(urlKey: string): Promise<CheckSuccess | null>;
   analyze(url: string): Promise<EdgeResult>;
   save(urlKey: string, result: CheckSuccess): Promise<void>;
-  recordDangerVideo(familyCode: string, userId?: string): Promise<void>;
+  recordDanger(familyCode: string, kind: "danger_video" | "danger_link", userId?: string, summary?: string): Promise<void>;
   /** 응답을 보낸 뒤 할 일(캐시 저장, 집계). 실패해도 화면 결과에는 영향이 없어야 한다. */
   defer(task: () => Promise<void>): void;
   log: Logger;
@@ -25,6 +25,12 @@ export type CheckService = { check(input: CheckInput): Promise<CheckOutcome> };
 
 function failure(status: number, message: string = MESSAGES.checkFailed): CheckOutcome {
   return { status, body: { ok: false, message } };
+}
+
+function shortSummary(title: string, url: string): string {
+  const host = hostnameOf(url);
+  const text = (title || host || "").replace(/\s+/g, " ").trim();
+  return text.slice(0, 80);
 }
 
 export function createCheckService(deps: CheckServiceDeps): CheckService {
@@ -73,10 +79,12 @@ export function createCheckService(deps: CheckServiceDeps): CheckService {
       }
 
       const outcome = await pending;
-      if (outcome.body.ok && outcome.body.verdict === "danger" && outcome.body.kind === "video" && input.familyCode) {
+      if (outcome.body.ok && outcome.body.verdict === "danger" && input.familyCode) {
         const familyCode = input.familyCode;
         const userId = input.userId;
-        deps.defer(() => deps.recordDangerVideo(familyCode, userId));
+        const kind = outcome.body.kind === "video" ? "danger_video" : "danger_link";
+        const summary = shortSummary(outcome.body.title, outcome.body.url);
+        deps.defer(() => deps.recordDanger(familyCode, kind, userId, summary));
       }
       return outcome;
     },

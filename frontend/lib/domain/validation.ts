@@ -100,3 +100,36 @@ export function parseWelfareInput(body: unknown): Result<WelfareInput> {
   if (!WELFARE_CATEGORY.test(category)) return err(MESSAGES.welfareBadRequest);
   return ok({ region, category });
 }
+
+const ACTIVITY_KINDS = ["video_watch", "news_view"] as const;
+export type ClientActivityKind = (typeof ACTIVITY_KINDS)[number];
+
+export type ActivityEventInput = {
+  kind: ClientActivityKind;
+  summary: string;
+  durationSec: number;
+};
+
+/** 클라이언트가 보내는 시청·기사 열람만 받는다. 위험 판정은 서버 check 경로만. */
+export function parseActivityEventInput(body: unknown): Result<ActivityEventInput> {
+  const kind = trimmed(field(body, "kind"));
+  if (!(ACTIVITY_KINDS as readonly string[]).includes(kind)) {
+    return err(MESSAGES.categoryInvalid);
+  }
+  const summary = trimmed(field(body, "summary")).slice(0, 120);
+  const rawDuration = field(body, "durationSec");
+  const durationSec =
+    typeof rawDuration === "number"
+      ? rawDuration
+      : typeof rawDuration === "string"
+        ? Number(rawDuration)
+        : 0;
+  if (!Number.isFinite(durationSec) || durationSec < 0 || durationSec > 86_400) {
+    return err(MESSAGES.categoryInvalid);
+  }
+  return ok({
+    kind: kind as ClientActivityKind,
+    summary,
+    durationSec: Math.floor(durationSec),
+  });
+}

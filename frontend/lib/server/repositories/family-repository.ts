@@ -19,9 +19,13 @@ export type FamilyInviteRow = {
 
 export type FamilyRepository = {
   findMembership(userId: string): Promise<FamilyMemberRow | null>;
+  countMembers(familyId: string, role?: FamilyRole): Promise<number>;
+  listMembers(familyId: string, role?: FamilyRole): Promise<FamilyMemberRow[]>;
   createFamily(userId: string, familyId: string): Promise<boolean>;
   addMember(familyId: string, userId: string, role: FamilyRole): Promise<boolean>;
   removeMember(familyId: string, userId: string): Promise<boolean>;
+  removeAllMembers(familyId: string): Promise<boolean>;
+  deleteInvites(familyId: string): Promise<boolean>;
   findActiveInvite(familyId: string, nowIso: string): Promise<FamilyInviteRow | null>;
   findInvite(code: string): Promise<FamilyInviteRow | null>;
   insertInvite(invite: { code: string; familyId: string; createdBy: string; expiresAt: string }): Promise<boolean>;
@@ -42,6 +46,18 @@ export function createFamilyRepository(rest: RestClient): FamilyRepository {
     return result.ok;
   }
 
+  async function listMembers(familyId: string, role?: FamilyRole): Promise<FamilyMemberRow[]> {
+    const roleFilter = role ? `&role=eq.${encodeURIComponent(role)}` : "";
+    const result = await rest.request<FamilyMemberRow[]>("service", {
+      path:
+        `family_members?family_id=eq.${encodeURIComponent(familyId)}` +
+        `${roleFilter}&select=family_id,user_id,role&order=joined_at.asc`,
+      timeoutMs: 4_000,
+    });
+    if (!result.ok || !Array.isArray(result.data)) return [];
+    return result.data;
+  }
+
   return {
     async findMembership(userId) {
       const result = await rest.request<FamilyMemberRow[]>("service", {
@@ -51,6 +67,12 @@ export function createFamilyRepository(rest: RestClient): FamilyRepository {
       if (!result.ok || !result.data?.[0]) return null;
       return result.data[0];
     },
+
+    async countMembers(familyId, role) {
+      return (await listMembers(familyId, role)).length;
+    },
+
+    listMembers,
 
     async createFamily(userId, familyId) {
       const group = await rest.request("service", {
@@ -71,6 +93,26 @@ export function createFamilyRepository(rest: RestClient): FamilyRepository {
         path:
           `family_members?family_id=eq.${encodeURIComponent(familyId)}` +
           `&user_id=eq.${encodeURIComponent(userId)}`,
+        method: "DELETE",
+        headers: { Prefer: "return=minimal" },
+        timeoutMs: 4_000,
+      });
+      return result.ok;
+    },
+
+    async removeAllMembers(familyId) {
+      const result = await rest.request("service", {
+        path: `family_members?family_id=eq.${encodeURIComponent(familyId)}`,
+        method: "DELETE",
+        headers: { Prefer: "return=minimal" },
+        timeoutMs: 4_000,
+      });
+      return result.ok;
+    },
+
+    async deleteInvites(familyId) {
+      const result = await rest.request("service", {
+        path: `family_invites?family_id=eq.${encodeURIComponent(familyId)}`,
         method: "DELETE",
         headers: { Prefer: "return=minimal" },
         timeoutMs: 4_000,

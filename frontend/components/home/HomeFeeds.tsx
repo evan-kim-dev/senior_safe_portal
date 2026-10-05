@@ -7,6 +7,7 @@ import { Rail } from "@/components/Rail";
 import { TipCard } from "@/components/SafetyTips";
 import { Info, Media, Section, Status } from "@/components/ui";
 import { useNews, useVideos, useWelfare } from "@/hooks/use-feeds";
+import { reportActivity } from "@/lib/client/activity";
 import { openChat } from "@/lib/client/chat-bridge";
 import { SAFETY_TIPS } from "@/lib/domain/content";
 import { videoHref } from "@/lib/domain/feed-view";
@@ -15,7 +16,7 @@ import { isHttpUrl } from "@/lib/domain/url";
 
 const RAIL_VIDEOS = 12;
 const HOME_WELFARE = 12;
-const LEAD_ROTATE_MS = 7000;
+const LEAD_ROTATE_MS = 10_000;
 const LEAD_POOL = 6;
 const SIDE_NEWS = 4;
 
@@ -30,6 +31,13 @@ function newsMeta(article: NewsItem): string {
 
 function newsHref(article: NewsItem): string | undefined {
   return isHttpUrl(article.url) ? article.url : undefined;
+}
+
+function trackNewsView(article: NewsItem) {
+  void reportActivity({
+    kind: "news_view",
+    summary: `${article.title.slice(0, 60)}${article.source ? ` · ${article.source}` : ""}`,
+  });
 }
 
 function pickSideNews(articles: readonly NewsItem[], leadIndex: number, count: number): NewsItem[] {
@@ -48,7 +56,6 @@ export function VideoRail() {
     <Section
       id="videos"
       title="오늘의 추천 영상"
-      desc="영상 설명에 의심 주소가 있으면 바로 검사할 수 있어요."
       more={{ href: "/videos", label: "전체 보기" }}
       className="section-tint"
     >
@@ -86,7 +93,10 @@ function LeadCard({
   const href = newsHref(article);
   const body = (
     <>
-      <span className="tag tag-light">오늘의 보안 뉴스</span>
+      <span className="verified-badge verified-badge-on-dark verified-badge-lead">
+        <Icon name="check" />
+        확인됨
+      </span>
       <span key={article.url} className="mosaic-lead-swap">
         {article.image ? (
           <span className="mosaic-photo">
@@ -108,7 +118,7 @@ function LeadCard({
     "aria-label": article.title,
   };
   return href
-    ? <a className={className} href={href} rel="noopener noreferrer" {...pauseProps}>{body}</a>
+    ? <a className={className} href={href} rel="noopener noreferrer" onClick={() => trackNewsView(article)} {...pauseProps}>{body}</a>
     : <Link className={className} href="/news" {...pauseProps}>{body}</Link>;
 }
 
@@ -121,6 +131,16 @@ export function NewsSection() {
   useEffect(() => {
     setLeadIndex(0);
   }, [news.articles]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    function sync() {
+      if (media.matches) setPaused(true);
+    }
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     if (pool.length <= 1 || paused) return;
@@ -138,7 +158,6 @@ export function NewsSection() {
     <Section
       id="news"
       title="오늘의 뉴스"
-      desc="사기·보안 관련 소식을 모았어요."
       more={{ href: "/news", label: "전체 보기" }}
     >
       {pool.length === 0 && news.message ? <Status>{news.message}</Status> : null}
@@ -151,12 +170,13 @@ export function NewsSection() {
           ? sideNews.map((article) => (
             <Info
               key={`${article.url}-${article.date}`}
-              tag="뉴스"
+              verified="확인됨"
               tone="purple"
               title={article.title}
               lines={[newsMeta(article)]}
               href={newsHref(article)}
               more="기사 보기"
+              onOpen={() => trackNewsView(article)}
             />
           ))
           : SAFETY_TIPS.slice(1, 5).map((tip) => <TipCard key={tip.title} tip={tip} />)}
@@ -188,8 +208,8 @@ export function WelfareSection() {
               tone="green"
               title={card.title}
               lines={[`대상 ${card.target}`]}
-              href="/welfare"
-              more="복지 화면에서 보기"
+              href={card.href || "/welfare"}
+              more={card.href ? "자세히 보기" : "복지 화면에서 보기"}
             />
           ))}
         </Rail>

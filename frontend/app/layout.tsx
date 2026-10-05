@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { ChatDock } from "@/components/ChatDock";
 import { PortalNav } from "@/components/PortalNav";
+import { ShellSync } from "@/components/ShellSync";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TextSize } from "@/components/TextSize";
 import "./styles/components.css";
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
   themeColor: "#2B59FF",
 };
 
@@ -27,9 +29,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" data-scroll-behavior="smooth">
       <body>
+        <ShellSync />
+        <a className="skip-link" href="#main-content">본문 바로가기</a>
         <TextSize />
         <PortalNav />
-        {children}
+        <div id="main-content">{children}</div>
         <SiteFooter />
         <ChatDock />
       </body>

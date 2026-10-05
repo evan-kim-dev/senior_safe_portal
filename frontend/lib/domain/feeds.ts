@@ -46,27 +46,60 @@ export function suspiciousUrlIn(description: string): string {
   return extractRawHttpUrls(description).find((url) => !/youtube\.com|youtu\.be/i.test(url)) ?? "";
 }
 
-export function mapVideos(rows: ReadonlyArray<{ videos?: unknown }>): VideoItem[] {
+export function mapVideos(
+  rows: ReadonlyArray<{ category_id?: unknown; videos?: unknown }>,
+  options?: { preferredCategories?: readonly string[] },
+): VideoItem[] {
   const seen = new Set<string>();
+  const preferred = options?.preferredCategories ?? [];
+  const orderedRows =
+    preferred.length === 0
+      ? [...rows]
+      : [...rows].sort((a, b) => {
+          const aId = typeof a.category_id === "string" ? a.category_id : "";
+          const bId = typeof b.category_id === "string" ? b.category_id : "";
+          const aRank = preferred.indexOf(aId);
+          const bRank = preferred.indexOf(bId);
+          const aScore = aRank === -1 ? preferred.length + 1 : aRank;
+          const bScore = bRank === -1 ? preferred.length + 1 : bRank;
+          return aScore - bScore;
+        });
+
+  const buckets = orderedRows
+    .map((row) => {
+      const items: VideoItem[] = [];
+      for (const video of records(row.videos)) {
+        const id = asString(video.video_id);
+        if (!VIDEO_ID.test(id) || seen.has(id)) continue;
+        seen.add(id);
+
+        const description = decodeText(asString(video.description));
+        items.push({
+          id,
+          title: decodeText(asString(video.title) || "영상"),
+          thumbnail: safeHttpsUrl(video.thumbnail) || `https://img.youtube.com/vi/${id}/hqdefault.jpg`,
+          description,
+          suspiciousUrl: suspiciousUrlIn(description),
+          channel: decodeText(asString(video.channel)),
+        });
+      }
+      return items;
+    })
+    .filter((bucket) => bucket.length > 0);
+
+  // 카테고리별로 번갈아 넣어 트로트만 앞줄을 채우지 않게 한다.
   const videos: VideoItem[] = [];
-
-  for (const row of rows) {
-    for (const video of records(row.videos)) {
-      const id = asString(video.video_id);
-      if (!VIDEO_ID.test(id) || seen.has(id)) continue;
-      seen.add(id);
-
-      const description = decodeText(asString(video.description));
-      videos.push({
-        id,
-        title: decodeText(asString(video.title) || "영상"),
-        thumbnail: safeHttpsUrl(video.thumbnail) || `https://img.youtube.com/vi/${id}/hqdefault.jpg`,
-        description,
-        suspiciousUrl: suspiciousUrlIn(description),
-        channel: decodeText(asString(video.channel)),
-      });
-      if (videos.length >= MAX_VIDEOS) return videos;
+  let index = 0;
+  while (videos.length < MAX_VIDEOS) {
+    let added = false;
+    for (const bucket of buckets) {
+      if (index >= bucket.length) continue;
+      videos.push(bucket[index]);
+      added = true;
+      if (videos.length >= MAX_VIDEOS) break;
     }
+    if (!added) break;
+    index += 1;
   }
 
   return videos;
@@ -120,11 +153,15 @@ export function mapWelfare(payload: WelfarePayload, requestedRegion: string): { 
   const place = [asString(payload.region), asString(payload.city)].filter(Boolean).join(" ") || requestedRegion;
   const cards = [...records(payload.services), ...records(payload.nationalServices)]
     .filter((row) => collapseSpaces(asString(row.servNm)))
-    .map((row) => ({
-      title: collapseSpaces(asString(row.servNm)),
-      target: targetText(row),
-      apply: applyText(row),
-      kind: row.source === "national" ? "전국" : "우리 동네",
-    }));
+    .map((row) => {
+      const href = safeHttpsUrl(row.link) || safeHttpsUrl(row.site) || "https://www.bokjiro.go.kr/";
+      return {
+        title: collapseSpaces(asString(row.servNm)),
+        target: targetText(row),
+        apply: applyText(row),
+        kind: row.source === "national" ? "전국" : "우리 동네",
+        href,
+      };
+    });
   return { place, cards };
 }

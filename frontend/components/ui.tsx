@@ -1,8 +1,10 @@
+"use client";
+
 import Link from "next/link";
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
+import { useEffect, useId, useRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type RefObject } from "react";
 import { Icon, type IconName } from "./icons";
 
-type ButtonTone = "kakao" | "naver" | "google";
+type ButtonTone = "kakao" | "naver" | "google" | "danger";
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode;
   href?: string;
@@ -52,6 +54,7 @@ export function Screen({
   narrow = false,
   live,
   busy = false,
+  className,
 }: {
   title?: string;
   lead?: string;
@@ -62,9 +65,14 @@ export function Screen({
   narrow?: boolean;
   live?: "polite" | "assertive";
   busy?: boolean;
+  className?: string;
 }) {
   return (
-    <main className={center ? "page page-center" : "page"} aria-live={live} aria-busy={busy || undefined}>
+    <main
+      className={classes(center ? "page page-center" : "page", className)}
+      aria-live={live}
+      aria-busy={busy || undefined}
+    >
       {title ? (
         <header className="page-head">
           <div className="wrap">
@@ -162,6 +170,37 @@ export function Field({
 
 const RESULT_ICON: Record<"safe" | "danger" | "plain", IconName> = { safe: "check", danger: "alert", plain: "info" };
 
+function useModalChrome(options: {
+  active: boolean;
+  onDismiss?: () => void;
+  allowEscape?: boolean;
+  initialFocusRef?: RefObject<HTMLElement | null>;
+}) {
+  const { active, onDismiss, allowEscape = true, initialFocusRef } = options;
+
+  useEffect(() => {
+    if (!active) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusTarget = initialFocusRef?.current;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    focusTarget?.focus();
+
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape" && allowEscape) {
+        event.preventDefault();
+        onDismiss?.();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+      previousFocus?.focus();
+    };
+  }, [active, allowEscape, initialFocusRef, onDismiss]);
+}
+
 export function Result({
   tone,
   word,
@@ -177,19 +216,35 @@ export function Result({
   secondary?: ReactNode;
   onDismiss?: () => void;
 }) {
+  const titleId = useId();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const allowBackdrop = Boolean(onDismiss) && tone !== "danger";
+  useModalChrome({
+    active: true,
+    onDismiss,
+    allowEscape: Boolean(onDismiss),
+    initialFocusRef: closeRef,
+  });
+
   return (
     <div
       className={`result result-${tone}`}
       role="alertdialog"
       aria-modal="true"
-      aria-labelledby="result-word"
+      aria-labelledby={titleId}
       onClick={(event) => {
-        if (event.target === event.currentTarget) onDismiss?.();
+        if (allowBackdrop && event.target === event.currentTarget) onDismiss?.();
       }}
     >
-      <div className="result-card">
+      <div className="result-card" role="document">
+        {onDismiss ? (
+          <button ref={closeRef} type="button" className="result-close" onClick={onDismiss}>
+            <Icon name="close" />
+            <span>닫기</span>
+          </button>
+        ) : null}
         <span className="result-icon"><Icon name={RESULT_ICON[tone]} /></span>
-        <h2 id="result-word" className="result-word">{word}</h2>
+        <h2 id={titleId} className="result-word">{word}</h2>
         <p className="result-reason">{reason}</p>
         <div className="result-actions">
           {secondary}
@@ -201,21 +256,30 @@ export function Result({
 }
 
 export function Checking({ word, hint }: { word: string; hint?: string }) {
+  const titleId = useId();
+  useModalChrome({ active: true, allowEscape: false });
+
   return (
-    <div className="result result-plain" role="dialog" aria-modal="true" aria-labelledby="checking-word" aria-busy="true">
-      <div className="result-card">
+    <div className="result result-plain" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-busy="true">
+      <div className="result-card" role="document">
         <span className="spinner" aria-hidden="true" />
-        <h2 id="checking-word" className="result-word">{word}</h2>
+        <h2 id={titleId} className="result-word">{word}</h2>
         {hint ? <p className="result-reason">{hint}</p> : null}
       </div>
     </div>
   );
 }
 
-export function Count({ value }: { value: number | null }) {
+export function Count({
+  value,
+  label = "오늘 위험한 검사",
+}: {
+  value: number | null;
+  label?: string;
+}) {
   return (
     <p className="count">
-      <span className="count-label">오늘 위험한 영상</span>
+      <span className="count-label">{label}</span>
       <span className="count-num">{value === null ? "…" : `${value}개`}</span>
     </p>
   );
@@ -259,6 +323,16 @@ function hideBrokenPhoto(event: { currentTarget: HTMLImageElement }) {
   if (box instanceof HTMLElement) box.hidden = true;
 }
 
+/** 피드에 올라온 영상·기사에 붙이는 확인 표시. */
+export function VerifiedBadge({ label }: { label: string }) {
+  return (
+    <span className="verified-badge">
+      <Icon name="check" />
+      {label}
+    </span>
+  );
+}
+
 export function Info({
   title,
   lines,
@@ -267,6 +341,8 @@ export function Info({
   href,
   more,
   image,
+  verified,
+  onOpen,
 }: {
   title: string;
   lines: Array<string | null | undefined | false>;
@@ -275,13 +351,17 @@ export function Info({
   href?: string;
   more?: string;
   image?: string;
+  verified?: string;
+  onOpen?: () => void;
 }) {
   const body = (
     <>
-      {tag ? <span className="tag">{tag}</span> : null}
+      {!image && verified ? <VerifiedBadge label={verified} /> : null}
+      {!verified && tag ? <span className="tag">{tag}</span> : null}
       {image ? (
         <span className="info-photo">
           <img src={image} alt="" loading="lazy" decoding="async" onError={hideBrokenPhoto} />
+          {verified ? <VerifiedBadge label={verified} /> : null}
         </span>
       ) : null}
       <strong className="info-title">{title}</strong>
@@ -295,7 +375,11 @@ export function Info({
     </>
   );
   const cls = classes("info", tone && `info-${tone}`, href && "info-link", image && "info-has-photo");
-  return href ? <a className={cls} href={href} rel="noopener noreferrer">{body}</a> : <article className={cls}>{body}</article>;
+  return href ? (
+    <a className={cls} href={href} rel="noopener noreferrer" onClick={onOpen}>{body}</a>
+  ) : (
+    <article className={cls}>{body}</article>
+  );
 }
 
 export function Media({
@@ -304,17 +388,20 @@ export function Media({
   meta,
   href,
   onClick,
+  verified = "확인된 영상",
 }: {
   title: string;
   image: string;
   meta?: string;
   href?: string;
   onClick?: () => void;
+  verified?: string | false;
 }) {
   const body = (
     <>
       <span className="thumb">
         <img src={image} alt="" loading="lazy" decoding="async" />
+        {verified ? <VerifiedBadge label={verified} /> : null}
         <span className="thumb-play" aria-hidden="true" />
       </span>
       <strong className="media-title">{title}</strong>

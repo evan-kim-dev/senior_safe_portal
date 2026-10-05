@@ -1,11 +1,16 @@
+import { preferredVideoCategories, parseAccountProfileFromMeta } from "@/lib/domain/account-profile";
 import { mapNews, mapVideos, mapWelfare } from "@/lib/domain/feeds";
 import { MESSAGES } from "@/lib/domain/messages";
 import type { NewsResponse, VideosResponse, WelfareResponse } from "@/lib/domain/types";
 import type { WelfareInput } from "@/lib/domain/validation";
 import type { FeedRepository } from "../repositories/feed-repository";
 
+export type VideoFeedOptions = {
+  metadata?: Record<string, unknown> | null;
+};
+
 export type FeedService = {
-  videos(categoryId: string): Promise<VideosResponse>;
+  videos(categoryId: string, options?: VideoFeedOptions): Promise<VideosResponse>;
   news(categoryId: string): Promise<NewsResponse>;
   welfare(input: WelfareInput): Promise<WelfareResponse>;
 };
@@ -13,10 +18,16 @@ export type FeedService = {
 /** 피드는 저장된 표만 읽는다. 바깥 API(YouTube·네이버·공공데이터)는 부르지 않는다. */
 export function createFeedService(repo: FeedRepository): FeedService {
   return {
-    async videos(categoryId) {
+    async videos(categoryId, options = {}) {
       const rows = await repo.videoRows(categoryId);
       if (!rows) return { ok: true, videos: [], message: MESSAGES.emptyFeed };
-      return { ok: true, videos: mapVideos(rows) };
+      const profile = parseAccountProfileFromMeta(options.metadata);
+      const preferred =
+        profile.role === "senior" ? preferredVideoCategories(profile) : undefined;
+      return {
+        ok: true,
+        videos: mapVideos(rows, preferred ? { preferredCategories: preferred } : undefined),
+      };
     },
 
     async news(categoryId) {

@@ -17,9 +17,9 @@ export default function BoardPage() {
         primary={<BigButton type="submit" form="board-form">올리기</BigButton>}
       >
         <form id="board-form" onSubmit={(event) => { event.preventDefault(); void board.savePost(); }}>
-          <Field id="board-name" label="이름" maxLength={BOARD_LIMITS.name} value={board.name} onChange={(event) => board.setName(event.target.value)} />
-          <Field id="board-title" label="제목" maxLength={BOARD_LIMITS.title} value={board.title} onChange={(event) => board.setTitle(event.target.value)} />
-          <Field id="board-content" label="내용" multiline maxLength={BOARD_LIMITS.content} value={board.content} onChange={(event) => board.setContent(event.target.value)} />
+          <Field id="board-name" label="이름" required maxLength={BOARD_LIMITS.name} value={board.name} onChange={(event) => board.setName(event.target.value)} />
+          <Field id="board-title" label="제목" required maxLength={BOARD_LIMITS.title} value={board.title} onChange={(event) => board.setTitle(event.target.value)} />
+          <Field id="board-content" label="내용" required multiline maxLength={BOARD_LIMITS.content} value={board.content} onChange={(event) => board.setContent(event.target.value)} />
           {board.message ? <Status>{board.message}</Status> : null}
         </form>
       </Screen>

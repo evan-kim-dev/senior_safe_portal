@@ -1,11 +1,19 @@
 /** 가입·로그인 입력 검사. 화면/서버에서 같은 규칙을 쓴다. */
 
+import {
+  isAccountRole,
+  isVideoInterestId,
+  type AccountRole,
+  type VideoInterestId,
+} from "./account-profile";
+
 export const MIN_PASSWORD_LENGTH = 8;
 export const MAX_PASSWORD_LENGTH = 72;
 export const MIN_NAME_LENGTH = 2;
 export const MAX_NAME_LENGTH = 40;
 export const MIN_NICKNAME_LENGTH = 2;
 export const MAX_NICKNAME_LENGTH = 20;
+export const MIN_SENIOR_AGE = 50;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NAME_RE = /^[0-9A-Za-z가-힣][0-9A-Za-z가-힣 ·._-]{0,38}[0-9A-Za-z가-힣]$|^[0-9A-Za-z가-힣]{2}$/;
@@ -54,6 +62,9 @@ export type SignUpFormInput = {
   phone: string;
   password: string;
   passwordConfirm: string;
+  accountRole: AccountRole | "";
+  birthYear: string;
+  interests: VideoInterestId[];
   agreeTerms: boolean;
   agreePrivacy: boolean;
 };
@@ -64,9 +75,21 @@ export type SignUpFormValue = {
   email: string;
   phone: string;
   password: string;
+  accountRole: AccountRole;
+  birthYear: number | null;
+  interests: VideoInterestId[];
 };
 
-export function validateSignUpForm(input: SignUpFormInput): { ok: true; value: SignUpFormValue } | { ok: false; message: string } {
+const VIDEO_INTEREST_LIMIT = 5;
+
+export function validateSignUpForm(
+  input: SignUpFormInput,
+  now = new Date(),
+): { ok: true; value: SignUpFormValue } | { ok: false; message: string } {
+  if (!isAccountRole(input.accountRole)) {
+    return { ok: false, message: "어르신(senior)인지 관리자(guardian)인지 골라 주세요." };
+  }
+
   const name = input.name.trim().replace(/\s+/g, " ");
   if (name.length < MIN_NAME_LENGTH) return { ok: false, message: "이름을 적어 주세요." };
   if (name.length > MAX_NAME_LENGTH || !NAME_RE.test(name)) return { ok: false, message: "이름을 확인해 주세요." };
@@ -86,6 +109,23 @@ export function validateSignUpForm(input: SignUpFormInput): { ok: true; value: S
   const phone = normalizePhoneKr(input.phone);
   if (!phone) return { ok: false, message: "휴대폰 번호를 적어 주세요." };
 
+  let birthYear: number | null = null;
+  let interests: VideoInterestId[] = [];
+  if (input.accountRole === "senior") {
+    const yearText = input.birthYear.trim();
+    const year = Number(yearText);
+    const thisYear = now.getFullYear();
+    const maxYear = thisYear - MIN_SENIOR_AGE;
+    if (!/^\d{4}$/.test(yearText) || !Number.isInteger(year)) {
+      return { ok: false, message: "태어난 해를 네 자리로 적어 주세요." };
+    }
+    if (year < 1920 || year > maxYear) {
+      return { ok: false, message: `태어난 해는 1920~${maxYear} 사이로 적어 주세요.` };
+    }
+    birthYear = year;
+    interests = input.interests.filter(isVideoInterestId).slice(0, VIDEO_INTEREST_LIMIT);
+  }
+
   const issues = passwordIssues(input.password);
   if (issues.length) return { ok: false, message: `비밀번호는 ${issues.join(", ")}해 주세요.` };
   if (input.password !== input.passwordConfirm) return { ok: false, message: "비밀번호가 같지 않아요." };
@@ -93,7 +133,19 @@ export function validateSignUpForm(input: SignUpFormInput): { ok: true; value: S
   if (!input.agreeTerms) return { ok: false, message: "이용약관에 동의해 주세요." };
   if (!input.agreePrivacy) return { ok: false, message: "개인정보 처리방침에 동의해 주세요." };
 
-  return { ok: true, value: { name, nickname, email, phone, password: input.password } };
+  return {
+    ok: true,
+    value: {
+      name,
+      nickname,
+      email,
+      phone,
+      password: input.password,
+      accountRole: input.accountRole,
+      birthYear,
+      interests,
+    },
+  };
 }
 
 export function validateLoginForm(email: string, password: string): string {

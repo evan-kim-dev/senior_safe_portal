@@ -24,7 +24,12 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
 
   const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || (req.headers.get("x-cron-secret") ?? "") !== cronSecret) {
+  const headerSecret = req.headers.get("x-cron-secret") ?? "";
+  const internalSecret = Deno.env.get("INTERNAL_API_SECRET") ?? Deno.env.get("EDGE_INTERNAL_SECRET") ?? "";
+  const headerInternal = req.headers.get("x-internal-secret") ?? "";
+  const cronOk = Boolean(cronSecret && headerSecret === cronSecret);
+  const internalOk = Boolean(internalSecret && headerInternal === internalSecret);
+  if (!cronOk && !internalOk) {
     return jsonResponse({ error: "Unauthorized" }, 401);
   }
 

@@ -12,11 +12,11 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const FEED_CATEGORIES = [
-  { id: "music", label: "음악", query: "트로트 명곡 모음" },
-  { id: "affairs", label: "시사", query: "KBS 시사뉴스" },
-  { id: "entertainment", label: "예능", query: "유퀴즈 온더블럭" },
-  { id: "documentary", label: "다큐", query: "EBS 다큐프라임" },
-  { id: "health", label: "건강", query: "어르신 건강체조" },
+  { id: "music", label: "노래", query: "트로트 명곡 모음 7080" },
+  { id: "affairs", label: "시사", query: "KBS 뉴스9 어르신" },
+  { id: "history", label: "역사", query: "한국사 다큐멘터리 EBS" },
+  { id: "entertainment", label: "예능", query: "유퀴즈 온더블럭 하이라이트" },
+  { id: "health", label: "건강", query: "어르신 건강체조 국민건강체조" },
 ];
 
 const FEED_LIMIT = 50;
@@ -44,7 +44,11 @@ Deno.serve(async (req: Request) => {
 
   const cronSecret = Deno.env.get("CRON_SECRET");
   const headerSecret = req.headers.get("x-cron-secret") ?? "";
-  if (!cronSecret || headerSecret !== cronSecret) {
+  const internalSecret = Deno.env.get("INTERNAL_API_SECRET") ?? Deno.env.get("EDGE_INTERNAL_SECRET") ?? "";
+  const headerInternal = req.headers.get("x-internal-secret") ?? "";
+  const cronOk = Boolean(cronSecret && headerSecret === cronSecret);
+  const internalOk = Boolean(internalSecret && headerInternal === internalSecret);
+  if (!cronOk && !internalOk) {
     return jsonResponse({ error: "Unauthorized" }, 401);
   }
 
@@ -105,6 +109,14 @@ Deno.serve(async (req: Request) => {
         message: error instanceof Error ? error.message : "unknown error",
       });
     }
+  }
+
+  // 예전 카테고리(예: documentary)가 남으면 홈 피드에 섞이므로 정리한다.
+  const keepIds = FEED_CATEGORIES.map((category) => category.id);
+  const keepList = `(${keepIds.map((id) => `"${id}"`).join(",")})`;
+  const { error: cleanupError } = await supabase.from("youtube_feeds").delete().not("category_id", "in", keepList);
+  if (cleanupError) {
+    console.error("youtube_feeds cleanup failed:", cleanupError);
   }
 
   const successCount = results.filter((row) => row.ok).length;

@@ -49,6 +49,13 @@ export function setFamilyCode(familyCode: string): GuardianSettings {
   return next;
 }
 
+/** 연결 해제·초기화 후 기기 쪽 가족 코드를 비운다. */
+export function clearFamilyCode(): GuardianSettings {
+  const next = { ...loadGuardian(), familyCode: "" };
+  store(next);
+  return next;
+}
+
 export function applySetup(settings: SetupPayload) {
   store({
     ...loadGuardian(),
@@ -68,6 +75,12 @@ export function saveCare(settings: Pick<GuardianSettings, "name" | "phone" | "te
     textSize: settings.textSize,
     channels: sanitizeChannels(settings.channels),
   };
+  store(next);
+  return next;
+}
+
+export function saveRegion(region: string): GuardianSettings {
+  const next: GuardianSettings = { ...loadGuardian(), region: region.trim() };
   store(next);
   return next;
 }

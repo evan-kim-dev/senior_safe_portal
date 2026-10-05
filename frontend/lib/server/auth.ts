@@ -2,7 +2,10 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { getServerEnv } from "./env";
 
-export type AuthUser = { id: string };
+export type AuthUser = {
+  id: string;
+  metadata: Record<string, unknown>;
+};
 
 /** Authorization: Bearer <access_token> 으로 로그인한 사용자를 확인한다. */
 export async function requireUser(request: Request): Promise<AuthUser | null> {
@@ -20,5 +23,9 @@ export async function requireUser(request: Request): Promise<AuthUser | null> {
 
   const { data, error } = await supabase.auth.getUser(token);
   if (error || !data.user?.id) return null;
-  return { id: data.user.id };
+  const metadata =
+    data.user.user_metadata && typeof data.user.user_metadata === "object" && !Array.isArray(data.user.user_metadata)
+      ? (data.user.user_metadata as Record<string, unknown>)
+      : {};
+  return { id: data.user.id, metadata };
 }

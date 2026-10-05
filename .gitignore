@@ -22,3 +22,5 @@ frontend/supabase/.temp/
 # Next.js
 frontend/node_modules/
 frontend/.next/
+
+.vercel

@@ -82,8 +82,9 @@ export function cachedPostJson<T>(
   body: unknown,
   ttlMs: number,
   keep: (data: T) => boolean,
+  options?: RequestOptions & { cacheKey?: string },
 ): Promise<T> {
-  const key = `${path}:${JSON.stringify(body)}`;
+  const key = `${path}:${JSON.stringify(body)}:${options?.cacheKey ?? ""}`;
   const now = Date.now();
   const hit = memo.get(key);
   if (hit && hit.expiresAt > now) return hit.promise as Promise<T>;
@@ -92,7 +93,7 @@ export function cachedPostJson<T>(
   const drop = () => {
     if (memo.get(key) === entry) memo.delete(key);
   };
-  const promise = postJson<T>(path, body).then(
+  const promise = postJson<T>(path, body, options).then(
     (data) => {
       if (!keep(data)) drop();
       return data;

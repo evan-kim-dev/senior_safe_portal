@@ -18,15 +18,36 @@ export function buildFamilyLinks(rawPhone: string, url: string, isIOS: boolean):
 
 export type FamilyRole = "guardian" | "senior";
 
+export type ActivityKind = "danger_video" | "danger_link" | "danger_chat" | "video_watch" | "news_view";
+
 export type FamilyMembership = {
   familyId: string;
   role: FamilyRole;
 };
 
+export type FamilySeniorStatus = "attention" | "active" | "quiet";
+
+export type FamilySenior = {
+  userId: string;
+  displayName: string;
+  /** 오늘 위험 감지(영상·링크·챗봇). */
+  dangerCount: number;
+  newsCount: number;
+  watchSec: number;
+  lastActivityAt?: string;
+  lastActivityLabel?: string;
+  status: FamilySeniorStatus;
+  birthYear?: number;
+  ageLabel?: string;
+};
+
 export type FamilyActivityItem = {
   id: string;
   createdAt: string;
+  kind: ActivityKind;
   label: string;
+  userId?: string;
+  memberLabel?: string;
 };
 
 export type FamilyMeResponse = {
@@ -35,13 +56,22 @@ export type FamilyMeResponse = {
   role: FamilyRole;
   inviteCode: string;
   inviteExpiresAt: string;
+  seniorCount: number;
+  seniors: FamilySenior[];
+  connected: boolean;
   todayCount: number;
+  todayNewsCount: number;
+  todayWatchSec: number;
   todayItems: FamilyActivityItem[];
 } | {
   ok: false;
   message: string;
   needsFamily?: boolean;
 };
+
+export type FamilyLeaveResponse =
+  | { ok: true; action: "leave" | "reset"; inviteCode?: string; inviteExpiresAt?: string }
+  | { ok: false; message: string };
 
 export type FamilyJoinResponse = {
   ok: true;
@@ -56,6 +86,14 @@ export type FamilyJoinResponse = {
 export const INVITE_CODE_LENGTH = 8;
 export const INVITE_TTL_MS = 24 * 60 * 60 * 1000;
 export const INVITE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+
+/** 연결 해제·초기화 확인 문구(서버·UI 공통). */
+export const FAMILY_LEAVE_CONFIRM = "해제";
+export const FAMILY_RESET_CONFIRM = "초기화";
+
+export function familySeniorDisplayName(index: number, name: string): string {
+  return name.trim() || `부모님 ${index + 1}`;
+}
 
 const INVITE_CODE = new RegExp(`^[${INVITE_ALPHABET}]{${INVITE_CODE_LENGTH}}$`);
 

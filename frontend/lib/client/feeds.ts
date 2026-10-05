@@ -3,6 +3,7 @@ import type { ActivityResponse, NewsResponse, VideosResponse, WelfareResponse } 
 import { authHeaders } from "./auth-headers";
 import { cachedPostJson, getJson } from "./api";
 import { loadGuardian } from "./guardian";
+import { getSupabase } from "./supabase-browser";
 
 const VIDEO_FEED_TTL_MS = 5 * 60 * 1000;
 const NEWS_FEED_TTL_MS = 60 * 1000;
@@ -11,8 +12,22 @@ const DEFAULT_REGION = "서울";
 
 const isOk = (data: { ok?: boolean }) => data?.ok === true;
 
-function fetchVideos(): Promise<VideosResponse> {
-  return cachedPostJson<VideosResponse>("/api/videos", {}, VIDEO_FEED_TTL_MS, isOk);
+async function videoCacheKey(): Promise<string> {
+  const supabase = getSupabase();
+  if (!supabase) return "guest";
+  const { data } = await supabase.auth.getSession();
+  const user = data.session?.user;
+  if (!user) return "guest";
+  const meta = user.user_metadata ?? {};
+  return `${user.id}:${String(meta.account_role ?? "")}:${String(meta.birth_year ?? "")}:${JSON.stringify(meta.interests ?? [])}`;
+}
+
+async function fetchVideos(): Promise<VideosResponse> {
+  const headers = await authHeaders();
+  return cachedPostJson<VideosResponse>("/api/videos", {}, VIDEO_FEED_TTL_MS, isOk, {
+    headers,
+    cacheKey: await videoCacheKey(),
+  });
 }
 
 /** 아래 함수들은 던지지 않는다. 실패는 화면 문구로 바뀐다. */

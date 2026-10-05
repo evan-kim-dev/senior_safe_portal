@@ -1,4 +1,5 @@
 import { parseFeedInput } from "@/lib/domain/validation";
+import { requireUser } from "@/lib/server/auth";
 import { getServices } from "@/lib/server/container";
 import { readJsonBody } from "@/lib/server/http/body";
 import { json } from "@/lib/server/http/respond";
@@ -8,5 +9,10 @@ export const POST = withRoute("videos", { rateLimit: { limit: 60, windowMs: 60_0
   const body = await readJsonBody(request);
   const input = parseFeedInput(body.ok ? body.value : null);
   if (!input.ok) return json({ ok: false, message: input.message }, { status: 400 });
-  return json(await getServices().feeds.videos(input.value.categoryId));
+  const user = await requireUser(request);
+  return json(
+    await getServices().feeds.videos(input.value.categoryId, {
+      metadata: user?.metadata,
+    }),
+  );
 });

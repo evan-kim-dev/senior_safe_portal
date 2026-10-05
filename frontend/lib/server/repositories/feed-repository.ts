@@ -8,15 +8,15 @@ export const NEWS_FEED_REVALIDATE_SECONDS = 60;
 export const WELFARE_FEED_REVALIDATE_SECONDS = 300;
 
 export type FeedRepository = {
-  videoRows(categoryId: string): Promise<Array<{ videos?: unknown }> | null>;
+  videoRows(categoryId: string): Promise<Array<{ category_id?: unknown; videos?: unknown }> | null>;
   newsRows(categoryId: string): Promise<Array<{ articles?: unknown }> | null>;
   welfarePayload(feedKey: string): Promise<WelfarePayload | null>;
 };
 
-function byCategory(table: string, column: string, categoryId: string): string {
+function byCategory(table: string, columns: string, categoryId: string): string {
   return categoryId
-    ? `${table}?category_id=eq.${encodeURIComponent(categoryId)}&select=${column}`
-    : `${table}?select=${column}`;
+    ? `${table}?category_id=eq.${encodeURIComponent(categoryId)}&select=${columns}`
+    : `${table}?select=${columns}`;
 }
 
 export function createFeedRepository(rest: RestClient): FeedRepository {
@@ -32,7 +32,11 @@ export function createFeedRepository(rest: RestClient): FeedRepository {
 
   return {
     videoRows: (categoryId) =>
-      rows(byCategory("youtube_feeds", "videos", categoryId), "youtube_feeds", VIDEO_FEED_REVALIDATE_SECONDS),
+      rows(
+        byCategory("youtube_feeds", "category_id,videos", categoryId),
+        "youtube_feeds",
+        VIDEO_FEED_REVALIDATE_SECONDS,
+      ),
     newsRows: (categoryId) =>
       rows(byCategory("news_feeds", "articles", categoryId), "news_feeds", NEWS_FEED_REVALIDATE_SECONDS),
     async welfarePayload(feedKey) {

@@ -1,13 +1,17 @@
 import {
+  familySeniorDisplayName,
   generateInviteCode,
   INVITE_TTL_MS,
   isInviteCode,
   normalizeInviteCode,
   type FamilyActivityItem,
   type FamilyRole,
+  type FamilySenior,
 } from "@/lib/domain/family";
+import { buildSeniorRoster } from "@/lib/domain/senior-roster";
 import { MESSAGES } from "@/lib/domain/messages";
 import { isFamilyCode } from "@/lib/domain/validation";
+import { resolveSeniorProfiles } from "../gateways/auth-admin";
 import type { ActivityService } from "./activity-service";
 import type { FamilyRepository } from "../repositories/family-repository";
 
@@ -26,15 +30,27 @@ export type FamilyMeResult =
       role: FamilyRole;
       inviteCode: string;
       inviteExpiresAt: string;
+      seniorCount: number;
+      seniors: FamilySenior[];
+      connected: boolean;
       todayCount: number;
+      todayNewsCount: number;
+      todayWatchSec: number;
       todayItems: FamilyActivityItem[];
     }
   | { ok: false; message: string; status: number; needsFamily?: boolean };
+
+export type FamilyLeaveResult =
+  | { ok: true; action: "leave" }
+  | { ok: true; action: "reset"; inviteCode: string; inviteExpiresAt: string }
+  | { ok: false; message: string; status: number };
 
 export type FamilyService = {
   create(userId: string, options?: { refresh?: boolean }): Promise<FamilyCreateResult>;
   join(userId: string, code: unknown): Promise<FamilyJoinResult>;
   me(userId: string, now?: Date): Promise<FamilyMeResult>;
+  leave(userId: string): Promise<FamilyLeaveResult>;
+  reset(userId: string): Promise<FamilyLeaveResult>;
   resolveFamilyForUser(userId: string): Promise<{ familyId: string; role: FamilyRole } | null>;
 };
 
@@ -54,6 +70,46 @@ export function createFamilyService(repo: FamilyRepository, activity: ActivitySe
       const membership = await repo.findMembership(userId);
       if (!membership) return null;
       return { familyId: membership.family_id, role: membership.role };
+    },
+
+    async leave(userId) {
+      const membership = await repo.findMembership(userId);
+      if (!membership) return { ok: false, message: MESSAGES.familyNotFound, status: 404 };
+
+      if (membership.role === "guardian") {
+        // 보호자가 나가면 가족·초대·멤버를 모두 정리해 데모 엇갈림을 막는다.
+        await repo.deleteInvites(membership.family_id);
+        const cleared = await repo.removeAllMembers(membership.family_id);
+        if (!cleared) return { ok: false, message: MESSAGES.familyLeaveFailed, status: 502 };
+        return { ok: true, action: "leave" as const };
+      }
+
+      const removed = await repo.removeMember(membership.family_id, userId);
+      if (!removed) return { ok: false, message: MESSAGES.familyLeaveFailed, status: 502 };
+      return { ok: true, action: "leave" as const };
+    },
+
+    async reset(userId) {
+      const membership = await repo.findMembership(userId);
+      if (!membership) return { ok: false, message: MESSAGES.familyNotFound, status: 404 };
+      if (membership.role !== "guardian") {
+        return { ok: false, message: MESSAGES.familyGuardianOnly, status: 403 };
+      }
+
+      const seniors = await repo.listMembers(membership.family_id, "senior");
+      for (const senior of seniors) {
+        const removed = await repo.removeMember(membership.family_id, senior.user_id);
+        if (!removed) return { ok: false, message: MESSAGES.familyResetFailed, status: 502 };
+      }
+      await repo.deleteInvites(membership.family_id);
+      const issued = await issueInvite(repo, membership.family_id, userId, new Date());
+      if (!issued) return { ok: false, message: MESSAGES.familyResetFailed, status: 502 };
+      return {
+        ok: true,
+        action: "reset" as const,
+        inviteCode: issued.code,
+        inviteExpiresAt: issued.expiresAt,
+      };
     },
 
     async create(userId, options = {}) {
@@ -147,10 +203,27 @@ export function createFamilyService(repo: FamilyRepository, activity: ActivitySe
         }
       }
 
-      const [todayCount, todayItems] = await Promise.all([
-        activity.countDangerVideosToday(membership.family_id, now),
-        activity.listDangerVideosToday(membership.family_id, now),
-      ]);
+      const seniorRows = await repo.listMembers(membership.family_id, "senior");
+      const seniorIds = seniorRows.map((row) => row.user_id);
+      const profiles = await resolveSeniorProfiles(seniorIds);
+      const seniorSeeds = seniorRows.map((row, index) => ({
+        userId: row.user_id,
+        displayName: familySeniorDisplayName(index, profiles.get(row.user_id)?.displayName ?? ""),
+      }));
+      const nameByUserId = new Map(seniorSeeds.map((item) => [item.userId, item.displayName]));
+
+      const summary = await activity.todaySummary(membership.family_id, now, {
+        userIds: seniorIds,
+        nameByUserId,
+      });
+      const seniors: FamilySenior[] = buildSeniorRoster(seniorSeeds, summary.rosterRows).map((senior) => {
+        const profile = profiles.get(senior.userId);
+        return {
+          ...senior,
+          birthYear: profile?.birthYear ?? undefined,
+          ageLabel: profile?.ageLabel || undefined,
+        };
+      });
 
       return {
         ok: true,
@@ -158,8 +231,13 @@ export function createFamilyService(repo: FamilyRepository, activity: ActivitySe
         role: membership.role,
         inviteCode,
         inviteExpiresAt,
-        todayCount,
-        todayItems,
+        seniorCount: seniors.length,
+        seniors,
+        connected: seniors.length > 0,
+        todayCount: summary.dangerCount,
+        todayNewsCount: summary.newsCount,
+        todayWatchSec: summary.watchSec,
+        todayItems: summary.items,
       };
     },
   };

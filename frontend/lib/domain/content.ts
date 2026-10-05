@@ -10,16 +10,28 @@ export type QuickLink = { href: string; label: string; icon: ContentIcon; tone: 
 
 export const QUICK_LINKS: readonly QuickLink[] = [
   { href: "/videos", label: "추천 영상", icon: "play", tone: "red" },
-  { href: "/news", label: "실시간 뉴스", icon: "news", tone: "purple" },
+  { href: "/news", label: "뉴스", icon: "news", tone: "purple" },
   { href: "/welfare", label: "복지 혜택", icon: "heart", tone: "green" },
   { href: "/board", label: "게시판", icon: "board", tone: "orange" },
   { href: "/#hotline", label: "신고 전화", icon: "phone", tone: "red" },
 ];
 
-/** 헤더 계정 메뉴에만 두는 가족 연동 링크. */
+/** 헤더 메뉴 · 보호자/어르신 연동 링크. */
 export const FAMILY_LINKS: readonly { href: string; label: string }[] = [
-  { href: "/care", label: "자녀 대시보드" },
-  { href: "/link", label: "부모 계정 연결" },
+  { href: "/care", label: "대시보드" },
+  { href: "/link", label: "계정연결" },
+];
+
+/** 로그인한 사용자 계정 메뉴. */
+export const ACCOUNT_LINKS: readonly { href: string; label: string }[] = [
+  { href: "/account", label: "계정 관리" },
+];
+
+/** 메뉴 하단 도움말·약관. */
+export const HELP_LINKS: readonly { href: string; label: string }[] = [
+  { href: "/#hotline", label: "신고 전화" },
+  { href: "/privacy", label: "개인정보처리방침" },
+  { href: "/terms", label: "이용약관" },
 ];
 
 export type ScamType = {
@@ -104,9 +116,9 @@ export const SAFETY_TIPS: readonly SafetyTip[] = [
 export type FamilyFeature = { icon: ContentIcon; title: string; text: string };
 
 export const FAMILY_FEATURES: readonly FamilyFeature[] = [
-  { icon: "users", title: "계정으로 연결", text: "자녀·부모 계정에 로그인한 뒤 초대 코드로 가족을 연결해요." },
-  { icon: "bell", title: "위험 활동을 함께 확인", text: "부모님이 위험한 영상을 검사하면 자녀 대시보드에 오늘 기록이 보여요." },
-  { icon: "text", title: "글자·채널 맞춤", text: "QR로 부모님 폰 글자 크기와 영상 채널도 맞춰 둘 수 있어요." },
+  { icon: "users", title: "계정으로 연결", text: "자녀가 초대 코드를 만들고, 부모님이 계정연결에서 코드를 넣으면 가족이 이어져요." },
+  { icon: "bell", title: "위험 활동을 함께 확인", text: "연결 후 부모님이 위험한 링크·영상을 검사하면 대시보드에 오늘 기록이 보여요." },
+  { icon: "text", title: "글자·채널 맞춤", text: "연결이 되면 QR로 부모님 폰 글자 크기와 영상 채널도 맞춰 둘 수 있어요." },
 ];
 
 export type Hotline = { number: string; org: string; text: string };

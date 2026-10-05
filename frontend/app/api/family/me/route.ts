@@ -22,7 +22,12 @@ export const GET = withRoute("family.me", { rateLimit: { limit: 60, windowMs: 60
     role: result.role,
     inviteCode: result.inviteCode,
     inviteExpiresAt: result.inviteExpiresAt,
+    seniorCount: result.seniorCount,
+    seniors: result.seniors,
+    connected: result.connected,
     todayCount: result.todayCount,
+    todayNewsCount: result.todayNewsCount,
+    todayWatchSec: result.todayWatchSec,
     todayItems: result.todayItems,
   });
 });

@@ -3,7 +3,16 @@
 import { SafetyTipGrid } from "@/components/SafetyTips";
 import { Grid, Info, Screen, Status } from "@/components/ui";
 import { useNews } from "@/hooks/use-feeds";
+import { reportActivity } from "@/lib/client/activity";
+import type { NewsItem } from "@/lib/domain/types";
 import { isHttpUrl } from "@/lib/domain/url";
+
+function trackNewsView(article: NewsItem) {
+  void reportActivity({
+    kind: "news_view",
+    summary: `${article.title.slice(0, 60)}${article.source ? ` · ${article.source}` : ""}`,
+  });
+}
 
 export default function NewsPage() {
   const { articles, message } = useNews();
@@ -16,12 +25,13 @@ export default function NewsPage() {
           {articles.map((article) => (
             <Info
               key={`${article.url}-${article.date}`}
-              tag="뉴스"
+              verified="확인됨"
               title={article.title}
               lines={[`출처 ${article.source}`, article.date ? `날짜 ${article.date}` : null]}
               href={isHttpUrl(article.url) ? article.url : undefined}
               image={article.image || undefined}
               more="기사 보기"
+              onOpen={() => trackNewsView(article)}
             />
           ))}
         </Grid>

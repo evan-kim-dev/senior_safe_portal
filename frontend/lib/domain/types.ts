@@ -60,6 +60,7 @@ export type WelfareCard = {
   target: string;
   apply: string;
   kind: string;
+  href?: string;
 };
 
 export type VideosResponse = { ok: boolean; videos?: VideoItem[]; message?: string };

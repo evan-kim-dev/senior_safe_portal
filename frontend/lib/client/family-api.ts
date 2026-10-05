@@ -1,6 +1,6 @@
 "use client";
 
-import type { FamilyJoinResponse, FamilyMeResponse } from "@/lib/domain/family";
+import type { FamilyJoinResponse, FamilyLeaveResponse, FamilyMeResponse } from "@/lib/domain/family";
 import { getJson, postJson } from "./api";
 import { authHeaders } from "./auth-headers";
 
@@ -14,4 +14,12 @@ export async function joinFamily(code: string): Promise<FamilyJoinResponse> {
 
 export async function loadFamilyMe(): Promise<FamilyMeResponse> {
   return getJson("/api/family/me", { headers: await authHeaders() });
+}
+
+export async function leaveFamily(confirm: string): Promise<FamilyLeaveResponse> {
+  return postJson("/api/family/leave", { action: "leave", confirm }, { headers: await authHeaders() });
+}
+
+export async function resetFamily(confirm: string): Promise<FamilyLeaveResponse> {
+  return postJson("/api/family/leave", { action: "reset", confirm }, { headers: await authHeaders() });
 }

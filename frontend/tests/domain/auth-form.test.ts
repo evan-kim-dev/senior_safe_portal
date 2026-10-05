@@ -7,6 +7,7 @@ import {
   validateLoginForm,
   validateSignUpForm,
 } from "@/lib/domain/auth-form";
+import type { VideoInterestId } from "@/lib/domain/account-profile";
 
 describe("normalizePhoneKr", () => {
   it("한국 휴대폰을 +82 로 만든다", () => {
@@ -42,6 +43,9 @@ describe("validateSignUpForm", () => {
     phone: "010-1234-5678",
     password: "safePass9!",
     passwordConfirm: "safePass9!",
+    accountRole: "guardian" as const,
+    birthYear: "",
+    interests: [] as VideoInterestId[],
     agreeTerms: true,
     agreePrivacy: true,
   };
@@ -50,6 +54,7 @@ describe("validateSignUpForm", () => {
     expect(validateSignUpForm({ ...base, agreeTerms: false }).ok).toBe(false);
     expect(validateSignUpForm({ ...base, passwordConfirm: "other" }).ok).toBe(false);
     expect(validateSignUpForm({ ...base, nickname: "" }).ok).toBe(true);
+    expect(validateSignUpForm({ ...base, accountRole: "" }).ok).toBe(false);
     expect(validateSignUpForm(base)).toEqual({
       ok: true,
       value: {
@@ -58,6 +63,33 @@ describe("validateSignUpForm", () => {
         email: "user@test.com",
         phone: "+821012345678",
         password: "safePass9!",
+        accountRole: "guardian",
+        birthYear: null,
+        interests: [],
+      },
+    });
+  });
+
+  it("어른 가입은 태어난 해가 필요하다", () => {
+    const now = new Date("2026-10-06T00:00:00Z");
+    expect(validateSignUpForm({ ...base, accountRole: "senior", birthYear: "" }, now).ok).toBe(false);
+    expect(validateSignUpForm({ ...base, accountRole: "senior", birthYear: "2010" }, now).ok).toBe(false);
+    expect(validateSignUpForm({
+      ...base,
+      accountRole: "senior",
+      birthYear: "1955",
+      interests: ["music", "health"],
+    }, now)).toEqual({
+      ok: true,
+      value: {
+        name: "홍길동",
+        nickname: "길동이",
+        email: "user@test.com",
+        phone: "+821012345678",
+        password: "safePass9!",
+        accountRole: "senior",
+        birthYear: 1955,
+        interests: ["music", "health"],
       },
     });
   });

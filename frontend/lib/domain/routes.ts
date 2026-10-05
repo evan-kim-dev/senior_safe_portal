@@ -6,12 +6,19 @@ export const NAV_ITEMS = [
   { href: "/board", label: "게시판" },
 ] as const;
 
-const STANDALONE_ROUTES = new Set(["/setup"]);
+export const GUARDIAN_NAV_ITEMS = [
+  { href: "/care", label: "대시보드" },
+  { href: "/link", label: "연결" },
+  { href: "/account", label: "계정" },
+] as const;
 
-/** 부모님이 QR로 여는 설정 화면은 메뉴·단디 없이 혼자 뜬다. */
-export function isStandaloneRoute(pathname: string): boolean {
-  return STANDALONE_ROUTES.has(pathname);
+export type NavItem = { href: string; label: string };
+
+export function navItemsForAccount(isGuardian: boolean): readonly NavItem[] {
+  return isGuardian ? GUARDIAN_NAV_ITEMS : NAV_ITEMS;
 }
+
+export { isStandaloneRoute } from "./shell";
 
 export function isCurrentRoute(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);

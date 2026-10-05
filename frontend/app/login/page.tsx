@@ -7,6 +7,8 @@ import { BigButton, Field, LineButton, Screen, Status } from "@/components/ui";
 import { Icon } from "@/components/icons";
 import { useAuth } from "@/hooks/use-auth";
 import { formatPhoneDisplay, passwordIssues } from "@/lib/domain/auth-form";
+import { homePathForAccount, VIDEO_INTEREST_OPTIONS } from "@/lib/domain/account-profile";
+import type { AccountRole, VideoInterestId } from "@/lib/domain/account-profile";
 import {
   EMAIL_NOT_CONFIRMED,
   isPhoneConfirmed,
@@ -42,9 +44,9 @@ function formatCooldown(sec: number): string {
   return `${sec}초`;
 }
 
-function readNext(): string {
-  if (typeof window === "undefined") return "/board";
-  return safeNextPath(new URLSearchParams(window.location.search).get("next"), "/board");
+function readNext(fallback = "/"): string {
+  if (typeof window === "undefined") return fallback;
+  return safeNextPath(new URLSearchParams(window.location.search).get("next"), fallback);
 }
 
 export default function LoginPage() {
@@ -56,6 +58,9 @@ export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [accountRole, setAccountRole] = useState<AccountRole | "">("");
+  const [birthYear, setBirthYear] = useState("");
+  const [interests, setInterests] = useState<VideoInterestId[]>([]);
   const [otp, setOtp] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
@@ -101,7 +106,9 @@ export default function LoginPage() {
     } catch {
       // ignore
     }
-    window.location.replace(readNext());
+    const queried = new URLSearchParams(window.location.search).get("next");
+    const fallback = homePathForAccount(user);
+    window.location.replace(safeNextPath(queried, fallback));
   }, [ready, user, mode]);
 
   useEffect(() => {
@@ -119,14 +126,14 @@ export default function LoginPage() {
               : "로그인";
 
   const lead =
-    mode === "signup" ? "아래 정보를 적어 주세요."
+    mode === "signup" ? "어르신(senior)인지 관리자(guardian)인지 고르고, 아래 정보를 적어 주세요."
       : mode === "emailConfirm" ? "메일함의 확인 링크를 누르면 가입이 끝나요."
         : mode === "phoneConfirm" ? "문자로 받은 확인 번호를 적어 주세요."
           : mode === "reset" ? "가입한 이메일을 적어 주세요."
             : mode === "findId" ? "휴대폰 확인이 준비되면 아이디 찾기를 열 예정이에요."
               : next === "/care" || next === "/link"
                 ? "가족 연동을 하려면 로그인해 주세요."
-                : "이메일로 로그인해 주세요.";
+                : "이메일과 비밀번호로 로그인해 주세요. 간편 로그인은 아래에서 고를 수 있어요.";
 
   async function submitLogin() {
     if (busy || user) return;
@@ -152,8 +159,20 @@ export default function LoginPage() {
     setBusy(true);
     setMessage("");
     const result = await signUpWithEmail(
-      { name, nickname, email, phone, password, passwordConfirm, agreeTerms, agreePrivacy },
-      readNext(),
+      {
+        name,
+        nickname,
+        email,
+        phone,
+        password,
+        passwordConfirm,
+        accountRole,
+        birthYear,
+        interests,
+        agreeTerms,
+        agreePrivacy,
+      },
+      accountRole === "guardian" ? "/care" : readNext(),
     );
     if (!result.ok) {
       if (result.message.includes("이미 가입")) {
@@ -180,7 +199,7 @@ export default function LoginPage() {
       setResendIn(EMAIL_RESEND_COOLDOWN_SEC);
       return;
     }
-    window.location.replace(readNext());
+    window.location.replace(accountRole === "guardian" ? "/care" : readNext());
   }
 
   async function submitEmailOtp() {
@@ -283,7 +302,16 @@ export default function LoginPage() {
       setPasswordConfirm("");
       setAgreeTerms(false);
       setAgreePrivacy(false);
+      setAccountRole("");
+      setBirthYear("");
+      setInterests([]);
     }
+  }
+
+  function toggleInterest(id: VideoInterestId) {
+    setInterests((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
+    );
   }
 
   return (
@@ -331,6 +359,75 @@ export default function LoginPage() {
             void submitSignup();
           }}
         >
+          <fieldset className="auth-role">
+            <legend className="auth-role-legend">
+              어떤 분이신가요?<abbr className="field-required" title="필수">*</abbr>
+            </legend>
+            <div className="auth-role-options" role="radiogroup" aria-label="이용 역할">
+              <label className={`auth-role-card ${accountRole === "senior" ? "is-selected" : ""}`}>
+                <input
+                  type="radio"
+                  name="account-role"
+                  value="senior"
+                  checked={accountRole === "senior"}
+                  disabled={busy}
+                  onChange={() => setAccountRole("senior")}
+                />
+                <span className="auth-role-title">어르신(senior)</span>
+                <span className="auth-role-desc">영상·복지 추천을 나이와 관심에 맞춰 받아요.</span>
+              </label>
+              <label className={`auth-role-card ${accountRole === "guardian" ? "is-selected" : ""}`}>
+                <input
+                  type="radio"
+                  name="account-role"
+                  value="guardian"
+                  checked={accountRole === "guardian"}
+                  disabled={busy}
+                  onChange={() => {
+                    setAccountRole("guardian");
+                    setBirthYear("");
+                    setInterests([]);
+                  }}
+                />
+                <span className="auth-role-title">관리자(guardian)</span>
+                <span className="auth-role-desc">자녀·보호자로 가족 연결과 대시보드를 관리해요.</span>
+              </label>
+            </div>
+          </fieldset>
+
+          {accountRole === "senior" ? (
+            <div className="auth-senior-fields">
+              <Field
+                id="auth-birth-year"
+                label="태어난 해"
+                type="text"
+                inputMode="numeric"
+                required
+                value={birthYear}
+                placeholder="예: 1955"
+                maxLength={4}
+                disabled={busy}
+                onChange={(event) => setBirthYear(event.target.value.replace(/\D/g, "").slice(0, 4))}
+              />
+              <fieldset className="auth-interests">
+                <legend className="auth-interests-legend">관심 영상 (선택)</legend>
+                <div className="auth-interest-list">
+                  {VIDEO_INTEREST_OPTIONS.map((option) => (
+                    <label key={option.id} className="auth-check auth-interest-check">
+                      <input
+                        type="checkbox"
+                        checked={interests.includes(option.id)}
+                        disabled={busy}
+                        onChange={() => toggleInterest(option.id)}
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+          ) : null}
+
           <Field
             id="auth-name"
             label="이름"
@@ -611,16 +708,16 @@ export default function LoginPage() {
 
       {mode === "login" ? (
         <nav className="auth-links" aria-label="계정 안내">
-          <button type="button" className="auth-link" disabled={busy} onClick={() => switchMode("findId")}>
-            아이디 찾기
+          <button type="button" className="auth-link" disabled={busy} onClick={() => switchMode("signup")}>
+            회원가입
           </button>
           <span className="auth-link-sep" aria-hidden="true">·</span>
           <button type="button" className="auth-link" disabled={busy} onClick={() => switchMode("reset")}>
             비밀번호 찾기
           </button>
           <span className="auth-link-sep" aria-hidden="true">·</span>
-          <button type="button" className="auth-link" disabled={busy} onClick={() => switchMode("signup")}>
-            회원가입
+          <button type="button" className="auth-link" disabled={busy} onClick={() => switchMode("findId")}>
+            아이디 찾기
           </button>
         </nav>
       ) : null}
@@ -643,14 +740,14 @@ export default function LoginPage() {
       ) : null}
 
       {mode === "login" ? (
-        <>
-          <div className="auth-divider" role="separator" aria-label="또는">
-            <span>또는</span>
+        <details className="auth-social">
+          <summary>다른 방법으로 로그인</summary>
+          <div className="auth-social-body">
+            <BigButton tone="kakao" disabled={busy} onClick={() => void login("kakao")}>카카오 간편 로그인</BigButton>
+            <BigButton tone="naver" disabled={busy} onClick={() => void login("naver" as Provider)}>네이버 간편 로그인</BigButton>
+            <BigButton tone="google" disabled={busy} onClick={() => void login("google")}>구글 간편 로그인</BigButton>
           </div>
-          <BigButton tone="kakao" disabled={busy} onClick={() => void login("kakao")}>카카오 간편 로그인</BigButton>
-          <BigButton tone="naver" disabled={busy} onClick={() => void login("naver" as Provider)}>네이버 간편 로그인</BigButton>
-          <BigButton tone="google" disabled={busy} onClick={() => void login("google")}>구글 간편 로그인</BigButton>
-        </>
+        </details>
       ) : null}
 
       {message && mode !== "emailConfirm" ? <Status>{message}</Status> : null}

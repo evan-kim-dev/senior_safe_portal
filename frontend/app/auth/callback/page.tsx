@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { BigButton, Screen, Status } from "@/components/ui";
 import { getSupabase, safeNextPath } from "@/lib/client/supabase-browser";
+import { homePathForAccount } from "@/lib/domain/account-profile";
 
 const OTP_TYPES = new Set<string>([
   "signup",
@@ -30,7 +31,7 @@ export default function AuthCallbackPage() {
       const supabase = getSupabase();
       const query = new URLSearchParams(window.location.search);
       const hash = readHashParams();
-      const next = safeNextPath(query.get("next") ?? hash.get("next"), "/board");
+      const nextParam = query.get("next") ?? hash.get("next");
 
       if (!supabase) {
         if (!cancelled) {
@@ -49,12 +50,18 @@ export default function AuthCallbackPage() {
         return;
       }
 
+      async function goHome() {
+        const { data } = await supabase!.auth.getUser();
+        const fallback = homePathForAccount(data.user);
+        if (!cancelled) window.location.replace(safeNextPath(nextParam, fallback));
+      }
+
       try {
         const code = query.get("code");
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) throw error;
-          if (!cancelled) window.location.replace(next);
+          await goHome();
           return;
         }
 
@@ -66,7 +73,7 @@ export default function AuthCallbackPage() {
             type: typeRaw as EmailOtpType,
           });
           if (error) throw error;
-          if (!cancelled) window.location.replace(next);
+          await goHome();
           return;
         }
 
@@ -75,7 +82,7 @@ export default function AuthCallbackPage() {
           const { data, error } = await supabase.auth.getSession();
           if (error) throw error;
           if (data.session) {
-            if (!cancelled) window.location.replace(next);
+            await goHome();
             return;
           }
           await new Promise((resolve) => setTimeout(resolve, 250));

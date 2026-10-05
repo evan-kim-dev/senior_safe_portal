@@ -21,7 +21,7 @@ function setup(overrides: Partial<CheckServiceDeps> = {}) {
     findFresh: vi.fn(async () => null),
     analyze: vi.fn(async () => response({ status: "안전", reason: "공식 사이트입니다.", scraped: { url: "https://a.com/", title: "A" } })),
     save: vi.fn(async () => undefined),
-    recordDangerVideo: vi.fn(async () => undefined),
+    recordDanger: vi.fn(async () => undefined),
     defer: (task) => {
       deferred.push(task);
     },
@@ -63,7 +63,7 @@ describe("check service", () => {
     const { deps, deferred, service } = setup({ findFresh: vi.fn(async () => dangerVideo) });
     await service.check({ url: "https://youtu.be/abc", familyCode: FAMILY, userId: "user-1" });
     await Promise.all(deferred.map((task) => task()));
-    expect(deps.recordDangerVideo).toHaveBeenCalledWith(FAMILY, "user-1");
+    expect(deps.recordDanger).toHaveBeenCalledWith(FAMILY, "danger_video", "user-1", expect.any(String));
   });
 
   it("같은 주소를 동시에 눌러도 분석은 한 번", async () => {
@@ -133,6 +133,47 @@ describe("chat service", () => {
     const service = createChatService({ ask: async () => ({ kind: "missing-config" }) });
     expect((await service.ask(input)).status).toBe(503);
   });
+
+  it("어르신 위험 상담은 danger_chat 으로 남긴다", async () => {
+    const deferred: Array<() => Promise<void>> = [];
+    const recordChatDanger = vi.fn(async () => undefined);
+    const service = createChatService({
+      ask: async () => response({ reply: "스미싱입니다. 링크를 누르지 마세요.", linkAnalysis: null }),
+      recordChatDanger,
+      defer: (task) => {
+        deferred.push(task);
+      },
+    });
+    await service.ask(input, { userId: "user-1", familyCode: FAMILY });
+    expect(recordChatDanger).not.toHaveBeenCalled();
+    await Promise.all(deferred.map((task) => task()));
+    expect(recordChatDanger).toHaveBeenCalledWith(FAMILY, "user-1", expect.stringContaining("문자"));
+  });
+
+  it("챗에 포함된 링크가 위험 판정이면 danger_chat 은 생략한다", async () => {
+    const deferred: Array<() => Promise<void>> = [];
+    const recordChatDanger = vi.fn(async () => undefined);
+    const danger = {
+      ok: true as const,
+      url: "https://x.kr",
+      kind: "link" as const,
+      verdict: "danger" as const,
+      headline: "누르지 마세요" as const,
+      title: "X",
+      reason: "피싱",
+    };
+    const service = createChatService({
+      ask: async () => response({ reply: "누르지 마세요.", linkAnalysis: null }),
+      checkLink: vi.fn(async () => ({ status: 200, body: danger })),
+      recordChatDanger,
+      defer: (task) => {
+        deferred.push(task);
+      },
+    });
+    await service.ask(input, { userId: "user-1", familyCode: FAMILY });
+    await Promise.all(deferred.map((task) => task()));
+    expect(recordChatDanger).not.toHaveBeenCalled();
+  });
 });
 
 describe("feed service", () => {
@@ -158,8 +199,9 @@ describe("feed service", () => {
 describe("activity service", () => {
   it("가족 코드가 틀리면 DB 에 가지 않는다", async () => {
     const repo = {
-      insert: vi.fn(async (_familyCode: string, _userId?: string) => undefined),
+      insert: vi.fn(async () => undefined),
       countBetween: vi.fn(async () => 3),
+      sumDurationBetween: vi.fn(async () => 90),
       listBetween: vi.fn(async () => []),
     };
     const service = createActivityService(repo);
@@ -173,23 +215,47 @@ describe("activity service", () => {
 
   it("서울 하루 범위로 센다", async () => {
     const repo = {
-      insert: vi.fn(async (_familyCode: string, _userId?: string) => undefined),
+      insert: vi.fn(async () => undefined),
       countBetween: vi.fn(async () => 3),
+      sumDurationBetween: vi.fn(async () => 0),
       listBetween: vi.fn(async () => []),
     };
     const service = createActivityService(repo);
     expect(await service.countDangerVideosToday(FAMILY, new Date("2026-10-04T16:30:00Z"))).toBe(3);
-    expect(repo.countBetween).toHaveBeenCalledWith(FAMILY, "2026-10-04T15:00:00.000Z", "2026-10-05T15:00:00.000Z");
+    expect(repo.countBetween).toHaveBeenCalledWith(
+      FAMILY,
+      "2026-10-04T15:00:00.000Z",
+      "2026-10-05T15:00:00.000Z",
+      ["danger_video", "danger_link", "danger_chat"],
+      undefined,
+    );
   });
 
-  it("오늘 위험 영상 목록에 시각 라벨을 붙인다", async () => {
+  it("오늘 활동 목록에 종류·요약 라벨을 붙인다", async () => {
     const repo = {
-      insert: vi.fn(async (_familyCode: string, _userId?: string) => undefined),
+      insert: vi.fn(async () => undefined),
       countBetween: vi.fn(async () => 0),
-      listBetween: vi.fn(async () => [{ id: "a1", created_at: "2026-10-04T16:30:00.000Z" }]),
+      sumDurationBetween: vi.fn(async () => 0),
+      listBetween: vi.fn(async () => [
+        {
+          id: "a1",
+          created_at: "2026-10-04T16:30:00.000Z",
+          kind: "danger_video" as const,
+          summary: "의심 영상",
+          duration_sec: 0,
+          user_id: null,
+        },
+      ]),
     };
     const service = createActivityService(repo);
     const items = await service.listDangerVideosToday(FAMILY, new Date("2026-10-04T16:30:00Z"));
-    expect(items).toEqual([{ id: "a1", createdAt: "2026-10-04T16:30:00.000Z", label: "01:30 위험한 영상" }]);
+    expect(items).toEqual([
+      {
+        id: "a1",
+        createdAt: "2026-10-04T16:30:00.000Z",
+        kind: "danger_video",
+        label: "01:30 위험한 영상 · 의심 영상",
+      },
+    ]);
   });
 });

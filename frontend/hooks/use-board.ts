@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPost, isBoardAvailable, listPosts } from "@/lib/client/board-repository";
+import { boardAuthorName } from "@/lib/domain/user-profile";
 import { parseBoardDraft } from "@/lib/domain/board";
 import { formatDate } from "@/lib/domain/date";
 import type { BoardPost } from "@/lib/domain/types";
@@ -47,6 +48,11 @@ export function useBoard() {
     };
   }, [view.name]);
 
+  useEffect(() => {
+    if (view.name !== "write") return;
+    setName(boardAuthorName(user));
+  }, [view.name, user]);
+
   async function savePost() {
     if (!user || savingRef.current) return;
     const draft = parseBoardDraft({ name, title, content });
@@ -63,7 +69,7 @@ export function useBoard() {
         setMessage("글을 올리지 못했습니다. 잠시 후 다시 눌러 주세요.");
         return;
       }
-      setName("");
+      setName(boardAuthorName(user));
       setTitle("");
       setContent("");
       setMessage("");
