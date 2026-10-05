@@ -2,8 +2,10 @@ import "server-only";
 import type { WelfarePayload } from "@/lib/domain/feeds";
 import type { RestClient } from "../supabase/rest-client";
 
-/** 피드는 하루 다섯 번 갱신되므로 5분 동안 서버 캐시를 쓴다. */
-export const FEED_REVALIDATE_SECONDS = 300;
+/** 영상은 하루 다섯 번, 뉴스는 매시 갱신. 서버 캐시는 그에 맞춰 짧게 둔다. */
+export const VIDEO_FEED_REVALIDATE_SECONDS = 300;
+export const NEWS_FEED_REVALIDATE_SECONDS = 60;
+export const WELFARE_FEED_REVALIDATE_SECONDS = 300;
 
 export type FeedRepository = {
   videoRows(categoryId: string): Promise<Array<{ videos?: unknown }> | null>;
@@ -18,10 +20,10 @@ function byCategory(table: string, column: string, categoryId: string): string {
 }
 
 export function createFeedRepository(rest: RestClient): FeedRepository {
-  async function rows<T>(path: string, tag: string): Promise<T[] | null> {
+  async function rows<T>(path: string, tag: string, revalidateSeconds: number): Promise<T[] | null> {
     const result = await rest.request<T[]>("anon", {
       path,
-      revalidateSeconds: FEED_REVALIDATE_SECONDS,
+      revalidateSeconds,
       tags: [tag],
     });
     if (!result.ok || !Array.isArray(result.data)) return null;
@@ -29,12 +31,15 @@ export function createFeedRepository(rest: RestClient): FeedRepository {
   }
 
   return {
-    videoRows: (categoryId) => rows(byCategory("youtube_feeds", "videos", categoryId), "youtube_feeds"),
-    newsRows: (categoryId) => rows(byCategory("news_feeds", "articles", categoryId), "news_feeds"),
+    videoRows: (categoryId) =>
+      rows(byCategory("youtube_feeds", "videos", categoryId), "youtube_feeds", VIDEO_FEED_REVALIDATE_SECONDS),
+    newsRows: (categoryId) =>
+      rows(byCategory("news_feeds", "articles", categoryId), "news_feeds", NEWS_FEED_REVALIDATE_SECONDS),
     async welfarePayload(feedKey) {
       const found = await rows<{ payload?: WelfarePayload }>(
         `welfare_feeds?feed_key=eq.${encodeURIComponent(feedKey)}&select=payload&limit=1`,
         "welfare_feeds",
+        WELFARE_FEED_REVALIDATE_SECONDS,
       );
       const payload = found?.[0]?.payload;
       return payload && typeof payload === "object" ? payload : null;

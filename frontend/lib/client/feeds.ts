@@ -4,13 +4,15 @@ import { authHeaders } from "./auth-headers";
 import { cachedPostJson, getJson } from "./api";
 import { loadGuardian } from "./guardian";
 
-const FEED_TTL_MS = 5 * 60 * 1000;
+const VIDEO_FEED_TTL_MS = 5 * 60 * 1000;
+const NEWS_FEED_TTL_MS = 60 * 1000;
+const WELFARE_FEED_TTL_MS = 5 * 60 * 1000;
 const DEFAULT_REGION = "서울";
 
 const isOk = (data: { ok?: boolean }) => data?.ok === true;
 
 function fetchVideos(): Promise<VideosResponse> {
-  return cachedPostJson<VideosResponse>("/api/videos", {}, FEED_TTL_MS, isOk);
+  return cachedPostJson<VideosResponse>("/api/videos", {}, VIDEO_FEED_TTL_MS, isOk);
 }
 
 /** 아래 함수들은 던지지 않는다. 실패는 화면 문구로 바뀐다. */
@@ -21,13 +23,13 @@ export async function loadVideoView(): Promise<VideoView> {
 }
 
 export async function loadNewsView(): Promise<NewsView> {
-  const data = await cachedPostJson<NewsResponse>("/api/news", {}, FEED_TTL_MS, isOk).catch(() => null);
+  const data = await cachedPostJson<NewsResponse>("/api/news", {}, NEWS_FEED_TTL_MS, isOk).catch(() => null);
   return toNewsView(data);
 }
 
 export async function loadWelfareView(): Promise<WelfareView> {
   const region = loadGuardian().region || DEFAULT_REGION;
-  const data = await cachedPostJson<WelfareResponse>("/api/welfare", { region, category: "all" }, FEED_TTL_MS, isOk).catch(
+  const data = await cachedPostJson<WelfareResponse>("/api/welfare", { region, category: "all" }, WELFARE_FEED_TTL_MS, isOk).catch(
     () => null,
   );
   return toWelfareView(data, region);

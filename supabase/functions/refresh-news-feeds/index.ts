@@ -1,6 +1,6 @@
 /**
  * 뉴스 캐시 갱신 → news_feeds
- * 하루 2~3회만 호출. 화면은 이 테이블만 읽는다.
+ * 매시 호출. 화면은 이 테이블만 읽는다.
  *
  * Body: { "categoryId": "affairs" }
  * Header: x-cron-secret

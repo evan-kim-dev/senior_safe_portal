@@ -5,7 +5,7 @@ import { readJsonBody } from "@/lib/server/http/body";
 import { json } from "@/lib/server/http/respond";
 import { withRoute } from "@/lib/server/http/route";
 
-export const POST = withRoute("welfare", { rateLimit: { limit: 120, windowMs: 60_000 } }, async (request) => {
+export const POST = withRoute("welfare", { rateLimit: { limit: 60, windowMs: 60_000 } }, async (request) => {
   const body = await readJsonBody(request);
   if (!body.ok) {
     return body.reason === "too-large"

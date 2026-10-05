@@ -3,37 +3,36 @@ import { getServerEnv } from "@/lib/server/env";
 import { json } from "@/lib/server/http/respond";
 import { withRoute } from "@/lib/server/http/route";
 
-/** Hobby: 함수당 최대 300초. 영상 피드만 갱신한다. (뉴스는 /api/cron/refresh-news) */
+/** Hobby: 함수당 최대 300초. 영상 피드만 갱신한다. */
 export const maxDuration = 300;
 
-/**
- * Vercel Cron → 영상 피드 갱신.
- * 스케줄: KST 05·09·13·17·21 (UTC 20·00·04·08·12)
- */
-export const GET = withRoute("cron.refresh-feeds", {}, async (request, { log }) => {
-  const env = getServerEnv();
-  const cronSecret = env.cronSecret;
-  if (!cronSecret) {
-    log.error("cron_secret_missing");
-    return json({ ok: false, message: "CRON_SECRET 이 없어요." }, { status: 503 });
-  }
-  if (!cronAuthorized(request, cronSecret)) {
-    return json({ ok: false, message: "권한이 없어요." }, { status: 401 });
-  }
-  if (!env.supabaseUrl || !env.serviceRoleKey) {
-    log.error("cron_supabase_missing");
-    return json({ ok: false, message: "Supabase 설정이 없어요." }, { status: 503 });
-  }
+export const GET = withRoute(
+  "cron.refresh-feeds",
+  { rateLimit: { limit: 12, windowMs: 60_000 } },
+  async (request, { log }) => {
+    const env = getServerEnv();
+    const cronSecret = env.cronSecret;
+    if (!cronSecret || !env.supabaseUrl || !env.serviceRoleKey) {
+      log.error("cron_misconfigured");
+      return json({ ok: false, message: "지금은 실행할 수 없어요." }, { status: 503 });
+    }
+    if (!cronAuthorized(request, cronSecret)) {
+      return json({ ok: false, message: "권한이 없어요." }, { status: 401 });
+    }
 
-  const result = await invokeRefreshFunction(
-    env.supabaseUrl,
-    env.serviceRoleKey,
-    cronSecret,
-    "refresh-youtube-feeds",
-  );
-  log.info("cron_feed_done", { name: result.name, ok: result.ok, status: result.status });
-  if (!result.ok) {
-    return json({ ok: false, results: [result] }, { status: 502 });
-  }
-  return json({ ok: true, results: [result] });
-});
+    const result = await invokeRefreshFunction(
+      env.supabaseUrl,
+      env.serviceRoleKey,
+      cronSecret,
+      "refresh-youtube-feeds",
+    );
+    log.info("cron_feed_done", {
+      name: result.name,
+      ok: result.ok,
+      status: result.status,
+      refreshed: result.refreshed,
+    });
+    if (!result.ok) return json({ ok: false, results: [result] }, { status: 502 });
+    return json({ ok: true, results: [result] });
+  },
+);
