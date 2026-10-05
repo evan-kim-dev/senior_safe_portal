@@ -27,7 +27,12 @@ export function SiteFooter() {
             {LEGAL_LINKS.map((item, index) => (
               <span key={item.href} className="footer-legal-item">
                 {index > 0 ? <span className="footer-sep" aria-hidden="true" /> : null}
-                <Link href={item.href}>{item.label}</Link>
+                <Link
+                  href={item.href}
+                  className={item.emphasize ? "footer-privacy-link" : undefined}
+                >
+                  {item.label}
+                </Link>
               </span>
             ))}
           </nav>

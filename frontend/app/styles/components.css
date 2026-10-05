@@ -473,6 +473,7 @@ img {
 
 .footer-legal a {
   color: rgba(255, 255, 255, 0.92);
+  font-size: 0.9375rem; /* ≥ 10pt */
   font-weight: 700;
   text-decoration: none;
 }
@@ -481,6 +482,13 @@ img {
   color: #FFFFFF;
   text-decoration: underline;
   text-underline-offset: 0.18em;
+}
+
+.footer-privacy-link {
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  font-size: 1rem !important; /* 본문보다 작지 않게 */
+  letter-spacing: -0.01em;
 }
 
 .footer-copy {

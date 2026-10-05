@@ -117,9 +117,9 @@ export const HOTLINES: readonly Hotline[] = [
   { number: "118", org: "한국인터넷진흥원", text: "스팸·해킹·개인정보 침해 상담" },
 ];
 
-/** 개인정보 보호법상 공개·접근이 필요한 문서. */
-export const LEGAL_LINKS: readonly { href: string; label: string }[] = [
-  { href: "/privacy", label: "개인정보 처리방침" },
+/** 개인정보 보호법상 공개·접근이 필요한 문서. 개인정보처리방침은 강조 표시. */
+export const LEGAL_LINKS: readonly { href: string; label: string; emphasize?: boolean }[] = [
+  { href: "/privacy", label: "개인정보처리방침", emphasize: true },
   { href: "/terms", label: "이용약관" },
 ];
 

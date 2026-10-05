@@ -441,7 +441,7 @@ export default function LoginPage() {
                 onChange={(event) => setAgreePrivacy(event.target.checked)}
               />
               <span>
-                <Link href="/privacy" target="_blank">개인정보 처리방침</Link>에 동의합니다
+                <Link href="/privacy" target="_blank">개인정보처리방침</Link>에 동의합니다
                 <abbr className="field-required" title="필수">*</abbr>
               </span>
             </label>
