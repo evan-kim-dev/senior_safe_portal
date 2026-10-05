@@ -1,9 +1,9 @@
-import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.21.0";
+﻿import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.21.0";
 
 export const GEMINI_MODEL_FALLBACKS = [
+  "gemini-3.5-flash",
   "gemini-2.5-flash",
   "gemini-2.0-flash",
-  "gemini-1.5-flash",
 ] as const;
 
 export class GeminiUnavailableError extends Error {

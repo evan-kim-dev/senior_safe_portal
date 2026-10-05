@@ -374,9 +374,8 @@ function constantTimeEqual(a: string, b: string): boolean {
 }
 
 /**
- * INTERNAL_API_SECRET(또는 EDGE_INTERNAL_SECRET) 을 설정하면
- * 그 값을 x-internal-secret 헤더로 보낸 서버(Next API)만 받는다.
- * 설정하지 않으면 예전처럼 anon 키만으로 부를 수 있다(정적 사이트 호환).
+ * INTERNAL_API_SECRET(또는 EDGE_INTERNAL_SECRET) 과 x-internal-secret 이 일치할 때만 허용.
+ * 시크릿이 없으면 거부한다(fail-closed). Next API 가 EDGE_INTERNAL_SECRET 으로 호출한다.
  */
 export function isAllowedCaller(req: Request): boolean {
   const secret = Deno.env.get("INTERNAL_API_SECRET") ?? Deno.env.get("EDGE_INTERNAL_SECRET");
@@ -392,9 +391,9 @@ export function clampLimit(raw: unknown, fallback: number, max: number): number 
 import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.21.0";
 
 export const GEMINI_MODEL_FALLBACKS = [
+  "gemini-3.5-flash",
   "gemini-2.5-flash",
   "gemini-2.0-flash",
-  "gemini-1.5-flash",
 ] as const;
 
 export class GeminiUnavailableError extends Error {

@@ -1,9 +1,9 @@
-import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.21.0";
+﻿import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.21.0";
 
 export const GEMINI_MODEL_FALLBACKS = [
+  "gemini-3.5-flash",
   "gemini-2.5-flash",
   "gemini-2.0-flash",
-  "gemini-1.5-flash",
 ] as const;
 
 export class GeminiUnavailableError extends Error {
@@ -13,7 +13,9 @@ export class GeminiUnavailableError extends Error {
   }
 }
 
-type ContentPart = { text: string };
+type TextPart = { text: string };
+type InlineDataPart = { inlineData: { mimeType: string; data: string } };
+export type ContentPart = TextPart | InlineDataPart;
 
 export type GeminiModelOptions = {
   systemInstruction?: string;
@@ -89,7 +91,7 @@ export async function sendGeminiChatMessage(
   apiKey: string,
   modelOptions: GeminiModelOptions,
   history: ChatHistoryItem[],
-  userMessage: string,
+  userMessage: string | ContentPart[],
 ): Promise<string> {
   return runWithGeminiFallback(async (modelName) => {
     const genAI = new GoogleGenerativeAI(apiKey);
