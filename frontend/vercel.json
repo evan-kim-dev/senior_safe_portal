@@ -1,0 +1,9 @@
+{
+  "crons": [
+    { "path": "/api/cron/refresh-feeds", "schedule": "0 20 * * *" },
+    { "path": "/api/cron/refresh-feeds", "schedule": "0 0 * * *" },
+    { "path": "/api/cron/refresh-feeds", "schedule": "0 4 * * *" },
+    { "path": "/api/cron/refresh-feeds", "schedule": "0 8 * * *" },
+    { "path": "/api/cron/refresh-feeds", "schedule": "0 12 * * *" }
+  ]
+}

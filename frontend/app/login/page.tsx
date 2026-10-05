@@ -8,18 +8,39 @@ import { Icon } from "@/components/icons";
 import { useAuth } from "@/hooks/use-auth";
 import { formatPhoneDisplay, passwordIssues } from "@/lib/domain/auth-form";
 import {
+  EMAIL_NOT_CONFIRMED,
+  isPhoneConfirmed,
   resendSignupEmail,
   safeNextPath,
   sendPasswordReset,
+  sendPhoneOtp,
   signInWith,
   signInWithEmail,
+  signOut,
   signUpWithEmail,
   verifyEmailOtp,
+  verifyPhoneOtp,
 } from "@/lib/client/supabase-browser";
 
-type Mode = "login" | "signup" | "emailConfirm" | "reset" | "findId";
+type Mode = "login" | "signup" | "emailConfirm" | "phoneConfirm" | "reset" | "findId";
 
-const RESEND_COOLDOWN_SEC = 30;
+/** 호스팅 메일 한도가 시간당 2건이라 재발송을 아끼도록 길게 둔다. */
+const EMAIL_RESEND_COOLDOWN_SEC = 180;
+const PHONE_RESEND_COOLDOWN_SEC = 60;
+const RATE_LIMIT_COOLDOWN_SEC = 3600;
+
+function formatCooldown(sec: number): string {
+  if (sec >= 3600) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    return m > 0 ? `${h}시간 ${m}분` : `${h}시간`;
+  }
+  if (sec >= 60) {
+    const m = Math.ceil(sec / 60);
+    return `${m}분`;
+  }
+  return `${sec}초`;
+}
 
 function readNext(): string {
   if (typeof window === "undefined") return "/board";
@@ -51,11 +72,35 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("mode") === "signup") setMode("signup");
     if (params.get("confirmed") === "1") setMessage("이메일 확인이 끝났어요. 로그인해 주세요.");
+    if (params.get("mode") === "confirm") {
+      setMode("emailConfirm");
+      try {
+        const pending = sessionStorage.getItem("ssp.pendingSignupEmail");
+        if (pending) setEmail(pending);
+      } catch {
+        // ignore
+      }
+    }
+    if (params.get("mode") === "phone") {
+      setMode("phoneConfirm");
+      try {
+        const pendingPhone = sessionStorage.getItem("ssp.pendingSignupPhone");
+        if (pendingPhone) setPhone(formatPhoneDisplay(pendingPhone));
+      } catch {
+        // ignore
+      }
+    }
   }, []);
 
   useEffect(() => {
     if (!ready || !user) return;
-    if (mode === "emailConfirm") return;
+    if (mode === "phoneConfirm" && !isPhoneConfirmed(user)) return;
+    try {
+      sessionStorage.removeItem("ssp.pendingSignupEmail");
+      sessionStorage.removeItem("ssp.pendingSignupPhone");
+    } catch {
+      // ignore
+    }
     window.location.replace(readNext());
   }, [ready, user, mode]);
 
@@ -68,24 +113,33 @@ export default function LoginPage() {
   const title =
     mode === "signup" ? "회원가입"
       : mode === "emailConfirm" ? "이메일 확인"
-        : mode === "reset" ? "비밀번호 찾기"
-          : mode === "findId" ? "아이디 찾기"
-            : "로그인";
+        : mode === "phoneConfirm" ? "휴대폰 확인"
+          : mode === "reset" ? "비밀번호 찾기"
+            : mode === "findId" ? "아이디 찾기"
+              : "로그인";
 
   const lead =
     mode === "signup" ? "아래 정보를 적어 주세요."
-      : mode === "emailConfirm" ? "가입을 마치려면 메일을 확인해 주세요."
-        : mode === "reset" ? "가입한 이메일을 적어 주세요."
-          : mode === "findId" ? "휴대폰 확인이 준비되면 아이디 찾기를 열 예정이에요."
-            : next === "/care" || next === "/link"
-              ? "가족 연동을 하려면 로그인해 주세요."
-              : "이메일로 로그인해 주세요.";
+      : mode === "emailConfirm" ? "메일함의 확인 링크를 누르면 가입이 끝나요."
+        : mode === "phoneConfirm" ? "문자로 받은 확인 번호를 적어 주세요."
+          : mode === "reset" ? "가입한 이메일을 적어 주세요."
+            : mode === "findId" ? "휴대폰 확인이 준비되면 아이디 찾기를 열 예정이에요."
+              : next === "/care" || next === "/link"
+                ? "가족 연동을 하려면 로그인해 주세요."
+                : "이메일로 로그인해 주세요.";
 
   async function submitLogin() {
     if (busy || user) return;
     setBusy(true);
     setMessage("");
     const failure = await signInWithEmail(email, password);
+    if (failure === EMAIL_NOT_CONFIRMED) {
+      setMode("emailConfirm");
+      setMessage("이메일 확인이 필요해요. 메일함의 링크를 눌러 주세요.");
+      setResendIn(0);
+      setBusy(false);
+      return;
+    }
     if (failure) {
       setMessage(failure);
       setBusy(false);
@@ -102,6 +156,9 @@ export default function LoginPage() {
       readNext(),
     );
     if (!result.ok) {
+      if (result.message.includes("이미 가입")) {
+        setMode("login");
+      }
       setMessage(result.message);
       setBusy(false);
       return;
@@ -110,13 +167,20 @@ export default function LoginPage() {
     setPasswordConfirm("");
     setOtp("");
     setBusy(false);
-    if (!result.needsEmailConfirm) {
-      window.location.replace(readNext());
+    if (result.needsPhoneConfirm) {
+      if (result.phone) setPhone(formatPhoneDisplay(result.phone));
+      setMode("phoneConfirm");
+      setMessage("확인 문자를 보냈어요. 번호를 적어 주세요.");
+      setResendIn(PHONE_RESEND_COOLDOWN_SEC);
       return;
     }
-    setMode("emailConfirm");
-    setMessage("");
-    setResendIn(RESEND_COOLDOWN_SEC);
+    if (result.needsEmailConfirm) {
+      setMode("emailConfirm");
+      setMessage("확인 메일을 보냈어요. 메일함·스팸함을 확인해 주세요. 다시 받기는 메일이 안 올 때만 눌러 주세요.");
+      setResendIn(EMAIL_RESEND_COOLDOWN_SEC);
+      return;
+    }
+    window.location.replace(readNext());
   }
 
   async function submitEmailOtp() {
@@ -128,6 +192,24 @@ export default function LoginPage() {
       setMessage(failure);
       setBusy(false);
       return;
+    }
+    window.location.replace(readNext());
+  }
+
+  async function submitPhoneOtp() {
+    if (busy) return;
+    setBusy(true);
+    setMessage("");
+    const failure = await verifyPhoneOtp(phone, otp);
+    if (failure) {
+      setMessage(failure);
+      setBusy(false);
+      return;
+    }
+    try {
+      sessionStorage.removeItem("ssp.pendingSignupPhone");
+    } catch {
+      // ignore
     }
     window.location.replace(readNext());
   }
@@ -150,14 +232,35 @@ export default function LoginPage() {
     if (!canResend) return;
     setBusy(true);
     setMessage("");
-    const failure = await resendSignupEmail(email);
+    const failure = await resendSignupEmail(email, readNext());
     if (failure) {
       setMessage(failure);
+      if (failure.includes("한도") || failure.includes("자주")) {
+        setResendIn(RATE_LIMIT_COOLDOWN_SEC);
+      }
       setBusy(false);
       return;
     }
-    setMessage("확인 메일을 다시 보냈어요.");
-    setResendIn(RESEND_COOLDOWN_SEC);
+    setMessage("확인 메일을 다시 보냈어요. 스팸함도 확인해 주세요.");
+    setResendIn(EMAIL_RESEND_COOLDOWN_SEC);
+    setBusy(false);
+  }
+
+  async function resendPhone() {
+    if (!canResend) return;
+    setBusy(true);
+    setMessage("");
+    const failure = await sendPhoneOtp(phone);
+    if (failure) {
+      setMessage(failure);
+      if (failure.includes("한도") || failure.includes("자주") || failure.includes("too many")) {
+        setResendIn(RATE_LIMIT_COOLDOWN_SEC);
+      }
+      setBusy(false);
+      return;
+    }
+    setMessage("확인 문자를 다시 보냈어요.");
+    setResendIn(PHONE_RESEND_COOLDOWN_SEC);
     setBusy(false);
   }
 
@@ -175,7 +278,7 @@ export default function LoginPage() {
     setMode(nextMode);
     setMessage("");
     setOtp("");
-    if (nextMode !== "emailConfirm") setResendIn(0);
+    if (nextMode !== "emailConfirm" && nextMode !== "phoneConfirm") setResendIn(0);
     if (nextMode !== "signup") {
       setPasswordConfirm("");
       setAgreeTerms(false);
@@ -354,26 +457,30 @@ export default function LoginPage() {
               <Icon name="mail" />
             </span>
             <p className="auth-confirm-title">메일을 확인해 주세요</p>
-            <p className="auth-confirm-email">{email}</p>
+            <p className="auth-confirm-email">{email || "가입한 이메일"}</p>
             <ol className="auth-confirm-steps">
-              <li>메일함에서 확인 링크를 눌러 주세요.</li>
-              <li>없으면 스팸함도 확인해 주세요.</li>
-              <li>링크를 누르면 가입이 끝나요.</li>
+              <li>메일함에서 <strong>확인 링크</strong>를 눌러 주세요.</li>
+              <li>없으면 스팸함·프로모션함도 확인해 주세요.</li>
+              <li>링크를 누르면 자동으로 로그인돼요.</li>
+              <li>확인 메일은 시간당 몇 통만 보낼 수 있어요. 다시 받기는 꼭 필요할 때만 눌러 주세요.</li>
             </ol>
           </div>
 
+          {message ? <Status>{message}</Status> : null}
+
           <div className="auth-confirm-actions">
-            <BigButton disabled={!canResend} onClick={() => void resendEmail()}>
-              {resendIn > 0 ? `${resendIn}초 후 다시 받기` : "메일 다시 받기"}
+            <BigButton disabled={!canResend || !email} onClick={() => void resendEmail()}>
+              {resendIn > 0 ? `${formatCooldown(resendIn)} 후 다시 받기` : "메일 다시 받기"}
             </BigButton>
-            {message ? <Status>{message}</Status> : null}
             <p className="auth-note">
-              {resendIn > 0 ? "잠시 후 다시 받을 수 있어요." : "메일이 안 오면 다시 받아 주세요."}
+              {resendIn > 0
+                ? "이미 보낸 메일을 먼저 확인해 주세요."
+                : "메일이 안 올 때만 다시 받아 주세요. 자주 누르면 한도에 걸려요."}
             </p>
           </div>
 
           <details className="auth-confirm-more">
-            <summary>확인 번호로 하기</summary>
+            <summary>메일 속 확인 번호로 하기</summary>
             <form
               className="auth-form"
               onSubmit={(event) => {
@@ -387,11 +494,11 @@ export default function LoginPage() {
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 value={otp}
-                placeholder="메일로 받은 번호"
-                disabled={busy}
+                placeholder="8자리 숫자"
+                disabled={busy || !email}
                 onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))}
               />
-              <BigButton type="submit" disabled={busy || otp.length < 6}>
+              <BigButton type="submit" disabled={busy || otp.length < 6 || !email}>
                 확인 완료
               </BigButton>
             </form>
@@ -399,6 +506,66 @@ export default function LoginPage() {
 
           <p className="auth-links">
             <button type="button" className="auth-link" disabled={busy} onClick={() => switchMode("login")}>
+              로그인으로
+            </button>
+          </p>
+        </div>
+      ) : null}
+
+      {mode === "phoneConfirm" ? (
+        <div className="auth-confirm">
+          <div className="auth-confirm-card" aria-live="polite">
+            <span className="auth-confirm-icon" aria-hidden="true">
+              <Icon name="phone" />
+            </span>
+            <p className="auth-confirm-title">문자를 확인해 주세요</p>
+            <p className="auth-confirm-email">{phone || "가입한 휴대폰"}</p>
+            <ol className="auth-confirm-steps">
+              <li>문자로 온 <strong>확인 번호</strong>를 아래에 적어 주세요.</li>
+              <li>문자가 없으면 잠시 기다린 뒤 다시 받아 주세요.</li>
+              <li>번호를 맞추면 가입이 끝나요.</li>
+            </ol>
+          </div>
+
+          {message ? <Status>{message}</Status> : null}
+
+          <form
+            className="auth-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void submitPhoneOtp();
+            }}
+          >
+            <Field
+              id="auth-phone-otp"
+              label="확인 번호"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              value={otp}
+              placeholder="6자리 숫자"
+              disabled={busy || !phone}
+              onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))}
+            />
+            <BigButton type="submit" disabled={busy || otp.length < 6 || !phone}>
+              확인 완료
+            </BigButton>
+          </form>
+
+          <div className="auth-confirm-actions">
+            <LineButton disabled={!canResend || !phone} onClick={() => void resendPhone()}>
+              {resendIn > 0 ? `${formatCooldown(resendIn)} 후 다시 받기` : "문자 다시 받기"}
+            </LineButton>
+          </div>
+
+          <p className="auth-links">
+            <button
+              type="button"
+              className="auth-link"
+              disabled={busy}
+              onClick={() => {
+                void signOut().then(() => switchMode("login"));
+              }}
+            >
               로그인으로
             </button>
           </p>

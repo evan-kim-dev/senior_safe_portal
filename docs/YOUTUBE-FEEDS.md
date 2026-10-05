@@ -3,7 +3,7 @@
 ## 왜 바꾸나요?
 
 YouTube Data API 무료 한도는 **하루 약 100회 검색**(10,000 units)입니다.  
-**미리 수집 → DB 저장 → 모두 같은 목록 조회**하면 하루 **15회**(3회×5카테고리)만 씁니다.
+**미리 수집 → DB 저장 → 모두 같은 목록 조회**하면 하루 **25회**(5회×5카테고리)만 씁니다.
 
 ---
 
@@ -22,7 +22,6 @@ Supabase **SQL Editor** → `supabase/migrations/youtube_feeds.sql` 실행
 
 ### 3. Supabase Edge Function Secrets
 
-
 **Project Settings → Edge Functions → Secrets**
 
 | Name | 설명 |
@@ -33,42 +32,40 @@ Supabase **SQL Editor** → `supabase/migrations/youtube_feeds.sql` 실행
 
 ---
 
-## GitHub Actions 자동화 (권장)
+## Vercel Cron 자동화
 
-### 1. GitHub Secrets 등록
+GitHub Actions는 쓰지 않습니다. `frontend/vercel.json` + `/api/cron/refresh-feeds` 가 갱신을 호출합니다.
 
-저장소 **Settings → Secrets and variables → Actions → New repository secret**
+### 1. Vercel 환경 변수
 
-| Secret 이름 | 값 |
-|-------------|-----|
-| `SUPABASE_URL` | `https://oweduuhfkiutlszfwukt.supabase.co` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API → **service_role** |
-| `CRON_SECRET` | Supabase Secrets에 넣은 값과 **동일** |
+프로젝트 **Settings → Environment Variables** (Production)
 
-⚠️ `service_role` 키는 절대 공개 저장소·채팅에 올리지 마세요.
+| Name | 값 |
+|------|-----|
+| `CRON_SECRET` | Supabase Edge Secrets와 **동일** |
+| `SUPABASE_URL` | `https://….supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | service_role (서버 전용) |
 
-### 2. workflow 파일
+### 2. 실행 시각 (KST)
 
-`.github/workflows/refresh-youtube-feeds.yml` — main 브랜치에 push 되면 활성화됩니다.
+| KST | UTC cron |
+|-----|----------|
+| **05:00** | `0 20 * * *` |
+| **09:00** | `0 0 * * *` |
+| **13:00** | `0 4 * * *` |
+| **17:00** | `0 8 * * *` |
+| **21:00** | `0 12 * * *` |
 
-### 3. 실행 시각 (KST)
+Hobby는 “하루 1회” 제한이 표현식마다 적용되므로, **같은 경로를 5개 cron으로** 나눕니다.
 
-| KST | 내용 |
-|-----|------|
-| **09:00** | 1차 수집 |
-| **15:00** | 2차 수집 |
-| **21:00** | 3차 수집 |
+### 3. 수동 확인
 
-하루 **5카테고리 × 3회 = 15번** 검색 ≈ **1,500 units** (한도 15%)
+배포 후 Vercel → **Settings → Cron Jobs** 에서 등록 여부 확인.  
+또는 (로컬/서버에서):
 
-### 4. 수동 실행
-
-GitHub → **Actions** → **Refresh YouTube Feeds** → **Run workflow**
-
-### 5. 성공 확인
-
-Actions 로그에 `"ok": true`, `"refreshed": 5` 표시  
-Supabase **Table Editor** → `youtube_feeds` 5행 확인
+```powershell
+Invoke-WebRequest -Uri "https://senior-safe-portal.vercel.app/api/cron/refresh-feeds" -Headers @{ Authorization = "Bearer (CRON_SECRET)" }
+```
 
 ---
 

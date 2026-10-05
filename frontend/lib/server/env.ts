@@ -6,6 +6,7 @@ export type ServerEnv = {
   anonKey: string | null;
   serviceRoleKey: string | null;
   edgeInternalSecret: string | null;
+  cronSecret: string | null;
   logLevel: LogLevel;
 };
 
@@ -43,6 +44,8 @@ export function parseServerEnv(source: EnvSource): ServerEnv {
     serviceRoleKey: nonEmpty(source.SUPABASE_SERVICE_ROLE_KEY),
     // Vercel: EDGE_INTERNAL_SECRET / Supabase Edge: INTERNAL_API_SECRET — 값만 같으면 된다.
     edgeInternalSecret: nonEmpty(source.EDGE_INTERNAL_SECRET ?? source.INTERNAL_API_SECRET),
+    // Vercel Cron · Supabase refresh-* Edge Function 과 같은 값.
+    cronSecret: nonEmpty(source.CRON_SECRET),
     logLevel: logLevelOf(source.LOG_LEVEL),
   };
 }

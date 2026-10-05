@@ -45,28 +45,39 @@ function authErrorMessage(error: { message?: string; code?: string; status?: num
   const text = (error?.message || "").toLowerCase();
   const code = (error?.code || "").toLowerCase();
   if (code.includes("email_not_confirmed") || text.includes("email not confirmed")) {
-    return "이메일 확인이 필요해요. 메일함을 확인해 주세요.";
+    return "EMAIL_NOT_CONFIRMED";
   }
   if (code.includes("invalid_credentials") || text.includes("invalid login") || text.includes("invalid credentials")) {
     return "이메일 또는 비밀번호가 맞지 않아요.";
   }
-  if (text.includes("user already registered") || text.includes("already been registered")) {
+  if (
+    text.includes("user already registered")
+    || text.includes("already been registered")
+    || text.includes("already registered")
+    || code.includes("user_already_exists")
+  ) {
     return "이미 가입한 이메일이에요. 로그인해 주세요.";
   }
-  if (text.includes("password") && (text.includes("weak") || text.includes("least") || text.includes("characters"))) {
+  if (text.includes("password") && (text.includes("weak") || text.includes("least") || text.includes("characters") || text.includes("symbols"))) {
     return "비밀번호를 확인해 주세요. 영문 대·소문자·숫자·특수문자를 넣어 주세요.";
   }
-  if (text.includes("rate limit") || text.includes("too many") || error?.status === 429) {
-    return "너무 자주 눌렀어요. 잠시 후 다시 눌러 주세요.";
+  if (text.includes("rate limit") || text.includes("too many") || text.includes("email rate") || error?.status === 429) {
+    return "확인 메일 발송 한도에 걸렸어요. 이미 보낸 메일을 먼저 확인해 주세요. 한동안은 다시 보낼 수 없어요.";
   }
-  if (text.includes("sms") || text.includes("phone") || text.includes("twilio") || text.includes("provider")) {
-    return "문자를 보내지 못했어요. 이메일 확인을 먼저 해 주세요.";
+  if (
+    text.includes("sms")
+    || text.includes("twilio")
+    || ((text.includes("phone") || text.includes("provider")) && !text.includes("credentials"))
+  ) {
+    return "문자를 보내지 못했어요. 번호와 문자 수신을 확인해 주세요.";
   }
-  if (text.includes("otp") || text.includes("token") || text.includes("expired")) {
+  if (text.includes("otp") || ((text.includes("token") || text.includes("expired")) && !text.includes("credentials"))) {
     return "확인 번호가 맞지 않아요. 다시 받아 주세요.";
   }
   return fallback;
 }
+
+export const EMAIL_NOT_CONFIRMED = "EMAIL_NOT_CONFIRMED";
 
 export async function signInWith(provider: Provider, next?: string | null): Promise<string> {
   const supabase = getSupabase();
@@ -95,14 +106,18 @@ export async function signInWithEmail(email: string, password: string): Promise<
       email: normalizeEmail(email),
       password,
     });
-    return error ? authErrorMessage(error, "로그인하지 못했어요. 잠시 후 다시 눌러 주세요.") : "";
+    if (!error) return "";
+    const mapped = authErrorMessage(error, "로그인하지 못했어요. 잠시 후 다시 눌러 주세요.");
+    return mapped === EMAIL_NOT_CONFIRMED
+      ? EMAIL_NOT_CONFIRMED
+      : mapped;
   } catch {
     return "로그인하지 못했어요. 잠시 후 다시 눌러 주세요.";
   }
 }
 
 export type SignUpResult =
-  | { ok: true; needsEmailConfirm: boolean }
+  | { ok: true; needsEmailConfirm: boolean; needsPhoneConfirm: boolean; phone: string }
   | { ok: false; message: string };
 
 export async function signUpWithEmail(input: SignUpFormInput, next?: string | null): Promise<SignUpResult> {
@@ -128,13 +143,39 @@ export async function signUpWithEmail(input: SignUpFormInput, next?: string | nu
     if (error) {
       return { ok: false, message: authErrorMessage(error, "가입하지 못했어요. 잠시 후 다시 눌러 주세요.") };
     }
-    return { ok: true, needsEmailConfirm: !data.session };
+
+    // 이미 가입된 이메일이면 에러 없이 빈 identities 로 올 수 있다.
+    const identities = data.user?.identities;
+    if (data.user && Array.isArray(identities) && identities.length === 0) {
+      return { ok: false, message: "이미 가입한 이메일이에요. 로그인해 주세요." };
+    }
+
+    try {
+      sessionStorage.setItem("ssp.pendingSignupEmail", checked.value.email);
+      sessionStorage.setItem("ssp.pendingSignupPhone", checked.value.phone);
+    } catch {
+      // ignore
+    }
+
+    const hasSession = Boolean(data.session);
+    if (hasSession) {
+      // 세션이 있으면 바로 휴대폰 확인 문자를 보낸다. 실패해도 확인 화면에서 다시 받을 수 있다.
+      await sendPhoneOtp(checked.value.phone);
+      return { ok: true, needsEmailConfirm: false, needsPhoneConfirm: true, phone: checked.value.phone };
+    }
+
+    return {
+      ok: true,
+      needsEmailConfirm: true,
+      needsPhoneConfirm: false,
+      phone: checked.value.phone,
+    };
   } catch {
     return { ok: false, message: "가입하지 못했어요. 잠시 후 다시 눌러 주세요." };
   }
 }
 
-export async function resendSignupEmail(email: string): Promise<string> {
+export async function resendSignupEmail(email: string, next?: string | null): Promise<string> {
   const normalized = normalizeEmail(email);
   if (!normalized) return "이메일을 적어 주세요.";
   const supabase = getSupabase();
@@ -144,7 +185,7 @@ export async function resendSignupEmail(email: string): Promise<string> {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: normalized,
-      options: { emailRedirectTo: authCallbackUrl("/board") },
+      options: { emailRedirectTo: authCallbackUrl(next ?? "/board") },
     });
     return error ? authErrorMessage(error, "메일을 다시 보내지 못했어요.") : "";
   } catch {
@@ -160,13 +201,23 @@ export async function verifyEmailOtp(email: string, token: string): Promise<stri
   const supabase = getSupabase();
   if (!supabase) return "확인하지 못했어요. 잠시 후 다시 눌러 주세요.";
 
+  const code = token.trim();
   try {
-    const { error } = await supabase.auth.verifyOtp({
+    const first = await supabase.auth.verifyOtp({
       email: normalized,
-      token: token.trim(),
+      token: code,
       type: "signup",
     });
-    return error ? authErrorMessage(error, "이메일을 확인하지 못했어요.") : "";
+    if (!first.error) return "";
+
+    const second = await supabase.auth.verifyOtp({
+      email: normalized,
+      token: code,
+      type: "email",
+    });
+    if (!second.error) return "";
+
+    return authErrorMessage(second.error ?? first.error, "이메일을 확인하지 못했어요.");
   } catch {
     return "이메일을 확인하지 못했어요.";
   }
@@ -199,6 +250,11 @@ export async function sendPhoneOtp(phoneRaw: string): Promise<string> {
   if (!supabase) return "문자를 보내지 못했어요.";
 
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      return "먼저 로그인해 주세요. 그다음 휴대폰을 확인할 수 있어요.";
+    }
+
     const { error } = await supabase.auth.updateUser({ phone });
     return error ? authErrorMessage(error, "문자를 보내지 못했어요.") : "";
   } catch {
@@ -223,6 +279,20 @@ export async function verifyPhoneOtp(phoneRaw: string, token: string): Promise<s
     return error ? authErrorMessage(error, "휴대폰을 확인하지 못했어요.") : "";
   } catch {
     return "휴대폰을 확인하지 못했어요.";
+  }
+}
+
+export function isPhoneConfirmed(user: { phone?: string | null; phone_confirmed_at?: string | null } | null | undefined): boolean {
+  return Boolean(user?.phone_confirmed_at && user.phone);
+}
+
+export async function signOut(): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase) return;
+  try {
+    await supabase.auth.signOut();
+  } catch {
+    // ignore
   }
 }
 

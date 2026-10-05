@@ -2,7 +2,7 @@ import "server-only";
 import type { WelfarePayload } from "@/lib/domain/feeds";
 import type { RestClient } from "../supabase/rest-client";
 
-/** 피드는 하루 세 번 갱신되므로 5분 동안 서버 캐시를 쓴다. */
+/** 피드는 하루 다섯 번 갱신되므로 5분 동안 서버 캐시를 쓴다. */
 export const FEED_REVALIDATE_SECONDS = 300;
 
 export type FeedRepository = {
