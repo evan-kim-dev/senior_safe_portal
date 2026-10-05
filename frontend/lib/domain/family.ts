@@ -87,9 +87,23 @@ export const INVITE_CODE_LENGTH = 8;
 export const INVITE_TTL_MS = 24 * 60 * 60 * 1000;
 export const INVITE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 
-/** 연결 해제·초기화 확인 문구(서버·UI 공통). */
+/** 연결 해제·초기화·어르신 삭제 확인 문구(서버·UI 공통). */
 export const FAMILY_LEAVE_CONFIRM = "해제";
 export const FAMILY_RESET_CONFIRM = "초기화";
+export const FAMILY_SENIOR_REMOVE_CONFIRM = "삭제";
+
+export type FamilySeniorUpdateInput = {
+  displayName: string;
+  birthYear: number | null;
+};
+
+export type FamilySeniorUpdateResponse =
+  | { ok: true }
+  | { ok: false; message: string };
+
+export type FamilySeniorRemoveResponse =
+  | { ok: true }
+  | { ok: false; message: string };
 
 export function familySeniorDisplayName(index: number, name: string): string {
   return name.trim() || `부모님 ${index + 1}`;

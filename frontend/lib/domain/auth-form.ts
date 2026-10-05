@@ -148,6 +148,30 @@ export function validateSignUpForm(
   };
 }
 
+/** 관리자가 어르신 카드에서 이름·출생연도를 고칠 때. */
+export function validateSeniorProfileEdit(
+  input: { name: string; birthYear: string },
+  now = new Date(),
+): { ok: true; value: { name: string; birthYear: number | null } } | { ok: false; message: string } {
+  const name = input.name.trim().replace(/\s+/g, " ");
+  if (name.length < MIN_NAME_LENGTH) return { ok: false, message: "이름을 적어 주세요." };
+  if (name.length > MAX_NAME_LENGTH || !NAME_RE.test(name)) return { ok: false, message: "이름을 확인해 주세요." };
+
+  const yearText = input.birthYear.trim();
+  if (!yearText) return { ok: true, value: { name, birthYear: null } };
+
+  const year = Number(yearText);
+  const thisYear = now.getFullYear();
+  const maxYear = thisYear - MIN_SENIOR_AGE;
+  if (!/^\d{4}$/.test(yearText) || !Number.isInteger(year)) {
+    return { ok: false, message: "태어난 해를 네 자리로 적어 주세요." };
+  }
+  if (year < 1920 || year > maxYear) {
+    return { ok: false, message: `태어난 해는 1920~${maxYear} 사이로 적어 주세요.` };
+  }
+  return { ok: true, value: { name, birthYear: year } };
+}
+
 export function validateLoginForm(email: string, password: string): string {
   if (!normalizeEmail(email)) return "이메일을 적어 주세요.";
   if (!isEmail(email)) return "이메일을 확인해 주세요.";

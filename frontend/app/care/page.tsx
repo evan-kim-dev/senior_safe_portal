@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { CareInviteBlock } from "@/components/CareInviteBlock";
+import { CareRefreshBar } from "@/components/CareRefreshBar";
+import { CareSeniorChart } from "@/components/CareSeniorChart";
 import { CareSeniorDetail, CareSeniorRoster } from "@/components/CareSeniorRoster";
 import { FamilyConnectionActions } from "@/components/FamilyConnectionActions";
 import { FlowPage } from "@/components/FlowPage";
 import { StatusBanner } from "@/components/StatusBanner";
-import { BigButton, Count, Field, LineButton, Screen, Status } from "@/components/ui";
+import { BigButton, Field, LineButton, Screen, Status } from "@/components/ui";
 import { useCare } from "@/hooks/use-care";
-import { formatWatchDuration } from "@/lib/domain/duration";
 import { INVITE_CODE_LENGTH, type FamilySeniorStatus } from "@/lib/domain/family";
 import { filterActivityBySenior } from "@/lib/domain/senior-roster";
 import { MAX_NAME_LENGTH, MAX_PHONE_LENGTH } from "@/lib/domain/setup";
@@ -192,25 +193,27 @@ export default function CarePage() {
             }
           />
 
-          <div className="care-stats care-stats-overview">
-            <Count value={care.dangerCount} label="오늘 위험 감지" />
-            <p className="care-stat">
-              <span className="care-stat-label">영상 시청</span>
-              <span className="care-stat-value">{formatWatchDuration(care.watchSec)}</span>
-            </p>
-            <p className="care-stat">
-              <span className="care-stat-label">기사 열람</span>
-              <span className="care-stat-value">{care.newsCount}건</span>
-            </p>
-          </div>
+          <CareRefreshBar
+            lastRefreshedAt={care.lastRefreshedAt}
+            autoRefresh={care.autoRefresh}
+            refreshing={care.refreshing}
+            busy={care.familyBusy}
+            onAutoRefreshChange={care.setAutoRefresh}
+            onRefresh={() => void care.refreshMe({ quiet: true })}
+          />
+
+          <CareSeniorChart seniors={care.seniors} onOpen={setSelectedSeniorId} />
 
           <CareSeniorRoster
             seniors={care.seniors}
             filter={rosterFilter}
             query={rosterQuery}
+            busy={care.familyBusy}
             onFilterChange={setRosterFilter}
             onQueryChange={setRosterQuery}
             onOpen={setSelectedSeniorId}
+            onUpdate={(input) => care.updateSenior(input)}
+            onRemove={(userId, confirm) => care.removeSenior(userId, confirm)}
           />
 
           <CareInviteBlock

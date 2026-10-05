@@ -11,7 +11,7 @@ import {
 import { buildSeniorRoster } from "@/lib/domain/senior-roster";
 import { MESSAGES } from "@/lib/domain/messages";
 import { isFamilyCode } from "@/lib/domain/validation";
-import { resolveSeniorProfiles } from "../gateways/auth-admin";
+import { resolveSeniorProfiles, updateSeniorAuthProfile } from "../gateways/auth-admin";
 import type { ActivityService } from "./activity-service";
 import type { FamilyRepository } from "../repositories/family-repository";
 
@@ -45,12 +45,22 @@ export type FamilyLeaveResult =
   | { ok: true; action: "reset"; inviteCode: string; inviteExpiresAt: string }
   | { ok: false; message: string; status: number };
 
+export type FamilySeniorMutationResult =
+  | { ok: true }
+  | { ok: false; message: string; status: number };
+
 export type FamilyService = {
   create(userId: string, options?: { refresh?: boolean }): Promise<FamilyCreateResult>;
   join(userId: string, code: unknown): Promise<FamilyJoinResult>;
   me(userId: string, now?: Date): Promise<FamilyMeResult>;
   leave(userId: string): Promise<FamilyLeaveResult>;
   reset(userId: string): Promise<FamilyLeaveResult>;
+  updateSenior(
+    guardianId: string,
+    seniorUserId: string,
+    patch: { displayName: string; birthYear: number | null },
+  ): Promise<FamilySeniorMutationResult>;
+  removeSenior(guardianId: string, seniorUserId: string): Promise<FamilySeniorMutationResult>;
   resolveFamilyForUser(userId: string): Promise<{ familyId: string; role: FamilyRole } | null>;
 };
 
@@ -110,6 +120,38 @@ export function createFamilyService(repo: FamilyRepository, activity: ActivitySe
         inviteCode: issued.code,
         inviteExpiresAt: issued.expiresAt,
       };
+    },
+
+    async updateSenior(guardianId, seniorUserId, patch) {
+      const membership = await repo.findMembership(guardianId);
+      if (!membership) return { ok: false, message: MESSAGES.familyNotFound, status: 404 };
+      if (membership.role !== "guardian") {
+        return { ok: false, message: MESSAGES.familyGuardianOnly, status: 403 };
+      }
+
+      const seniors = await repo.listMembers(membership.family_id, "senior");
+      const target = seniors.find((row) => row.user_id === seniorUserId);
+      if (!target) return { ok: false, message: MESSAGES.familySeniorNotFound, status: 404 };
+
+      const updated = await updateSeniorAuthProfile(seniorUserId, patch);
+      if (!updated) return { ok: false, message: MESSAGES.familySeniorUpdateFailed, status: 502 };
+      return { ok: true };
+    },
+
+    async removeSenior(guardianId, seniorUserId) {
+      const membership = await repo.findMembership(guardianId);
+      if (!membership) return { ok: false, message: MESSAGES.familyNotFound, status: 404 };
+      if (membership.role !== "guardian") {
+        return { ok: false, message: MESSAGES.familyGuardianOnly, status: 403 };
+      }
+
+      const seniors = await repo.listMembers(membership.family_id, "senior");
+      const target = seniors.find((row) => row.user_id === seniorUserId);
+      if (!target) return { ok: false, message: MESSAGES.familySeniorNotFound, status: 404 };
+
+      const removed = await repo.removeMember(membership.family_id, seniorUserId);
+      if (!removed) return { ok: false, message: MESSAGES.familySeniorRemoveFailed, status: 502 };
+      return { ok: true };
     },
 
     async create(userId, options = {}) {

@@ -34,6 +34,10 @@ export const MESSAGES = {
   familyResetFailed: "연결을 초기화하지 못했어요. 잠시 후 다시 눌러 주세요.",
   familyLeaveConfirm: "해제하려면 아래 칸에 ‘해제’라고 적어 주세요.",
   familyResetConfirm: "초기화하려면 아래 칸에 ‘초기화’라고 적어 주세요.",
+  familySeniorUpdateFailed: "어르신 정보를 저장하지 못했어요. 잠시 후 다시 눌러 주세요.",
+  familySeniorRemoveFailed: "어르신을 목록에서 빼지 못했어요. 잠시 후 다시 눌러 주세요.",
+  familySeniorRemoveConfirm: "빼려면 아래 칸에 ‘삭제’라고 적어 주세요.",
+  familySeniorNotFound: "목록에 없는 어르신이에요.",
   accountDeleteFailed: "탈퇴하지 못했어요. 잠시 후 다시 눌러 주세요.",
   accountDeleteConfirm: "탈퇴하려면 아래 칸에 ‘탈퇴’라고 적어 주세요.",
 } as const;
