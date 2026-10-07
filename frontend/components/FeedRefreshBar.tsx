@@ -9,7 +9,7 @@ type Props = {
   label?: string;
 };
 
-/** 피드 마지막 갱신 시각 + 수동 새로고침. */
+/** 제목 옆 회색·희미한 저장 시각 + 수동 새로고침. */
 export function FeedRefreshBar({
   updatedAt,
   refreshing = false,
@@ -19,7 +19,8 @@ export function FeedRefreshBar({
   return (
     <div className="feed-refresh-bar" aria-live="polite">
       <p className="feed-refresh-time">
-        {label} <strong>{formatFeedUpdatedAt(updatedAt)}</strong>
+        <span className="sr-only">{label}</span>
+        {formatFeedUpdatedAt(updatedAt)}
         {refreshing ? <span className="feed-refresh-busy"> · 불러오는 중</span> : null}
       </p>
       <button
@@ -27,8 +28,9 @@ export function FeedRefreshBar({
         className="feed-refresh-manual"
         disabled={refreshing}
         onClick={onRefresh}
+        aria-label={refreshing ? "새로고침 중" : `${label} 다시 불러오기`}
       >
-        {refreshing ? "새로고침 중…" : "다시 불러오기"}
+        {refreshing ? "…" : "다시"}
       </button>
     </div>
   );

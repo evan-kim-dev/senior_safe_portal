@@ -8,9 +8,31 @@ type Props = {
   onOpen: (userId: string) => void;
 };
 
-function barWidth(value: number, max: number): string {
-  if (value <= 0) return "0%";
-  return `${Math.max(8, Math.round((value / max) * 100))}%`;
+/** 0~100. CSP style 속성 없이 SVG width 로 막대를 그린다. */
+function barPct(value: number, max: number): number {
+  if (value <= 0) return 0;
+  return Math.max(8, Math.round((value / max) * 100));
+}
+
+function MeterBar({
+  pct,
+  fillClass,
+}: {
+  pct: number;
+  fillClass: string;
+}) {
+  return (
+    <svg
+      className="care-chart-track"
+      viewBox="0 0 100 8"
+      preserveAspectRatio="none"
+      role="presentation"
+      aria-hidden="true"
+    >
+      <rect className="care-chart-track-bg" x="0" y="0" width="100" height="8" rx="4" />
+      <rect className={`care-chart-fill ${fillClass}`} x="0" y="0" width={pct} height="8" rx="4" />
+    </svg>
+  );
 }
 
 /** 합계 카드 대신 어르신별 위험·시청·기사를 막대로 한눈에 비교한다. */
@@ -50,32 +72,17 @@ export function CareSeniorChart({ seniors, onOpen }: Props) {
               <span className="care-chart-bars">
                 <span className="care-chart-bar-line">
                   <span className="care-chart-bar-label">위험</span>
-                  <span className="care-chart-track">
-                    <span
-                      className="care-chart-fill care-chart-fill-danger"
-                      style={{ width: barWidth(senior.dangerCount, maxDanger) }}
-                    />
-                  </span>
+                  <MeterBar pct={barPct(senior.dangerCount, maxDanger)} fillClass="care-chart-fill-danger" />
                   <span className="care-chart-value">{senior.dangerCount}건</span>
                 </span>
                 <span className="care-chart-bar-line">
                   <span className="care-chart-bar-label">시청</span>
-                  <span className="care-chart-track">
-                    <span
-                      className="care-chart-fill care-chart-fill-watch"
-                      style={{ width: barWidth(senior.watchSec, maxWatch) }}
-                    />
-                  </span>
+                  <MeterBar pct={barPct(senior.watchSec, maxWatch)} fillClass="care-chart-fill-watch" />
                   <span className="care-chart-value">{formatWatchDuration(senior.watchSec)}</span>
                 </span>
                 <span className="care-chart-bar-line">
                   <span className="care-chart-bar-label">기사</span>
-                  <span className="care-chart-track">
-                    <span
-                      className="care-chart-fill care-chart-fill-news"
-                      style={{ width: barWidth(senior.newsCount, maxNews) }}
-                    />
-                  </span>
+                  <MeterBar pct={barPct(senior.newsCount, maxNews)} fillClass="care-chart-fill-news" />
                   <span className="care-chart-value">{senior.newsCount}건</span>
                 </span>
               </span>

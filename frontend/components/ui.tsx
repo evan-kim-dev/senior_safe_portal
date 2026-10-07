@@ -47,6 +47,7 @@ export function LineButton(props: ButtonProps) {
 export function Screen({
   title,
   lead,
+  meta,
   children,
   primary,
   secondary,
@@ -58,6 +59,8 @@ export function Screen({
 }: {
   title?: string;
   lead?: string;
+  /** 제목 옆 희미한 보조 정보(저장 시각 등) */
+  meta?: ReactNode;
   children?: ReactNode;
   primary?: ReactNode;
   secondary?: ReactNode;
@@ -76,7 +79,10 @@ export function Screen({
       {title ? (
         <header className="page-head">
           <div className="wrap">
-            <h1>{title}</h1>
+            <div className="page-title-row">
+              <h1>{title}</h1>
+              {meta}
+            </div>
             {lead ? <p className="lead">{lead}</p> : null}
           </div>
         </header>
@@ -99,6 +105,7 @@ export function Section({
   title,
   desc,
   more,
+  meta,
   className,
   children,
 }: {
@@ -106,6 +113,8 @@ export function Section({
   title: string;
   desc?: string;
   more?: { href: string; label: string };
+  /** 제목 옆 희미한 보조 정보(저장 시각 등) */
+  meta?: ReactNode;
   className?: string;
   children: ReactNode;
 }) {
@@ -115,7 +124,10 @@ export function Section({
       <div className="wrap">
         <div className="section-head">
           <div>
-            <h2 id={headingId}>{title}</h2>
+            <div className="section-title-row">
+              <h2 id={headingId}>{title}</h2>
+              {meta}
+            </div>
             {desc ? <p>{desc}</p> : null}
           </div>
           {more ? (

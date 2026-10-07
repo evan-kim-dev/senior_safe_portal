@@ -83,13 +83,18 @@ export default function WelfarePage() {
   }, [region, user?.id]);
 
   return (
-    <Screen title="복지 (65세+)" lead={lead}>
-      <FeedRefreshBar
-        updatedAt={view.updatedAt}
-        refreshing={refreshing}
-        onRefresh={() => void reload(true)}
-        label="복지 저장 시각"
-      />
+    <Screen
+      title="복지 (65세+)"
+      lead={lead}
+      meta={
+        <FeedRefreshBar
+          updatedAt={view.updatedAt}
+          refreshing={refreshing}
+          onRefresh={() => void reload(true)}
+          label="복지 저장 시각"
+        />
+      }
+    >
       <label className="field" htmlFor="welfare-region">
         <span>사는 곳</span>
         <select

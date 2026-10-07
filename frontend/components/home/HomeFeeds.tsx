@@ -59,13 +59,15 @@ export function VideoRail() {
       title="오늘의 추천 영상"
       more={{ href: "/videos", label: "전체 보기" }}
       className="section-tint"
+      meta={
+        <FeedRefreshBar
+          updatedAt={updatedAt}
+          refreshing={refreshing}
+          onRefresh={() => void refresh()}
+          label="영상 저장 시각"
+        />
+      }
     >
-      <FeedRefreshBar
-        updatedAt={updatedAt}
-        refreshing={refreshing}
-        onRefresh={() => void refresh()}
-        label="영상 저장 시각"
-      />
       {videos.length === 0 ? (
         <Status>{message}</Status>
       ) : (
@@ -167,13 +169,15 @@ export function NewsSection() {
       id="news"
       title="오늘의 뉴스"
       more={{ href: "/news", label: "전체 보기" }}
+      meta={
+        <FeedRefreshBar
+          updatedAt={updatedAt}
+          refreshing={refreshing}
+          onRefresh={() => void refresh()}
+          label="뉴스 저장 시각"
+        />
+      }
     >
-      <FeedRefreshBar
-        updatedAt={updatedAt}
-        refreshing={refreshing}
-        onRefresh={() => void refresh()}
-        label="뉴스 저장 시각"
-      />
       {pool.length === 0 && news.message ? <Status>{news.message}</Status> : null}
       <div className="mosaic mosaic-news">
         <LeadCard
@@ -210,13 +214,15 @@ export function WelfareSection() {
       desc="우리 동네에서 받을 수 있는 혜택을 모았어요."
       more={{ href: "/welfare", label: "전체 보기" }}
       className="section-soft"
+      meta={
+        <FeedRefreshBar
+          updatedAt={welfare.updatedAt}
+          refreshing={welfare.refreshing}
+          onRefresh={() => void welfare.refresh()}
+          label="복지 저장 시각"
+        />
+      }
     >
-      <FeedRefreshBar
-        updatedAt={welfare.updatedAt}
-        refreshing={welfare.refreshing}
-        onRefresh={() => void welfare.refresh()}
-        label="복지 저장 시각"
-      />
       {cards.length === 0 ? (
         <Status>{welfare.message}</Status>
       ) : (

@@ -795,6 +795,25 @@ img {
   border-bottom: 1px solid var(--line);
 }
 
+.page-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+}
+
+.page-title-row h1 {
+  margin: 0;
+  font-size: max(1.375rem, var(--text-title));
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.page-title-row .feed-refresh-bar {
+  flex: none;
+  margin-top: 0.15rem;
+}
+
 .page-head h1 {
   font-size: max(1.375rem, var(--text-title));
   font-weight: 800;
@@ -2613,6 +2632,22 @@ button.mosaic-lead {
   margin-bottom: 1rem;
 }
 
+.section-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+}
+
+.section-title-row h2 {
+  margin: 0;
+}
+
+.section-title-row .feed-refresh-bar {
+  flex: none;
+  margin-top: 0.1rem;
+}
+
 .section-head h2 {
   font-size: 1.25rem;
   font-weight: 800;
@@ -2954,29 +2989,30 @@ button.mosaic-lead {
 }
 
 .care-chart-track {
+  display: block;
+  width: 100%;
   height: 0.55rem;
-  border-radius: 999px;
-  background: var(--surface-strong, #e9edf6);
-  overflow: hidden;
+  overflow: visible;
+}
+
+.care-chart-track-bg {
+  fill: var(--surface-strong, #e9edf6);
 }
 
 .care-chart-fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
   min-width: 0;
 }
 
 .care-chart-fill-danger {
-  background: var(--danger);
+  fill: var(--danger);
 }
 
 .care-chart-fill-watch {
-  background: var(--primary);
+  fill: var(--primary);
 }
 
 .care-chart-fill-news {
-  background: var(--green);
+  fill: var(--green);
 }
 
 .care-chart-value {
@@ -3301,56 +3337,63 @@ button.mosaic-lead {
   line-height: 1.45;
 }
 
+/* 제목 옆 · 보일 듯 말 듯 회색 */
 .feed-refresh-bar {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.55rem 0.85rem;
-  margin: 0 0 0.85rem;
-  padding: 0.65rem 0.85rem;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface);
+  align-items: baseline;
+  gap: 0.3rem 0.45rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  opacity: 0.42;
+  transition: opacity 0.15s ease;
+}
+
+.feed-refresh-bar:hover,
+.feed-refresh-bar:focus-within {
+  opacity: 0.72;
 }
 
 .feed-refresh-time {
   margin: 0;
-  font-size: 0.92rem;
-  color: var(--muted);
-}
-
-.feed-refresh-time strong {
-  color: var(--ink);
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #6b7280;
 }
 
 .feed-refresh-busy {
-  color: var(--primary-strong);
-  font-weight: 700;
+  color: #6b7280;
+  font-weight: 600;
 }
 
 .feed-refresh-manual {
   appearance: none;
-  min-height: 2.35rem;
-  padding: 0.35rem 0.9rem;
-  border: 1px solid var(--primary);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--primary-strong);
+  min-height: 1.5rem;
+  min-width: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #6b7280;
   font: inherit;
-  font-size: 0.9rem;
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
   cursor: pointer;
 }
 
 .feed-refresh-manual:hover:not(:disabled) {
-  background: var(--primary-soft);
+  color: #4b5563;
 }
 
 .feed-refresh-manual:disabled {
-  opacity: 0.55;
+  opacity: 0.7;
   cursor: not-allowed;
+  text-decoration: none;
 }
 
 .care-roster-badge {

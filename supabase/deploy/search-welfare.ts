@@ -15,9 +15,9 @@ function resolveAllowedOrigins(): string[] {
 function buildCorsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get("Origin") ?? "";
   const allowed = resolveAllowedOrigins();
-  const allowOrigin = allowed.includes(origin) ? origin : allowed[0];
-  return {
-    "Access-Control-Allow-Origin": allowOrigin,
+  // 허용 목록에 있을 때만 ACAO 를 넣는다. * 와 임의 origin 폴백은 쓰지 않는다.
+  const allowOrigin = origin && allowed.includes(origin) ? origin : "";
+  const headers: Record<string, string> = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Vary": "Origin",
@@ -25,6 +25,8 @@ function buildCorsHeaders(req: Request): Record<string, string> {
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
   };
+  if (allowOrigin) headers["Access-Control-Allow-Origin"] = allowOrigin;
+  return headers;
 }
 
 const BASE_URL = "http://apis.data.go.kr/B554287/LocalGovernmentWelfareInformations";

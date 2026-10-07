@@ -32,13 +32,18 @@ export default function NewsPage() {
     personalizedFeedLead("news", profile) ?? "보이스피싱·피싱 등 사기·보안 소식만 모았어요.";
 
   return (
-    <Screen title="사기·보안 뉴스" lead={lead}>
-      <FeedRefreshBar
-        updatedAt={updatedAt}
-        refreshing={refreshing}
-        onRefresh={() => void refresh()}
-        label="뉴스 저장 시각"
-      />
+    <Screen
+      title="사기·보안 뉴스"
+      lead={lead}
+      meta={
+        <FeedRefreshBar
+          updatedAt={updatedAt}
+          refreshing={refreshing}
+          onRefresh={() => void refresh()}
+          label="뉴스 저장 시각"
+        />
+      }
+    >
       {message ? <Status>{message}</Status> : null}
       {articles.length ? (
         <Grid kind="info">

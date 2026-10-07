@@ -117,13 +117,18 @@ export default function VideosPage() {
   }
 
   return (
-    <Screen title="영상" lead={interestLead}>
-      <FeedRefreshBar
-        updatedAt={updatedAt}
-        refreshing={refreshing}
-        onRefresh={() => void refresh()}
-        label="영상 저장 시각"
-      />
+    <Screen
+      title="영상"
+      lead={interestLead}
+      meta={
+        <FeedRefreshBar
+          updatedAt={updatedAt}
+          refreshing={refreshing}
+          onRefresh={() => void refresh()}
+          label="영상 저장 시각"
+        />
+      }
+    >
       {message ? <Status>{message}</Status> : null}
       {profile.interests.length ? (
         <Status>관심 주제: {videoInterestLabels(profile.interests)}</Status>
