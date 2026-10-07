@@ -1,10 +1,5 @@
 import { isAllowedCaller } from "../_shared/caller.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { buildCorsHeaders } from "../_shared/security.ts";
 
 type NaverNewsItem = {
   title: string;
@@ -163,21 +158,21 @@ async function fetchNaverNews(
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: buildCorsHeaders(req) });
   }
 
   try {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), {
         status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...buildCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
     if (!isAllowedCaller(req)) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...buildCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -204,7 +199,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ articles, query }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: 200, headers: { ...buildCorsHeaders(req), "Content-Type": "application/json" } },
     );
   } catch (error) {
     return new Response(
@@ -212,7 +207,7 @@ Deno.serve(async (req: Request) => {
         error: "뉴스 검색 실패",
         message: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
       }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: 400, headers: { ...buildCorsHeaders(req), "Content-Type": "application/json" } },
     );
   }
 });

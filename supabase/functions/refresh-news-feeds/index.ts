@@ -25,7 +25,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*" } });
+    return new Response("ok");
   }
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
 

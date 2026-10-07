@@ -1,11 +1,6 @@
 import { XMLParser } from "npm:fast-xml-parser@4.5.0";
 import { isAllowedCaller } from "../_shared/caller.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { buildCorsHeaders } from "../_shared/security.ts";
 
 const BASE_URL = "http://apis.data.go.kr/B554287/LocalGovernmentWelfareInformations";
 
@@ -661,21 +656,21 @@ async function reverseGeocodeFromCoords(lat: number, lng: number): Promise<{ reg
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: buildCorsHeaders(req) });
   }
 
   try {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), {
         status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...buildCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
     if (!isAllowedCaller(req)) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...buildCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -720,7 +715,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(JSON.stringify({ service: detail }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...buildCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -792,7 +787,7 @@ Deno.serve(async (req: Request) => {
           },
         ],
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: 200, headers: { ...buildCorsHeaders(req), "Content-Type": "application/json" } },
     );
   } catch (error) {
     return new Response(
@@ -800,7 +795,7 @@ Deno.serve(async (req: Request) => {
         error: "복지 정보 조회 실패",
         message: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
       }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: 400, headers: { ...buildCorsHeaders(req), "Content-Type": "application/json" } },
     );
   }
 });
