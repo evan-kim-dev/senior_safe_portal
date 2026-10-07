@@ -103,6 +103,9 @@ export function ChatDock() {
               <img src="/mascot.png" alt="" width={56} height={56} className="chat-welcome-mascot" />
               <p className="chat-welcome-title">안녕하세요, 마카예요</p>
               <p className="chat-welcome-text">링크·문자·사진이 걱정되면 편하게 물어보세요.</p>
+              <Link href="/maka" className="chat-welcome-about">
+                마카 소개 보기
+              </Link>
             </div>
             <div className="chat-quick" role="group" aria-label="자주 묻는 질문">
               {QUICK_PROMPTS.map((prompt) => (

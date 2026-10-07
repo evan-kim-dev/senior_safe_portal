@@ -23,7 +23,11 @@ export function SiteFooter() {
           </p>
         </div>
         <div className="footer-bar">
-          <nav className="footer-legal" aria-label="약관 및 정책">
+          <nav className="footer-legal" aria-label="소개 및 약관">
+            <span className="footer-legal-item">
+              <Link href="/maka">마스코트 마카</Link>
+            </span>
+            <span className="footer-sep" aria-hidden="true" />
             {LEGAL_LINKS.map((item, index) => (
               <span key={item.href} className="footer-legal-item">
                 {index > 0 ? <span className="footer-sep" aria-hidden="true" /> : null}

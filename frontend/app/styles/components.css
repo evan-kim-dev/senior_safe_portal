@@ -4055,6 +4055,15 @@ body[data-chat-open="1"] {
   color: var(--muted);
 }
 
+.chat-welcome-about {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .chat-quick {
   display: flex;
   flex-direction: column;
@@ -5092,6 +5101,265 @@ body[data-chat-open="1"] {
 @media (min-width: 901px) {
   .webapp-guide {
     display: none;
+  }
+}
+
+/* ---------- 마카 소개 ---------- */
+
+.maka-page {
+  padding-bottom: 2.5rem;
+  background:
+    radial-gradient(90% 55% at 80% -10%, color-mix(in srgb, var(--green) 14%, transparent), transparent 58%),
+    radial-gradient(70% 45% at 10% 0%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 55%),
+    linear-gradient(180deg, #f3f7ff 0%, var(--bg) 42%, var(--bg) 100%);
+}
+
+.maka-hero {
+  padding: 1.25rem 0 0.5rem;
+}
+
+.maka-hero-inner {
+  display: grid;
+  gap: 1rem;
+  align-items: end;
+}
+
+.maka-hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-width: 34rem;
+}
+
+.maka-kicker {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--green);
+}
+
+.maka-hero-copy h1 {
+  font-size: clamp(2.4rem, 8vw, 3.6rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  line-height: 1.05;
+}
+
+.maka-subtitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ink-2);
+}
+
+.maka-tagline {
+  margin-top: 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--primary-strong);
+}
+
+.maka-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+}
+
+.maka-hero-figure {
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: min(100%, 18rem);
+}
+
+.maka-hero-img {
+  width: 100%;
+  height: auto;
+  animation: maka-float 4.5s ease-in-out infinite;
+  filter: drop-shadow(0 18px 28px rgba(17, 24, 39, 0.12));
+}
+
+@keyframes maka-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.55rem);
+  }
+}
+
+.maka-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1rem;
+}
+
+.maka-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.35rem 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.maka-section h2 {
+  font-size: 1.35rem;
+  font-weight: 850;
+  color: var(--ink);
+}
+
+.maka-section-lead {
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+.maka-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  margin: 0;
+}
+
+.maka-facts > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.maka-facts dt {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.maka-facts dd {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.maka-facts strong {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.maka-visual-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.maka-visual-list li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.maka-visual-num {
+  display: grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.maka-visual-list h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.maka-visual-list p {
+  margin-top: 0.25rem;
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+
+.maka-story-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.maka-story-grid h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--primary-strong);
+  margin-bottom: 0.3rem;
+}
+
+.maka-story-grid p {
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+
+.maka-speech {
+  margin: 0.35rem 0 0;
+  padding: 1.1rem 1.2rem;
+  border-left: 4px solid var(--green);
+  background: color-mix(in srgb, var(--green-soft) 70%, #fff);
+  border-radius: 0 14px 14px 0;
+}
+
+.maka-speech p {
+  font-size: 1.2rem;
+  font-weight: 850;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.maka-speech footer {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.maka-closing p {
+  color: var(--ink-2);
+  line-height: 1.6;
+  font-size: 1.02rem;
+}
+
+.maka-cta {
+  min-width: 10.5rem;
+}
+
+@media (min-width: 768px) {
+  .maka-hero-inner {
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    gap: 1.5rem;
+    min-height: min(72vh, 34rem);
+  }
+
+  .maka-hero-figure {
+    width: min(100%, 22rem);
+    justify-self: end;
+  }
+
+  .maka-story-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .maka-body {
+    gap: 2.1rem;
+    padding-top: 1.75rem;
   }
 }
 

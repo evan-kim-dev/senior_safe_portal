@@ -29,6 +29,7 @@ export const ACCOUNT_LINKS: readonly { href: string; label: string }[] = [
 
 /** 메뉴 하단 도움말·약관. */
 export const HELP_LINKS: readonly { href: string; label: string }[] = [
+  { href: "/maka", label: "마스코트 마카" },
   { href: "/#hotline", label: "신고 전화" },
   { href: "/privacy", label: "개인정보처리방침" },
   { href: "/terms", label: "이용약관" },
