@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "이 링크, 괜찮나요?",
-    short_name: "링크확인",
+    name: "시니어 안심",
+    short_name: "시니어 안심",
     description: "받은 주소가 괜찮은지 확인해 드립니다.",
     start_url: "/",
     display: "standalone",

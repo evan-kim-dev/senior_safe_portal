@@ -8,12 +8,15 @@ import { WebAppInstallGuide } from "@/components/WebAppInstallGuide";
 import "./styles/components.css";
 
 export const metadata: Metadata = {
-  title: "이 링크, 괜찮나요?",
+  title: {
+    default: "시니어 안심",
+    template: "%s · 시니어 안심",
+  },
   description: "받은 주소가 괜찮은지 확인해 드립니다.",
-  applicationName: "링크확인",
+  applicationName: "시니어 안심",
   appleWebApp: {
     capable: true,
-    title: "링크확인",
+    title: "시니어 안심",
     statusBarStyle: "default",
   },
   formatDetection: {

@@ -6,13 +6,24 @@ export type AccountRole = (typeof ACCOUNT_ROLES)[number];
 export const VIDEO_INTEREST_IDS = ["music", "affairs", "history", "entertainment", "health"] as const;
 export type VideoInterestId = (typeof VIDEO_INTEREST_IDS)[number];
 
-export const VIDEO_INTEREST_OPTIONS: ReadonlyArray<{ id: VideoInterestId; label: string }> = [
-  { id: "music", label: "노래" },
-  { id: "affairs", label: "시사·뉴스" },
-  { id: "history", label: "역사" },
-  { id: "entertainment", label: "예능" },
-  { id: "health", label: "건강·체조" },
+export const VIDEO_INTEREST_OPTIONS: ReadonlyArray<{
+  id: VideoInterestId;
+  label: string;
+  description: string;
+}> = [
+  { id: "music", label: "노래", description: "트로트·가요 명곡을 먼저 보여 드려요." },
+  { id: "affairs", label: "시사·뉴스", description: "요즘 소식·뉴스를 위주로 골라요." },
+  { id: "history", label: "역사", description: "우리 역사·다큐를 앞쪽에 둬요." },
+  { id: "entertainment", label: "예능", description: "웃고 즐기는 예능을 추천해요." },
+  { id: "health", label: "건강·체조", description: "체조·건강 영상을 우선 보여 드려요." },
 ];
+
+/** 관심사 라벨을 쉼표로 이어 화면 문구에 쓴다. */
+export function videoInterestLabels(ids: readonly VideoInterestId[]): string {
+  return ids
+    .map((id) => VIDEO_INTEREST_OPTIONS.find((item) => item.id === id)?.label ?? id)
+    .join(", ");
+}
 
 export const DEFAULT_VIDEO_CATEGORY_ORDER: readonly VideoInterestId[] = [
   "music",

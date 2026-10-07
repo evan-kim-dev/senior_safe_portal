@@ -3,7 +3,7 @@ import {
   accountRoleLabel,
   ageFromBirthYear,
   parseAccountProfileFromMeta,
-  VIDEO_INTEREST_OPTIONS,
+  videoInterestLabels,
   type AccountProfile,
 } from "./account-profile";
 
@@ -46,9 +46,7 @@ export function accountProfileFields(user: User): {
         : "—",
     interestsLabel:
       profile.role === "senior" && profile.interests.length
-        ? profile.interests
-            .map((id) => VIDEO_INTEREST_OPTIONS.find((item) => item.id === id)?.label ?? id)
-            .join(", ")
+        ? videoInterestLabels(profile.interests)
         : profile.role === "senior"
           ? "전체"
           : "—",

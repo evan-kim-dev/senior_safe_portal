@@ -22,8 +22,15 @@ export function createFeedService(repo: FeedRepository): FeedService {
       const rows = await repo.videoRows(categoryId);
       if (!rows) return { ok: true, videos: [], message: MESSAGES.emptyFeed };
       const profile = parseAccountProfileFromMeta(options.metadata);
+      // 어르신(또는 관심사를 고른 계정)만 관심·나이 순으로 재배열한다.
       const preferred =
-        profile.role === "senior" ? preferredVideoCategories(profile) : undefined;
+        profile.role === "senior" || profile.interests.length > 0
+          ? preferredVideoCategories({
+              role: "senior",
+              birthYear: profile.birthYear,
+              interests: profile.interests,
+            })
+          : undefined;
       return {
         ok: true,
         videos: mapVideos(rows, preferred ? { preferredCategories: preferred } : undefined),

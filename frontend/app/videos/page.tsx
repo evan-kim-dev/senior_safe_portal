@@ -2,9 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Grid, LineButton, Media, Player, Screen, Status } from "@/components/ui";
+import { useAuth } from "@/hooks/use-auth";
 import { useVideos } from "@/hooks/use-feeds";
 import { reportActivity } from "@/lib/client/activity";
 import { sendToCheck } from "@/lib/client/check-bridge";
+import {
+  parseAccountProfileFromMeta,
+  videoInterestLabels,
+} from "@/lib/domain/account-profile";
 import { findVideo } from "@/lib/domain/feed-view";
 import type { VideoItem } from "@/lib/domain/types";
 
@@ -22,8 +27,20 @@ function openVideo(video: VideoItem, setPlaying: (video: VideoItem) => void) {
 }
 
 export default function VideosPage() {
+  const { user } = useAuth();
   const { videos, message } = useVideos();
   const [playing, setPlaying] = useState<VideoItem | null>(null);
+
+  const profile = useMemo(
+    () => parseAccountProfileFromMeta(user?.user_metadata ?? undefined),
+    [user],
+  );
+  const interestLead = useMemo(() => {
+    if (!profile.interests.length) {
+      return "보고 싶은 영상을 고르세요. 설명에 의심 주소가 있으면 바로 검사할 수 있어요.";
+    }
+    return `${videoInterestLabels(profile.interests)} 관심에 맞춰 먼저 보여 드려요.`;
+  }, [profile.interests]);
 
   useEffect(() => {
     const found = findVideo(videos, new URLSearchParams(window.location.search).get("v"));
@@ -42,7 +59,11 @@ export default function VideosPage() {
 
   const recommended = useMemo(() => {
     if (!playing) return [];
-    return videos.filter((video) => video.id !== playing.id).slice(0, RECOMMEND_COUNT);
+    const rest = videos.filter((video) => video.id !== playing.id);
+    if (!playing.categoryId) return rest.slice(0, RECOMMEND_COUNT);
+    const same = rest.filter((video) => video.categoryId === playing.categoryId);
+    const other = rest.filter((video) => video.categoryId !== playing.categoryId);
+    return [...same, ...other].slice(0, RECOMMEND_COUNT);
   }, [playing, videos]);
 
   function backToList() {
@@ -97,8 +118,11 @@ export default function VideosPage() {
   }
 
   return (
-    <Screen title="영상" lead="보고 싶은 영상을 고르세요. 설명에 의심 주소가 있으면 바로 검사할 수 있어요.">
+    <Screen title="영상" lead={interestLead}>
       {message ? <Status>{message}</Status> : null}
+      {profile.interests.length ? (
+        <Status>관심 주제: {videoInterestLabels(profile.interests)}</Status>
+      ) : null}
       {videos.length ? (
         <Grid kind="media">
           {videos.map((video) => (

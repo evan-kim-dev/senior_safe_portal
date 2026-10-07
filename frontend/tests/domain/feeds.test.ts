@@ -40,6 +40,26 @@ describe("mapVideos", () => {
       "fffffffffff",
     ]);
   });
+
+  it("선호 카테고리를 앞에 더 많이 둔다", () => {
+    const music = ["aaaaaaaaaaa", "bbbbbbbbbbb", "ccccccccccc"].map((id) => video(id));
+    const news = ["ddddddddddd", "eeeeeeeeeee", "fffffffffff"].map((id) => video(id));
+    const result = mapVideos(
+      [
+        { category_id: "music", videos: music },
+        { category_id: "affairs", videos: news },
+      ],
+      { preferredCategories: ["affairs", "music"] },
+    );
+    expect(result.map((item) => item.id).slice(0, 5)).toEqual([
+      "ddddddddddd",
+      "eeeeeeeeeee",
+      "fffffffffff",
+      "aaaaaaaaaaa",
+      "bbbbbbbbbbb",
+    ]);
+    expect(result[0].categoryId).toBe("affairs");
+  });
 });
 
 describe("suspiciousUrlIn", () => {

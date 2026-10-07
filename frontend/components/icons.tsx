@@ -125,6 +125,27 @@ const PATHS = {
     </>
   ),
   send: <path d="M4.5 12l15-7.5L12 19.5 10 13.5 4.5 12z" />,
+  share: (
+    <>
+      <circle cx="18" cy="5" r="2.5" />
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="19" r="2.5" />
+      <path d="M8.2 10.8l7.6-4.2M8.2 13.2l7.6 4.2" />
+    </>
+  ),
+  more: (
+    <>
+      <circle cx="12" cy="5" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="12" cy="19" r="1.6" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M12 4v10M8 10l4 4 4-4" />
+      <path d="M5 18h14" />
+    </>
+  ),
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof PATHS;

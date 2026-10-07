@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Provider } from "@supabase/supabase-js";
 import { BigButton, Field, LineButton, Screen, Status } from "@/components/ui";
-import { Icon } from "@/components/icons";
+import { Icon, type IconName } from "@/components/icons";
 import { useAuth } from "@/hooks/use-auth";
 import { formatPhoneDisplay, passwordIssues } from "@/lib/domain/auth-form";
 import { homePathForAccount, VIDEO_INTEREST_OPTIONS } from "@/lib/domain/account-profile";
@@ -23,6 +23,14 @@ import {
   verifyEmailOtp,
   verifyPhoneOtp,
 } from "@/lib/client/supabase-browser";
+
+const INTEREST_ICONS: Record<VideoInterestId, IconName> = {
+  music: "play",
+  affairs: "news",
+  history: "board",
+  entertainment: "sparkle",
+  health: "heart",
+};
 
 type Mode = "login" | "signup" | "emailConfirm" | "phoneConfirm" | "reset" | "findId";
 
@@ -398,18 +406,29 @@ export default function LoginPage() {
               />
               <fieldset className="auth-interests">
                 <legend className="auth-interests-legend">관심 영상 (선택)</legend>
-                <div className="auth-interest-list">
-                  {VIDEO_INTEREST_OPTIONS.map((option) => (
-                    <label key={option.id} className="auth-check auth-interest-check">
-                      <input
-                        type="checkbox"
-                        checked={interests.includes(option.id)}
-                        disabled={busy}
-                        onChange={() => toggleInterest(option.id)}
-                      />
-                      <span>{option.label}</span>
-                    </label>
-                  ))}
+                <p className="auth-interests-hint">골라 두면 영상 목록이 관심에 맞게 먼저 나와요. 여러 개 고를 수 있어요.</p>
+                <div className="auth-interest-cards" role="group" aria-label="관심 영상">
+                  {VIDEO_INTEREST_OPTIONS.map((option) => {
+                    const selected = interests.includes(option.id);
+                    return (
+                      <label
+                        key={option.id}
+                        className={`auth-interest-card ${selected ? "is-selected" : ""}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          disabled={busy}
+                          onChange={() => toggleInterest(option.id)}
+                        />
+                        <span className="auth-interest-icon" aria-hidden="true">
+                          <Icon name={INTEREST_ICONS[option.id]} />
+                        </span>
+                        <span className="auth-interest-title">{option.label}</span>
+                        <span className="auth-interest-desc">{option.description}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </fieldset>
             </div>

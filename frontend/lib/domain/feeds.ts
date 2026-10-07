@@ -46,6 +46,14 @@ export function suspiciousUrlIn(description: string): string {
   return extractRawHttpUrls(description).find((url) => !/youtube\.com|youtu\.be/i.test(url)) ?? "";
 }
 
+/** 선호 카테고리일수록 한 바퀴에 더 많이 뽑아 앞줄을 채운다. */
+function preferenceWeight(rank: number, preferredCount: number): number {
+  if (preferredCount <= 0) return 1;
+  if (rank <= 0) return 3;
+  if (rank === 1) return 2;
+  return 1;
+}
+
 export function mapVideos(
   rows: ReadonlyArray<{ category_id?: unknown; videos?: unknown }>,
   options?: { preferredCategories?: readonly string[] },
@@ -67,6 +75,7 @@ export function mapVideos(
 
   const buckets = orderedRows
     .map((row) => {
+      const categoryId = typeof row.category_id === "string" ? row.category_id : "";
       const items: VideoItem[] = [];
       for (const video of records(row.videos)) {
         const id = asString(video.video_id);
@@ -81,25 +90,31 @@ export function mapVideos(
           description,
           suspiciousUrl: suspiciousUrlIn(description),
           channel: decodeText(asString(video.channel)),
+          categoryId: categoryId || undefined,
         });
       }
-      return items;
+      return { categoryId, items };
     })
-    .filter((bucket) => bucket.length > 0);
+    .filter((bucket) => bucket.items.length > 0);
 
-  // 카테고리별로 번갈아 넣어 트로트만 앞줄을 채우지 않게 한다.
+  // 관심·나이 순으로 가중 번갈아 넣어, 고른 주제가 앞쪽에 더 많이 보이게 한다.
   const videos: VideoItem[] = [];
-  let index = 0;
+  const cursors = buckets.map(() => 0);
   while (videos.length < MAX_VIDEOS) {
     let added = false;
-    for (const bucket of buckets) {
-      if (index >= bucket.length) continue;
-      videos.push(bucket[index]);
-      added = true;
-      if (videos.length >= MAX_VIDEOS) break;
+    for (let bucketIndex = 0; bucketIndex < buckets.length; bucketIndex += 1) {
+      const bucket = buckets[bucketIndex];
+      const rank = preferred.length ? preferred.indexOf(bucket.categoryId) : -1;
+      const weight = preferenceWeight(rank === -1 ? preferred.length + bucketIndex : rank, preferred.length);
+      for (let take = 0; take < weight && videos.length < MAX_VIDEOS; take += 1) {
+        const cursor = cursors[bucketIndex];
+        if (cursor >= bucket.items.length) break;
+        videos.push(bucket.items[cursor]);
+        cursors[bucketIndex] = cursor + 1;
+        added = true;
+      }
     }
     if (!added) break;
-    index += 1;
   }
 
   return videos;

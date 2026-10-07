@@ -54,9 +54,13 @@ export function ChatDock() {
 
   if (!open) {
     return (
-      <button type="button" className="chat-fab" onClick={() => setOpen(true)} aria-label="단디에게 물어보기">
+      <button type="button" className="chat-fab" onClick={() => setOpen(true)} aria-label="단디에게 질문하기">
         <span className="chat-fab-icon" aria-hidden="true">
           <img src="/mascot.png" alt="" width={28} height={28} />
+        </span>
+        <span className="chat-fab-caption" aria-hidden="true">
+          <span className="chat-fab-name">단디</span>
+          <span className="chat-fab-hint">질문하기</span>
         </span>
         <span className="chat-fab-label">단디에게 물어보기</span>
       </button>

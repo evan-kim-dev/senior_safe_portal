@@ -45,6 +45,8 @@ export type VideoItem = {
   description: string;
   suspiciousUrl: string;
   channel: string;
+  /** youtube_feeds.category_id — 관심사 추천에 쓴다. */
+  categoryId?: string;
 };
 
 export type NewsItem = {
