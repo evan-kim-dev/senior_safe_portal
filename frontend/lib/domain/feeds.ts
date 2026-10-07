@@ -1,8 +1,13 @@
+import { isAllowedImageHost } from "@/lib/security/csp";
 import type { NewsItem, VideoItem, WelfareCard } from "./types";
 import { asString, collapseSpaces, decodeText } from "./text";
 import { extractRawHttpUrls, hostnameOf } from "./url";
 
 export const MAX_VIDEOS = 20;
+
+/** 복지 카드 대상 문구에 65세·노인 관련 표현이 있는지. */
+const SENIOR_TARGET_RE =
+  /65\s*세|노인|어르신|고령|경로|기초연금|장기요양|노년|독거|실버|노후|돌봄|요양|치매|재가|연금/;
 
 const VIDEO_ID = /^[\w-]{11}$/;
 
@@ -25,17 +30,15 @@ function safeHttpsUrl(raw: unknown): string {
   }
 }
 
-/** 뉴스 썸네일. https 우선, http 는 https 로 올려 본다. */
+/** 뉴스 썸네일. https 우선, http 는 https 로 올린 뒤 CDN 화이트리스트만 허용. */
 function safeImageUrl(raw: unknown): string {
   if (typeof raw !== "string") return "";
   try {
     const url = new URL(raw.trim());
-    if (url.protocol === "https:") return url.toString();
-    if (url.protocol === "http:") {
-      url.protocol = "https:";
-      return url.toString();
-    }
-    return "";
+    if (url.protocol === "http:") url.protocol = "https:";
+    if (url.protocol !== "https:") return "";
+    if (!isAllowedImageHost(url.hostname)) return "";
+    return url.toString();
   } catch {
     return "";
   }
@@ -243,6 +246,10 @@ export function mapWelfare(payload: WelfarePayload, requestedRegion: string): { 
         kind: row.source === "national" ? "전국" : "우리 동네",
         href,
       };
+    })
+    .filter((card) => {
+      const haystack = `${card.title} ${card.target} ${card.apply}`;
+      return SENIOR_TARGET_RE.test(haystack);
     });
   return { place, cards };
 }

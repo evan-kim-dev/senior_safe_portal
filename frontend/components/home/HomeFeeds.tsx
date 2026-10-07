@@ -215,7 +215,7 @@ export function WelfareSection() {
         updatedAt={welfare.updatedAt}
         refreshing={welfare.refreshing}
         onRefresh={() => void welfare.refresh()}
-        label="복지 업데이트"
+        label="복지 저장 시각"
       />
       {cards.length === 0 ? (
         <Status>{welfare.message}</Status>
@@ -227,9 +227,9 @@ export function WelfareSection() {
               tag={card.kind || "복지"}
               tone="green"
               title={card.title}
-              lines={[`대상 ${card.target}`]}
+              lines={[`누가: ${card.target}`, `어떻게: ${card.apply}`]}
               href={card.href || "/welfare"}
-              more={card.href ? "자세히 보기" : "복지 화면에서 보기"}
+              more={card.href ? "신청하러 가기" : "복지 화면에서 보기"}
             />
           ))}
         </Rail>

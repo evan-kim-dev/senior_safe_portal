@@ -2,18 +2,19 @@
  * 뉴스 캐시 갱신 → news_feeds
  * 매시 호출. 화면은 이 테이블만 읽는다.
  *
- * Body: { "categoryId": "affairs" }
+ * Body: { "categoryId": "scam" }
  * Header: x-cron-secret
  */
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+/** 시니어 포털 뉴스는 사기·보안 소식만 모은다. */
 const CATEGORIES = [
-  { id: "affairs", label: "시사", query: "국정 시사" },
-  { id: "society", label: "사회", query: "사회 뉴스" },
-  { id: "health", label: "건강", query: "어르신 건강" },
-  { id: "welfare", label: "복지", query: "기초연금 노인 복지" },
-  { id: "life", label: "생활", query: "생활 정보" },
+  { id: "scam", label: "사기", query: "보이스피싱 사기 어르신" },
+  { id: "security", label: "보안", query: "피싱 스미싱 디지털 보안" },
+  { id: "finance", label: "금융사기", query: "금융사기 투자사기 계좌이체" },
+  { id: "digital", label: "디지털", query: "악성앱 원격조종 개인정보유출" },
+  { id: "alert", label: "주의보", query: "경찰청 보이스피싱 주의보" },
 ];
 
 function jsonResponse(body: unknown, status = 200): Response {

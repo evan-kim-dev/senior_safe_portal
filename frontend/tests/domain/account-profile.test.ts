@@ -28,12 +28,12 @@ describe("preferredVideoCategories", () => {
 });
 
 describe("preferredNewsCategories", () => {
-  it("건강 관심이면 건강·복지 뉴스를 앞에 둔다", () => {
+  it("건강 관심이면 금융·보안 뉴스를 앞에 둔다", () => {
     const order = preferredNewsCategories(
       { role: "senior", birthYear: 1945, interests: ["health"] },
       new Date("2026-10-07"),
     );
-    expect(order.slice(0, 2)).toEqual(["health", "welfare"]);
+    expect(order.slice(0, 2)).toEqual(["finance", "security"]);
   });
 });
 

@@ -85,6 +85,11 @@ describe("mapNews", () => {
             title: "&quot;속보&quot;",
             originallink: "https://www.news.co.kr/1",
             pubDate: "Mon",
+            thumbnail: "https://imgnews.pstatic.net/a.jpg",
+          },
+          {
+            title: "외부 CDN 차단",
+            originallink: "https://www.news.co.kr/2",
             thumbnail: "https://cdn.news.co.kr/a.jpg",
           },
           { title: "주소 없음", link: "" },
@@ -97,7 +102,14 @@ describe("mapNews", () => {
         source: "news.co.kr",
         date: "Mon",
         url: "https://www.news.co.kr/1",
-        image: "https://cdn.news.co.kr/a.jpg",
+        image: "https://imgnews.pstatic.net/a.jpg",
+      },
+      {
+        title: "외부 CDN 차단",
+        source: "news.co.kr",
+        date: "",
+        url: "https://www.news.co.kr/2",
+        image: "",
       },
     ]);
   });
@@ -167,6 +179,16 @@ describe("mapWelfare", () => {
 
   it("지역 정보가 없으면 요청한 지역을 쓴다", () => {
     expect(mapWelfare({}, "부산")).toEqual({ place: "부산", cards: [] });
+  });
+
+  it("65세·노인 관련 아닌 복지는 걸러 낸다", () => {
+    const result = mapWelfare(
+      {
+        services: [{ servNm: "청년 주거", target: "만 19~39세", applicationMethod: "온라인" }],
+      },
+      "서울",
+    );
+    expect(result.cards).toEqual([]);
   });
 });
 

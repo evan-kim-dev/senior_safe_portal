@@ -48,7 +48,7 @@ export default function WelfarePage() {
     [user],
   );
   const lead =
-    personalizedFeedLead("welfare", profile) ?? "사는 곳에 맞는 복지 혜택을 알려 드려요.";
+    personalizedFeedLead("welfare", profile) ?? "65세 이상 어르신에게 맞는 복지 혜택을 알려 드려요.";
 
   const reload = useCallback(async (force = false) => {
     if (force) setRefreshing(true);
@@ -83,7 +83,7 @@ export default function WelfarePage() {
   }, [region, user?.id]);
 
   return (
-    <Screen title="복지" lead={lead}>
+    <Screen title="복지 (65세+)" lead={lead}>
       <FeedRefreshBar
         updatedAt={view.updatedAt}
         refreshing={refreshing}
@@ -112,9 +112,13 @@ export default function WelfarePage() {
               tag={card.kind || "복지"}
               tone="green"
               title={card.title}
-              lines={[`대상 ${card.target}`, `신청 ${card.apply}`]}
+              lines={[
+                `누가: ${card.target}`,
+                `무엇을: ${card.title}`,
+                `어떻게: ${card.apply}`,
+              ]}
               href={card.href}
-              more="복지로에서 보기"
+              more="신청하러 가기"
             />
           ))}
         </Grid>

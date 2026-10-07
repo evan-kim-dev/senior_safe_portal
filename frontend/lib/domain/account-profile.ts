@@ -91,24 +91,24 @@ function baseOrderForAge(age: number | null): VideoInterestId[] {
   return ["health", "entertainment", "affairs", "music", "history"];
 }
 
-/** 뉴스 피드 category_id (refresh-news-feeds 와 같음). */
-export const NEWS_CATEGORY_IDS = ["affairs", "society", "health", "welfare", "life"] as const;
+/** 뉴스 피드 category_id (refresh-news-feeds 와 같음). 사기·보안 중심. */
+export const NEWS_CATEGORY_IDS = ["scam", "security", "finance", "digital", "alert"] as const;
 export type NewsCategoryId = (typeof NEWS_CATEGORY_IDS)[number];
 
 export const DEFAULT_NEWS_CATEGORY_ORDER: readonly NewsCategoryId[] = [
-  "affairs",
-  "society",
-  "health",
-  "welfare",
-  "life",
+  "scam",
+  "security",
+  "finance",
+  "digital",
+  "alert",
 ];
 
 const VIDEO_INTEREST_TO_NEWS: Record<VideoInterestId, readonly NewsCategoryId[]> = {
-  music: ["life"],
-  affairs: ["affairs", "society"],
-  history: ["society", "affairs"],
-  entertainment: ["life", "society"],
-  health: ["health", "welfare"],
+  music: ["digital"],
+  affairs: ["scam", "alert"],
+  history: ["alert", "security"],
+  entertainment: ["digital", "scam"],
+  health: ["finance", "security"],
 };
 
 function isNewsCategoryId(value: unknown): value is NewsCategoryId {
@@ -117,9 +117,9 @@ function isNewsCategoryId(value: unknown): value is NewsCategoryId {
 
 function newsBaseOrderForAge(age: number | null): NewsCategoryId[] {
   if (age == null) return [...DEFAULT_NEWS_CATEGORY_ORDER];
-  if (age >= 80) return ["health", "welfare", "life", "society", "affairs"];
-  if (age >= 70) return ["health", "welfare", "affairs", "life", "society"];
-  if (age >= 60) return ["affairs", "health", "welfare", "life", "society"];
+  if (age >= 80) return ["scam", "finance", "security", "alert", "digital"];
+  if (age >= 70) return ["scam", "security", "finance", "alert", "digital"];
+  if (age >= 60) return ["scam", "security", "alert", "finance", "digital"];
   return [...DEFAULT_NEWS_CATEGORY_ORDER];
 }
 
@@ -183,7 +183,7 @@ export function personalizedFeedLead(
   }
   if (kind === "news") {
     if (profile.interests.length) {
-      return `${videoInterestLabels(profile.interests)} 관심과 나이에 맞는 소식을 앞에 두었어요.`;
+      return `${videoInterestLabels(profile.interests)} 관심에 맞는 사기·보안 소식을 앞에 두었어요.`;
     }
     return "나이대에 맞춰 건강·복지 소식을 앞에 두었어요.";
   }

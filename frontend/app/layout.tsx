@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { ChatDock } from "@/components/ChatDock";
 import { PortalNav } from "@/components/PortalNav";
 import { ShellSync } from "@/components/ShellSync";
@@ -38,10 +39,12 @@ export const viewport: Viewport = {
   themeColor: "#2B59FF",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html lang="ko" data-scroll-behavior="smooth">
-      <body>
+      <body data-nonce={nonce || undefined}>
         <ShellSync />
         <a className="skip-link" href="#main-content">본문 바로가기</a>
         <TextSize />

@@ -3,8 +3,8 @@
   --surface: #F4F6FB;
   --surface-strong: #E9EDF6;
   --ink: #111827;
-  --ink-2: #374151;
-  --muted: #5B6472;
+  --ink-2: #333333;
+  --muted: #333333;
   --line: #E4E7EE;
   --line-strong: #CBD2E0;
 
@@ -24,7 +24,7 @@
   --danger-ink: #B42318;
 
   --footer-bg: #14171F;
-  --footer-ink: #C3C9D4;
+  --footer-ink: #E5E7EB;
 
   --font: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
   --radius-s: 8px;
@@ -35,23 +35,28 @@
 
   --wrap: 1200px;
   --gutter: 16px;
-  --tap: 2.75rem;
+  /* WCAG 터치 목표 최소 48×48px */
+  --tap: 3rem;
   --header-h: 3.75rem;
   --nav-h: 4rem;
   --actions-h: 4.25rem;
+
+  --text-body: 1.125rem; /* 18px @ 16 root → 본문은 html 18px 기준 */
+  --text-title: 1.375rem; /* 22px+ */
 }
 
+/* 시니어 기본: 본문 18px 이상 */
 html {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 /* 글자 크기 설정은 rem 기준을 바꿔 화면 전체가 같이 커진다. */
 html[data-text="large"] {
-  font-size: 18.5px;
+  font-size: 20px;
 }
 
 html[data-text="xlarge"] {
-  font-size: 21px;
+  font-size: 22px;
 }
 
 @media (min-width: 768px) {

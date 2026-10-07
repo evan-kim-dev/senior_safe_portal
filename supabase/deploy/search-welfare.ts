@@ -74,9 +74,9 @@ const ODCLOUD_CENTRAL_PATH = "/15083323/v1/uddi:38fb5dfb-03d2-4472-95fd-9ebb9627
 const ODCLOUD_WELFARE_PATH = "/15083323/v1/uddi:3929b807-3420-44d7-a851-cc741fce65a1";
 
 const SENIOR_KEYWORDS = [
-  "노인", "어르신", "고령", "기초연금", "경로", "돌봄", "요양", "장기요양",
+  "65세", "65 세", "노인", "어르신", "고령", "기초연금", "경로", "돌봄", "요양", "장기요양",
   "노년", "치매", "재가", "기초생활", "독거", "연금", "건강검진", "보호",
-  "실버", "노후", "주거급여", "의료비",
+  "실버", "노후", "주거급여", "의료비", "노인장기요양", "경로우대",
 ];
 
 const WELFARE_CATEGORY_KEYWORDS: Record<string, string[]> = {

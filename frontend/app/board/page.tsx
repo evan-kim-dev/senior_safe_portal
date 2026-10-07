@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { BigButton, Field, Group, Info, LineButton, Row, Screen, Status } from "@/components/ui";
 import { useBoard } from "@/hooks/use-board";
 import { BOARD_LIMITS } from "@/lib/domain/board";
@@ -45,20 +46,36 @@ export default function BoardPage() {
       secondary={board.user ? <LineButton onClick={() => void board.logout()}>로그아웃</LineButton> : null}
       primary={board.user
         ? <BigButton icon="board" onClick={() => { board.setMessage(""); board.setView({ name: "write" }); }}>글쓰기</BigButton>
-        : <BigButton href="/login">로그인하고 글쓰기</BigButton>}
+        : <BigButton href="/login?next=/board">로그인하고 글쓰기</BigButton>}
     >
       {board.message ? <Status>{board.message}</Status> : null}
-      <Group label="게시판">
-        {board.posts.map((post) => (
-          <Row
-            key={post.id}
-            meta={`${post.author_name} · ${board.formatDate(post.created_at)}`}
-            onClick={() => board.setView({ name: "read", post })}
-          >
-            {post.title}
-          </Row>
-        ))}
-      </Group>
+      {board.posts.length === 0 ? (
+        <div className="board-empty" role="status">
+          <p className="board-empty-title">아직 글이 없어요</p>
+          <p className="board-empty-lead">로그인하지 않아도 아래를 먼저 이용할 수 있어요.</p>
+          <ul className="board-empty-links">
+            <li><Link href="/">링크 검사하러 가기</Link></li>
+            <li><Link href="/news">사기·보안 뉴스 보기</Link></li>
+            <li><Link href="/welfare">복지 혜택 찾아보기</Link></li>
+            <li><Link href="/#hotline">112에 전화하기</Link></li>
+            {!board.user ? (
+              <li><Link href="/login?next=/board">로그인하고 글쓰기</Link></li>
+            ) : null}
+          </ul>
+        </div>
+      ) : (
+        <Group label="게시판">
+          {board.posts.map((post) => (
+            <Row
+              key={post.id}
+              meta={`${post.author_name} · ${board.formatDate(post.created_at)}`}
+              onClick={() => board.setView({ name: "read", post })}
+            >
+              {post.title}
+            </Row>
+          ))}
+        </Group>
+      )}
     </Screen>
   );
 }

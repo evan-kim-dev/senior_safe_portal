@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { loadGuardian, saveTextSize } from "@/lib/client/guardian";
 import type { TextSize } from "@/lib/domain/types";
 
-const OPTIONS: { id: TextSize; label: string }[] = [
-  { id: "normal", label: "글자 보통" },
-  { id: "large", label: "글자 크게" },
-  { id: "xlarge", label: "글자 더 크게" },
+const OPTIONS: { id: TextSize; label: string; short: string }[] = [
+  { id: "normal", label: "글자 보통", short: "보통" },
+  { id: "large", label: "글자 크게", short: "크게" },
+  { id: "xlarge", label: "글자 더 크게", short: "더크게" },
 ];
 
 export function TextSizeSwitch() {
@@ -19,18 +19,18 @@ export function TextSizeSwitch() {
 
   return (
     <div className="text-switch" role="group" aria-label="글자 크기">
-      <span className="text-switch-label" aria-hidden="true">글자</span>
-      {OPTIONS.map((option, index) => (
+      <span className="text-switch-label">글자 크게</span>
+      {OPTIONS.map((option) => (
         <button
           key={option.id}
           type="button"
-          className={`text-switch-${index}`}
+          className="text-switch-btn"
           aria-pressed={size === option.id}
           aria-label={option.label}
           title={option.label}
           onClick={() => setSize(saveTextSize(option.id).textSize)}
         >
-          가
+          {option.short}
         </button>
       ))}
     </div>

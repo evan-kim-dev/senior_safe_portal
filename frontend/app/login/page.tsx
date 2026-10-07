@@ -318,38 +318,47 @@ export default function LoginPage() {
   return (
     <Screen title={title} lead={lead} narrow>
       {mode === "login" ? (
-        <form
-          className="auth-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void submitLogin();
-          }}
-        >
-          <Field
-            id="auth-email"
-            label="이메일"
-            type="email"
-            autoComplete="email"
-            inputMode="email"
-            required
-            value={email}
-            placeholder="이메일 주소"
-            disabled={busy}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-          <Field
-            id="auth-password"
-            label="비밀번호"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            placeholder="비밀번호"
-            disabled={busy}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <BigButton type="submit" disabled={busy}>로그인</BigButton>
-        </form>
+        <>
+          <div className="auth-social-first" aria-label="간편 로그인">
+            <p className="auth-social-lead">자주 쓰는 계정으로 먼저 들어가세요</p>
+            <BigButton tone="kakao" disabled={busy} onClick={() => void login("kakao")}>카카오 간편 로그인</BigButton>
+            <BigButton tone="naver" disabled={busy} onClick={() => void login("naver" as Provider)}>네이버 간편 로그인</BigButton>
+            <BigButton tone="google" disabled={busy} onClick={() => void login("google")}>구글 간편 로그인</BigButton>
+          </div>
+          <p className="auth-or" role="separator">또는 이메일로</p>
+          <form
+            className="auth-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void submitLogin();
+            }}
+          >
+            <Field
+              id="auth-email"
+              label="이메일"
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              required
+              value={email}
+              placeholder="이메일 주소"
+              disabled={busy}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+            <Field
+              id="auth-password"
+              label="비밀번호"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              placeholder="비밀번호"
+              disabled={busy}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <BigButton type="submit" disabled={busy}>로그인</BigButton>
+          </form>
+        </>
       ) : null}
 
       {mode === "signup" ? (
@@ -749,17 +758,6 @@ export default function LoginPage() {
             로그인으로
           </button>
         </p>
-      ) : null}
-
-      {mode === "login" ? (
-        <details className="auth-social">
-          <summary>다른 방법으로 로그인</summary>
-          <div className="auth-social-body">
-            <BigButton tone="kakao" disabled={busy} onClick={() => void login("kakao")}>카카오 간편 로그인</BigButton>
-            <BigButton tone="naver" disabled={busy} onClick={() => void login("naver" as Provider)}>네이버 간편 로그인</BigButton>
-            <BigButton tone="google" disabled={busy} onClick={() => void login("google")}>구글 간편 로그인</BigButton>
-          </div>
-        </details>
       ) : null}
 
       {message && mode !== "emailConfirm" ? <Status>{message}</Status> : null}

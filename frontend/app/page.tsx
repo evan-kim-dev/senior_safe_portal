@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { NewsSection, VideoRail, WelfareSection } from "@/components/home/HomeFeeds";
 import { HomeHero } from "@/components/home/HomeHero";
-import { HomeRecords } from "@/components/home/HomeRecords";
-import { Hotlines, QuickMenu, ScamRail } from "@/components/home/HomeSections";
+import { Hotlines, ScamTips } from "@/components/home/HomeSections";
 import { BigButton, Checking, Field, LineButton, Result, Screen, Status } from "@/components/ui";
 import { useAuth } from "@/hooks/use-auth";
 import { useHome } from "@/hooks/use-home";
@@ -95,12 +93,7 @@ export default function HomePage() {
           onSubmit={() => void home.submitCheck()}
           onPaste={() => void home.pasteAndCheck()}
         />
-        <QuickMenu />
-        <ScamRail />
-        <VideoRail />
-        <NewsSection />
-        <WelfareSection />
-        <HomeRecords recent={home.recent} notes={home.notes} onOpenNote={home.openNote} />
+        <ScamTips />
         <Hotlines />
       </main>
 

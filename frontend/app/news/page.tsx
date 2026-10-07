@@ -29,10 +29,10 @@ export default function NewsPage() {
     [user],
   );
   const lead =
-    personalizedFeedLead("news", profile) ?? "사기·보안 관련 최신 소식을 모았어요.";
+    personalizedFeedLead("news", profile) ?? "보이스피싱·피싱 등 사기·보안 소식만 모았어요.";
 
   return (
-    <Screen title="뉴스" lead={lead}>
+    <Screen title="사기·보안 뉴스" lead={lead}>
       <FeedRefreshBar
         updatedAt={updatedAt}
         refreshing={refreshing}
