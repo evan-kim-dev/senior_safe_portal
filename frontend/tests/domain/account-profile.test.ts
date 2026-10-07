@@ -11,39 +11,39 @@ describe("preferredVideoCategories", () => {
   it("관심 주제를 앞에 두고 나이대 기본 순서를 뒤에 붙인다", () => {
     expect(
       preferredVideoCategories(
-        { role: "senior", birthYear: 1940, interests: ["history"] },
+        { role: "senior", birthYear: 1940, interests: ["family"] },
         new Date("2026-10-06"),
       )[0],
-    ).toBe("history");
+    ).toBe("family");
   });
 
-  it("관리자는 기본 순서를 쓴다", () => {
+  it("보호자는 기본 순서를 쓴다", () => {
     expect(
       preferredVideoCategories(
         { role: "guardian", birthYear: null, interests: [] },
         new Date("2026-10-06"),
       ),
-    ).toEqual(["music", "affairs", "history", "entertainment", "health"]);
+    ).toEqual(["scam", "smishing", "finance", "digital", "family"]);
   });
 });
 
 describe("preferredNewsCategories", () => {
-  it("건강 관심이면 금융·보안 뉴스를 앞에 둔다", () => {
+  it("금융 관심이면 금융·사기 뉴스를 앞에 둔다", () => {
     const order = preferredNewsCategories(
-      { role: "senior", birthYear: 1945, interests: ["health"] },
+      { role: "senior", birthYear: 1945, interests: ["finance"] },
       new Date("2026-10-07"),
     );
-    expect(order.slice(0, 2)).toEqual(["finance", "security"]);
+    expect(order.slice(0, 2)).toEqual(["finance", "scam"]);
   });
 });
 
 describe("welfarePreferenceKeywords", () => {
-  it("어르신·건강 키워드를 포함한다", () => {
+  it("어르신·금융 키워드를 포함한다", () => {
     const keys = welfarePreferenceKeywords(
-      { role: "senior", birthYear: 1940, interests: ["health"] },
+      { role: "senior", birthYear: 1940, interests: ["finance"] },
       new Date("2026-10-07"),
     );
-    expect(keys).toEqual(expect.arrayContaining(["기초연금", "건강", "요양"]));
+    expect(keys).toEqual(expect.arrayContaining(["기초연금", "금융"]));
   });
 });
 
@@ -53,12 +53,12 @@ describe("parseAccountProfileFromMeta", () => {
       parseAccountProfileFromMeta({
         account_role: "senior",
         birth_year: 1955,
-        interests: ["music", "bad", "health"],
+        interests: ["scam", "bad", "digital"],
       }),
     ).toEqual({
       role: "senior",
       birthYear: 1955,
-      interests: ["music", "health"],
+      interests: ["scam", "digital"],
     });
   });
 });
@@ -68,10 +68,10 @@ describe("mapVideos preferredCategories", () => {
     const video = (id: string) => ({ video_id: id, title: id, channel: "c", description: "" });
     const result = mapVideos(
       [
-        { category_id: "music", videos: [video("aaaaaaaaaaa")] },
-        { category_id: "health", videos: [video("bbbbbbbbbbb")] },
+        { category_id: "scam", videos: [video("aaaaaaaaaaa")] },
+        { category_id: "digital", videos: [video("bbbbbbbbbbb")] },
       ],
-      { preferredCategories: ["health", "music"] },
+      { preferredCategories: ["digital", "scam"] },
     );
     expect(result.map((item) => item.id)).toEqual(["bbbbbbbbbbb", "aaaaaaaaaaa"]);
   });

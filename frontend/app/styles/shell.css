@@ -18,6 +18,17 @@ body[data-standalone="1"] {
   }
 }
 
+/* 푸터에서 휴대폰 보기를 고르면 넓은 화면에서도 하단 탭을 쓴다. */
+html[data-view="app"] {
+  --shell-tab: var(--nav-h);
+  --shell-actions-bottom: calc(var(--shell-tab) + env(safe-area-inset-bottom));
+}
+
+html[data-view="web"] {
+  --shell-tab: 0px;
+  --shell-actions-bottom: 0px;
+}
+
 .page-actions {
   bottom: var(--shell-actions-bottom);
 }

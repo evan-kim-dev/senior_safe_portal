@@ -4,15 +4,15 @@ import { LegalDoc } from "@/components/LegalDoc";
 
 export const metadata: Metadata = {
   title: "이용약관",
-  description: "시니어 디지털 보안관 이용약관",
+  description: "시니어 안심 이용약관",
 };
 
 export default function TermsPage() {
   return (
     <LegalDoc
       title="이용약관"
-      lead="본 약관은 「시니어 디지털 보안관」 웹서비스의 이용 조건과 운영 주체·이용자의 권리·의무를 정합니다."
-      effective="2026년 6월 21일"
+      lead="본 약관은 「시니어 안심」 웹서비스의 이용 조건과 운영 주체·이용자의 권리·의무를 정합니다."
+      effective="2026년 10월 5일"
       easy={[
         "링크 검사·상담·게시판 등을 안전하게 쓰기 위한 약속입니다.",
         "불법·사기·타인 비방 글은 올릴 수 없고, 필요하면 운영자가 지울 수 있습니다.",
@@ -26,7 +26,7 @@ export default function TermsPage() {
       <ul>
         <li>“서비스”: 링크 검사, 영상·뉴스·복지 안내, AI 상담, 게시판, 가족 연동 등 본 사이트가 제공하는 온라인 기능</li>
         <li>“회원”: 이메일·소셜(카카오·네이버·구글)로 가입·로그인한 이용자 / “비회원”: 로그인 없이 이용하는 자</li>
-        <li>“가족 연동”: 자녀(guardian)·부모(senior) 계정을 초대 코드로 연결해 위험 영상 활동(시각)을 공유하는 기능</li>
+        <li>“가족 연동”: 보호자·어르신 계정을 초대 코드로 연결해 위험 활동 요약을 함께 보는 기능</li>
         <li>“게시물”: 이용자가 등록한 글·기타 정보</li>
       </ul>
 
@@ -77,7 +77,7 @@ export default function TermsPage() {
 
       <h2>제13조 (문의)</h2>
       <p>
-        운영 주체: 시니어 디지털 보안관 운영팀 ·{" "}
+        운영 주체: 시니어 안심 운영팀 ·{" "}
         <a href="https://github.com/rlarlgns-evan/senior_safe_portal/issues" target="_blank" rel="noopener noreferrer">GitHub 이슈</a>
       </p>
     </LegalDoc>

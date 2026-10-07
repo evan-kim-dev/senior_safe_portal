@@ -25,11 +25,11 @@ import {
 } from "@/lib/client/supabase-browser";
 
 const INTEREST_ICONS: Record<VideoInterestId, IconName> = {
-  music: "play",
-  affairs: "news",
-  history: "board",
-  entertainment: "sparkle",
-  health: "heart",
+  scam: "phone",
+  smishing: "mail",
+  finance: "bank",
+  digital: "mobile",
+  family: "users",
 };
 
 type Mode = "login" | "signup" | "emailConfirm" | "phoneConfirm" | "reset" | "findId";
@@ -383,7 +383,7 @@ export default function LoginPage() {
                   disabled={busy}
                   onChange={() => setAccountRole("senior")}
                 />
-                <span className="auth-role-title">어르신(senior)</span>
+                <span className="auth-role-title">어르신</span>
                 <span className="auth-role-desc">영상·복지 추천을 나이와 관심에 맞춰 받아요.</span>
               </label>
               <label className={`auth-role-card ${accountRole === "guardian" ? "is-selected" : ""}`}>
@@ -399,7 +399,7 @@ export default function LoginPage() {
                     setInterests([]);
                   }}
                 />
-                <span className="auth-role-title">관리자(guardian)</span>
+                <span className="auth-role-title">보호자</span>
                 <span className="auth-role-desc">자녀·보호자로 가족 연결과 대시보드를 관리해요.</span>
               </label>
             </div>

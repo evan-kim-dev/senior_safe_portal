@@ -53,10 +53,10 @@ describe("mapVideos", () => {
     const news = ["ddddddddddd", "eeeeeeeeeee", "fffffffffff"].map((id) => video(id));
     const result = mapVideos(
       [
-        { category_id: "music", videos: music },
-        { category_id: "affairs", videos: news },
+        { category_id: "scam", videos: music },
+        { category_id: "digital", videos: news },
       ],
-      { preferredCategories: ["affairs", "music"] },
+      { preferredCategories: ["digital", "scam"] },
     );
     expect(result.map((item) => item.id).slice(0, 5)).toEqual([
       "ddddddddddd",
@@ -65,7 +65,7 @@ describe("mapVideos", () => {
       "aaaaaaaaaaa",
       "bbbbbbbbbbb",
     ]);
-    expect(result[0].categoryId).toBe("affairs");
+    expect(result[0].categoryId).toBe("digital");
   });
 });
 
@@ -77,7 +77,7 @@ describe("suspiciousUrlIn", () => {
 });
 
 describe("mapNews", () => {
-  it("http 주소가 없는 기사는 버리고 출처는 호스트", () => {
+  it("http 주소가 없는 기사는 버리고 출처는 호스트, 뉴스 썸네일은 https CDN 허용", () => {
     const result = mapNews([
       {
         articles: [
@@ -88,9 +88,14 @@ describe("mapNews", () => {
             thumbnail: "https://imgnews.pstatic.net/a.jpg",
           },
           {
-            title: "외부 CDN 차단",
+            title: "매체 CDN",
             originallink: "https://www.news.co.kr/2",
             thumbnail: "https://cdn.news.co.kr/a.jpg",
+          },
+          {
+            title: "위험 스킴",
+            originallink: "https://www.news.co.kr/3",
+            thumbnail: "javascript:alert(1)",
           },
           { title: "주소 없음", link: "" },
         ],
@@ -105,10 +110,17 @@ describe("mapNews", () => {
         image: "https://imgnews.pstatic.net/a.jpg",
       },
       {
-        title: "외부 CDN 차단",
+        title: "매체 CDN",
         source: "news.co.kr",
         date: "",
         url: "https://www.news.co.kr/2",
+        image: "https://cdn.news.co.kr/a.jpg",
+      },
+      {
+        title: "위험 스킴",
+        source: "news.co.kr",
+        date: "",
+        url: "https://www.news.co.kr/3",
         image: "",
       },
     ]);
@@ -184,11 +196,31 @@ describe("mapWelfare", () => {
   it("65세·노인 관련 아닌 복지는 걸러 낸다", () => {
     const result = mapWelfare(
       {
-        services: [{ servNm: "청년 주거", target: "만 19~39세", applicationMethod: "온라인" }],
+        services: [
+          { servNm: "청년 주거", target: "만 19~39세", applicationMethod: "온라인" },
+          { servNm: "아이돌봄 지원", target: "영유아 가정", applicationMethod: "온라인" },
+        ],
       },
       "서울",
     );
     expect(result.cards).toEqual([]);
+  });
+
+  it("신청 안내의 URL 글씨는 빼고 읽기 쉬운 문장만 둔다", () => {
+    const result = mapWelfare(
+      {
+        services: [{
+          servNm: "기초연금",
+          target: "65세 이상",
+          applicationMethod: "https://www.bokjiro.go.kr/ 에서 신청",
+          link: "https://www.bokjiro.go.kr/",
+        }],
+      },
+      "서울",
+    );
+    expect(result.cards).toHaveLength(1);
+    expect(result.cards[0].apply).not.toMatch(/https?:\/\//i);
+    expect(result.cards[0].apply).not.toMatch(/bokjiro/i);
   });
 });
 

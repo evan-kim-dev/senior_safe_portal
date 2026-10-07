@@ -102,10 +102,7 @@ function LeadCard({
   const href = newsHref(article);
   const body = (
     <>
-      <span className="verified-badge verified-badge-on-dark verified-badge-lead">
-        <Icon name="check" />
-        확인됨
-      </span>
+      <span className="tag tag-light">외부 기사</span>
       <span key={article.url} className="mosaic-lead-swap">
         {article.image ? (
           <span className="mosaic-photo">
@@ -188,11 +185,12 @@ export function NewsSection() {
           ? sideNews.map((article) => (
             <Info
               key={`${article.url}-${article.date}`}
-              verified="확인됨"
+              tag="외부 기사"
               tone="purple"
               title={article.title}
               lines={[newsMeta(article)]}
               href={newsHref(article)}
+              image={article.image || undefined}
               more="기사 보기"
               onOpen={() => trackNewsView(article)}
             />

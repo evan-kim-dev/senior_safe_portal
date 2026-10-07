@@ -41,7 +41,7 @@ export default function CarePage() {
     return (
       <FlowPage
         title="대시보드"
-        lead="관리자 계정으로 로그인한 뒤 그룹을 만들고 초대 코드를 알려 주세요."
+        lead="보호자 계정으로 로그인한 뒤 그룹을 만들고 초대 코드를 알려 주세요."
         bandActions={(
           <>
             <BigButton href="/login?next=/care" icon="users">로그인하기</BigButton>
@@ -86,16 +86,16 @@ export default function CarePage() {
       <Screen
         className="page-flow"
         title="계정 연결됨"
-        lead="이 계정의 위험 검사·영상·뉴스 활동이 관리자 대시보드에 보여요."
+        lead="이 계정의 위험 검사·영상·뉴스 활동이 보호자 대시보드에 보여요."
         narrow
         primary={<BigButton href="/">홈으로</BigButton>}
       >
         <StatusBanner
           variant="connected"
-          title="관리자와 연결되어 있어요"
+          title="보호자와 연결되어 있어요"
           text="링크 검사, 영상 시청, 기사 열람이 담당자에게 전달됩니다."
         />
-        <Status>대시보드 설정과 활동 확인은 관리자 계정에서 해 주세요.</Status>
+        <Status>대시보드 설정과 활동 확인은 보호자 계정에서 해 주세요.</Status>
         <LineButton href="/link">연결 상태 보기</LineButton>
         <FamilyConnectionActions
           role="senior"

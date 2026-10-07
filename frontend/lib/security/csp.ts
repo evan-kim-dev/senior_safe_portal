@@ -17,12 +17,16 @@ export function isAllowedImageHost(hostname: string, supabaseHostname?: string):
   return IMAGE_HOST_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`));
 }
 
-/** CSP img-src: 와일드카드 CDN 없이 구체 호스트만. */
+/**
+ * CSP img-src.
+ * 유튜브·네이버는 명시하고, 뉴스 OG 썸네일용으로 https: 를 연다(script 실행 없음).
+ */
 export function buildImgSrcDirective(supabaseOrigin?: string): string {
   const parts = [
     "'self'",
     "data:",
     "blob:",
+    "https:",
     "https://i.ytimg.com",
     "https://img.youtube.com",
     "https://imgnews.pstatic.net",

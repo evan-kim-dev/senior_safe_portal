@@ -78,7 +78,7 @@ describe("validateSignUpForm", () => {
       ...base,
       accountRole: "senior",
       birthYear: "1955",
-      interests: ["music", "health"],
+      interests: ["scam", "digital"],
     }, now)).toEqual({
       ok: true,
       value: {
@@ -89,7 +89,7 @@ describe("validateSignUpForm", () => {
         password: "safePass9!",
         accountRole: "senior",
         birthYear: 1955,
-        interests: ["music", "health"],
+        interests: ["scam", "digital"],
       },
     });
   });

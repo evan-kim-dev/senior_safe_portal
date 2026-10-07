@@ -102,7 +102,12 @@ async function fetchArticleThumbnail(pageUrl: string): Promise<string> {
 
     const html = await response.text();
     const ogImage = extractOgImage(html);
-    return ogImage || favicon;
+    if (!ogImage) return favicon;
+    try {
+      return new URL(ogImage, response.url || pageUrl).toString();
+    } catch {
+      return favicon;
+    }
   } catch {
     return favicon;
   }

@@ -12,11 +12,11 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const FEED_CATEGORIES = [
-  { id: "music", label: "노래", query: "트로트 명곡 모음 7080" },
-  { id: "affairs", label: "시사", query: "KBS 뉴스9 어르신" },
-  { id: "history", label: "역사", query: "한국사 다큐멘터리 EBS" },
-  { id: "entertainment", label: "예능", query: "유퀴즈 온더블럭 하이라이트" },
-  { id: "health", label: "건강", query: "어르신 건강체조 국민건강체조" },
+  { id: "scam", label: "보이스피싱", query: "보이스피싱 예방 어르신 경찰청" },
+  { id: "smishing", label: "문자·링크 사기", query: "스미싱 예방 방법 문자 사기" },
+  { id: "finance", label: "금융 사기", query: "금융사기 예방 계좌이체 사기" },
+  { id: "digital", label: "디지털 안전", query: "어르신 디지털 안전 원격조종 앱" },
+  { id: "family", label: "가족 사칭", query: "가족사칭 메신저 사기 예방" },
 ];
 
 const FEED_LIMIT = 50;

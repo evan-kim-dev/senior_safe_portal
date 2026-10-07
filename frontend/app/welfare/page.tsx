@@ -95,18 +95,26 @@ export default function WelfarePage() {
         />
       }
     >
-      <label className="field" htmlFor="welfare-region">
-        <span>사는 곳</span>
-        <select
-          id="welfare-region"
-          value={region}
-          onChange={(event) => setRegion(event.target.value)}
-        >
-          {REGIONS.map((item) => (
-            <option key={item} value={item}>{item}</option>
-          ))}
-        </select>
-      </label>
+      <fieldset className="region-picker">
+        <legend className="region-picker-legend">사는 곳</legend>
+        <div className="region-picker-grid" role="radiogroup" aria-label="사는 곳">
+          {REGIONS.map((item) => {
+            const selected = region === item;
+            return (
+              <button
+                key={item}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                className={`region-picker-card${selected ? " is-selected" : ""}`}
+                onClick={() => setRegion(item)}
+              >
+                {item}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
       <Status>{view.placeLabel ? `${view.placeLabel} 복지` : `${region} 복지`}</Status>
       {view.message ? <Status>{view.message}</Status> : null}
       {view.cards.length ? (
@@ -119,7 +127,6 @@ export default function WelfarePage() {
               title={card.title}
               lines={[
                 `누가: ${card.target}`,
-                `무엇을: ${card.title}`,
                 `어떻게: ${card.apply}`,
               ]}
               href={card.href}

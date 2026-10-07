@@ -5,9 +5,13 @@ import { extractRawHttpUrls, hostnameOf } from "./url";
 
 export const MAX_VIDEOS = 20;
 
-/** 복지 카드 대상 문구에 65세·노인 관련 표현이 있는지. */
+/** 복지 카드: 65세·노인 관련만. '돌봄' 단독은 아이돌봄 등에 걸려 제외 목록으로 걸러 낸다. */
 const SENIOR_TARGET_RE =
-  /65\s*세|노인|어르신|고령|경로|기초연금|장기요양|노년|독거|실버|노후|돌봄|요양|치매|재가|연금/;
+  /65\s*세|노인|어르신|고령|경로|기초연금|장기요양|노년|독거|실버|노후|요양|치매|재가|노인돌봄|어르신\s*돌봄|경로당|기초생활/;
+
+/** 아동·청년·임신 등 65세+ 대상이 아닌 복지. */
+const NON_SENIOR_RE =
+  /아이돌봄|영유아|아동|청소년|임신|출산|육아|보육|어린이집|유치원|초등|중학|고등|청년|대학생|병역|다문화\s*가정\s*아동|산모|신생아/;
 
 const VIDEO_ID = /^[\w-]{11}$/;
 
@@ -30,7 +34,7 @@ function safeHttpsUrl(raw: unknown): string {
   }
 }
 
-/** 뉴스 썸네일. https 우선, http 는 https 로 올린 뒤 CDN 화이트리스트만 허용. */
+/** 유튜브 등 화이트리스트 CDN만. */
 function safeImageUrl(raw: unknown): string {
   if (typeof raw !== "string") return "";
   try {
@@ -38,6 +42,19 @@ function safeImageUrl(raw: unknown): string {
     if (url.protocol === "http:") url.protocol = "https:";
     if (url.protocol !== "https:") return "";
     if (!isAllowedImageHost(url.hostname)) return "";
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
+
+/** 뉴스 OG·파비콘: 매체마다 CDN이 달라 https 만 허용한다(CSP img-src https:). */
+function safeNewsImageUrl(raw: unknown): string {
+  if (typeof raw !== "string") return "";
+  try {
+    const url = new URL(raw.trim());
+    if (url.protocol === "http:") url.protocol = "https:";
+    if (url.protocol !== "https:") return "";
     return url.toString();
   } catch {
     return "";
@@ -161,7 +178,7 @@ export function mapNews(
           source: sourceName(url, asString(article.publisher)),
           date: decodeText(asString(article.pubDate)),
           url,
-          image: safeImageUrl(article.thumbnail) || safeImageUrl(article.image),
+          image: safeNewsImageUrl(article.thumbnail) || safeNewsImageUrl(article.image),
           categoryId: categoryId || undefined,
         });
       }
@@ -216,12 +233,22 @@ export type WelfarePayload = {
   nationalServices?: unknown;
 };
 
+/** 신청 안내에서 URL·도메인 글씨를 빼고 읽기 쉬운 문장만 남긴다. */
+function stripUrlLookalikes(text: string): string {
+  return collapseSpaces(
+    text
+      .replace(/https?:\/\/\S+/gi, " ")
+      .replace(/\b[\w.-]+\.(kr|com|go\.kr|or\.kr|net|org)\S*/gi, " "),
+  );
+}
+
 function applyText(row: Record<string, unknown>): string {
-  const method = collapseSpaces(asString(row.applicationMethod));
+  const method = stripUrlLookalikes(collapseSpaces(asString(row.applicationMethod)));
   if (method) return method;
   if (row.onlineAvailable === "Y") return "온라인으로 신청할 수 있습니다.";
-  const site = collapseSpaces(asString(row.site));
-  if (site) return site;
+  const site = stripUrlLookalikes(collapseSpaces(asString(row.site)));
+  if (site && !/^www\./i.test(site)) return site;
+  if (safeHttpsUrl(row.link) || safeHttpsUrl(row.site)) return "아래 버튼으로 신청 안내를 확인하세요.";
   return "안내가 없습니다.";
 }
 
@@ -249,6 +276,7 @@ export function mapWelfare(payload: WelfarePayload, requestedRegion: string): { 
     })
     .filter((card) => {
       const haystack = `${card.title} ${card.target} ${card.apply}`;
+      if (NON_SENIOR_RE.test(haystack)) return false;
       return SENIOR_TARGET_RE.test(haystack);
     });
   return { place, cards };

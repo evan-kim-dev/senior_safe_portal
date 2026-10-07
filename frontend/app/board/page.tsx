@@ -58,9 +58,6 @@ export default function BoardPage() {
             <li><Link href="/news">사기·보안 뉴스 보기</Link></li>
             <li><Link href="/welfare">복지 혜택 찾아보기</Link></li>
             <li><Link href="/#hotline">112에 전화하기</Link></li>
-            {!board.user ? (
-              <li><Link href="/login?next=/board">로그인하고 글쓰기</Link></li>
-            ) : null}
           </ul>
         </div>
       ) : (

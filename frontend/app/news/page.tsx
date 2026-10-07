@@ -50,7 +50,7 @@ export default function NewsPage() {
           {articles.map((article) => (
             <Info
               key={`${article.url}-${article.date}`}
-              verified="확인됨"
+              tag="외부 기사"
               title={article.title}
               lines={[`출처 ${article.source}`, article.date ? `날짜 ${article.date}` : null]}
               href={isHttpUrl(article.url) ? article.url : undefined}

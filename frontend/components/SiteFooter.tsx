@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ViewModeSwitch } from "@/components/ViewModeSwitch";
 import { LEGAL_LINKS } from "@/lib/domain/content";
 import { isStandaloneRoute } from "@/lib/domain/routes";
 
@@ -42,6 +43,7 @@ export function SiteFooter() {
           </nav>
           <p className="footer-copy">© {YEAR} 시니어 안심</p>
         </div>
+        <ViewModeSwitch />
       </div>
     </footer>
   );

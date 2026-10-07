@@ -3,7 +3,8 @@
 export const ACCOUNT_ROLES = ["senior", "guardian"] as const;
 export type AccountRole = (typeof ACCOUNT_ROLES)[number];
 
-export const VIDEO_INTEREST_IDS = ["music", "affairs", "history", "entertainment", "health"] as const;
+/** 영상 관심 = 사기·예방 주제 (refresh-youtube-feeds 와 같음). */
+export const VIDEO_INTEREST_IDS = ["scam", "smishing", "finance", "digital", "family"] as const;
 export type VideoInterestId = (typeof VIDEO_INTEREST_IDS)[number];
 
 export const VIDEO_INTEREST_OPTIONS: ReadonlyArray<{
@@ -11,11 +12,11 @@ export const VIDEO_INTEREST_OPTIONS: ReadonlyArray<{
   label: string;
   description: string;
 }> = [
-  { id: "music", label: "노래", description: "트로트·가요 명곡을 먼저 보여 드려요." },
-  { id: "affairs", label: "시사·뉴스", description: "요즘 소식·뉴스를 위주로 골라요." },
-  { id: "history", label: "역사", description: "우리 역사·다큐를 앞쪽에 둬요." },
-  { id: "entertainment", label: "예능", description: "웃고 즐기는 예능을 추천해요." },
-  { id: "health", label: "건강·체조", description: "체조·건강 영상을 우선 보여 드려요." },
+  { id: "scam", label: "보이스피싱", description: "전화·검찰 사칭 예방 영상을 먼저 보여 드려요." },
+  { id: "smishing", label: "문자·링크 사기", description: "스미싱·악성 링크 주의 영상을 골라요." },
+  { id: "finance", label: "금융 사기", description: "계좌·투자 사기 예방 영상을 앞쪽에 둬요." },
+  { id: "digital", label: "디지털 안전", description: "원격앱·개인정보 지키는 방법을 추천해요." },
+  { id: "family", label: "가족 사칭", description: "메신저·가족 사칭 예방 영상을 보여 드려요." },
 ];
 
 /** 관심사 라벨을 쉼표로 이어 화면 문구에 쓴다. */
@@ -26,11 +27,11 @@ export function videoInterestLabels(ids: readonly VideoInterestId[]): string {
 }
 
 export const DEFAULT_VIDEO_CATEGORY_ORDER: readonly VideoInterestId[] = [
-  "music",
-  "affairs",
-  "history",
-  "entertainment",
-  "health",
+  "scam",
+  "smishing",
+  "finance",
+  "digital",
+  "family",
 ];
 
 export type AccountProfile = {
@@ -48,12 +49,12 @@ export function isVideoInterestId(value: unknown): value is VideoInterestId {
 }
 
 export function accountRoleLabel(role: AccountRole | null | undefined): string {
-  if (role === "senior") return "어르신(senior)";
-  if (role === "guardian") return "관리자(guardian)";
+  if (role === "senior") return "어르신";
+  if (role === "guardian") return "보호자";
   return "미설정";
 }
 
-/** 가입 시 고른 관리자 역할. 대시보드를 기본 화면으로 쓴다. */
+/** 가입 시 고른 보호자 역할. 대시보드를 기본 화면으로 쓴다. */
 export function isGuardianAccount(user: { user_metadata?: Record<string, unknown> | null } | null | undefined): boolean {
   if (!user) return false;
   return parseAccountProfileFromMeta(user.user_metadata ?? undefined).role === "guardian";
@@ -85,10 +86,10 @@ export function preferredVideoCategories(
 
 function baseOrderForAge(age: number | null): VideoInterestId[] {
   if (age == null) return [...DEFAULT_VIDEO_CATEGORY_ORDER];
-  if (age >= 80) return ["health", "music", "affairs", "history", "entertainment"];
-  if (age >= 70) return ["music", "health", "affairs", "entertainment", "history"];
-  if (age >= 60) return ["entertainment", "health", "music", "affairs", "history"];
-  return ["health", "entertainment", "affairs", "music", "history"];
+  if (age >= 80) return ["scam", "family", "finance", "smishing", "digital"];
+  if (age >= 70) return ["scam", "smishing", "family", "finance", "digital"];
+  if (age >= 60) return ["scam", "smishing", "finance", "family", "digital"];
+  return [...DEFAULT_VIDEO_CATEGORY_ORDER];
 }
 
 /** 뉴스 피드 category_id (refresh-news-feeds 와 같음). 사기·보안 중심. */
@@ -104,11 +105,11 @@ export const DEFAULT_NEWS_CATEGORY_ORDER: readonly NewsCategoryId[] = [
 ];
 
 const VIDEO_INTEREST_TO_NEWS: Record<VideoInterestId, readonly NewsCategoryId[]> = {
-  music: ["digital"],
-  affairs: ["scam", "alert"],
-  history: ["alert", "security"],
-  entertainment: ["digital", "scam"],
-  health: ["finance", "security"],
+  scam: ["scam", "alert"],
+  smishing: ["security", "digital"],
+  finance: ["finance", "scam"],
+  digital: ["digital", "security"],
+  family: ["scam", "alert"],
 };
 
 function isNewsCategoryId(value: unknown): value is NewsCategoryId {
@@ -155,14 +156,13 @@ export function welfarePreferenceKeywords(
   };
 
   if (profile.role === "senior" || age != null) {
-    push("노인", "어르신", "기초연금", "돌봄", "장기요양");
+    push("노인", "어르신", "기초연금", "장기요양", "경로");
   }
   if (age != null && age >= 75) push("요양", "방문", "재가", "치매");
   for (const interest of profile.interests.filter(isVideoInterestId)) {
-    if (interest === "health") push("건강", "의료", "요양", "돌봄", "건강검진");
-    if (interest === "affairs") push("안전", "보이스피싱", "금융");
-    if (interest === "music" || interest === "entertainment") push("문화", "여가", "경로당");
-    if (interest === "history") push("문화", "교육");
+    if (interest === "finance") push("금융", "기초연금", "수당");
+    if (interest === "scam" || interest === "family") push("안전", "보이스피싱");
+    if (interest === "digital" || interest === "smishing") push("디지털", "정보");
   }
   return keywords;
 }
@@ -179,16 +179,16 @@ export function personalizedFeedLead(
 ): string | null {
   if (!shouldPersonalizeFeeds(profile)) return null;
   if (kind === "videos" && profile.interests.length) {
-    return `${videoInterestLabels(profile.interests)} 관심에 맞춰 먼저 보여 드려요.`;
+    return `${videoInterestLabels(profile.interests)} 관심에 맞춰 예방 영상을 먼저 보여 드려요.`;
   }
   if (kind === "news") {
     if (profile.interests.length) {
       return `${videoInterestLabels(profile.interests)} 관심에 맞는 사기·보안 소식을 앞에 두었어요.`;
     }
-    return "나이대에 맞춰 건강·복지 소식을 앞에 두었어요.";
+    return "사기·보안 관련 소식을 모았어요.";
   }
   if (kind === "welfare") {
-    return "어르신께 가까운 혜택을 앞에 두었어요. 사는 곳도 맞춰 보세요.";
+    return "65세 이상 어르신 혜택을 앞에 두었어요. 사는 곳도 맞춰 보세요.";
   }
   return null;
 }

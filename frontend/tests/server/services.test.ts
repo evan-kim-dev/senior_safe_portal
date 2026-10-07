@@ -189,7 +189,7 @@ describe("feed service", () => {
 
   it("복지는 지역|분류 키로 찾는다", async () => {
     const welfarePayload = vi.fn(async () => ({
-      payload: { region: "서울", services: [{ servNm: "돌봄" }] },
+      payload: { region: "서울", services: [{ servNm: "기초연금", target: "65세 이상" }] },
       updatedAt: "2026-10-07T12:00:00.000Z",
     }));
     const service = createFeedService({ videoRows: async () => [], newsRows: async () => [], welfarePayload });

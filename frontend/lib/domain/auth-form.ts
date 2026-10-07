@@ -87,7 +87,7 @@ export function validateSignUpForm(
   now = new Date(),
 ): { ok: true; value: SignUpFormValue } | { ok: false; message: string } {
   if (!isAccountRole(input.accountRole)) {
-    return { ok: false, message: "어르신(senior)인지 관리자(guardian)인지 골라 주세요." };
+    return { ok: false, message: "어르신인지 보호자인지 골라 주세요." };
   }
 
   const name = input.name.trim().replace(/\s+/g, " ");
@@ -148,7 +148,7 @@ export function validateSignUpForm(
   };
 }
 
-/** 관리자가 어르신 카드에서 이름·출생연도를 고칠 때. */
+/** 보호자가 어르신 카드에서 이름·출생연도를 고칠 때. */
 export function validateSeniorProfileEdit(
   input: { name: string; birthYear: string },
   now = new Date(),

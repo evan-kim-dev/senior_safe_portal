@@ -49,10 +49,14 @@ const ODCLOUD_CENTRAL_PATH = "/15083323/v1/uddi:38fb5dfb-03d2-4472-95fd-9ebb9627
 const ODCLOUD_WELFARE_PATH = "/15083323/v1/uddi:3929b807-3420-44d7-a851-cc741fce65a1";
 
 const SENIOR_KEYWORDS = [
-  "65세", "65 세", "노인", "어르신", "고령", "기초연금", "경로", "돌봄", "요양", "장기요양",
-  "노년", "치매", "재가", "기초생활", "독거", "연금", "건강검진", "보호",
-  "실버", "노후", "주거급여", "의료비", "노인장기요양", "경로우대",
+  "65세", "65 세", "노인", "어르신", "고령", "기초연금", "경로", "노인돌봄", "어르신 돌봄",
+  "요양", "장기요양", "노년", "치매", "재가", "기초생활", "독거", "연금", "건강검진",
+  "실버", "노후", "주거급여", "의료비", "노인장기요양", "경로우대", "경로당",
 ];
+
+/** '돌봄' 단독은 아이돌봄 등에 걸려 제외한다. */
+const NON_SENIOR_RE =
+  /아이돌봄|영유아|아동|청소년|임신|출산|육아|보육|어린이집|유치원|초등|중학|고등|청년|대학생|병역|산모|신생아/;
 
 const WELFARE_CATEGORY_KEYWORDS: Record<string, string[]> = {
   care: ["돌봄", "요양", "장기요양", "재가", "치매", "보호", "독거", "케어", "간병"],
@@ -456,20 +460,15 @@ function mapOdcloudItem(item: Record<string, unknown>): NationalWelfareService |
 }
 
 function isSeniorRelated(text: string): boolean {
+  if (NON_SENIOR_RE.test(text)) return false;
   const normalized = text.toLowerCase();
   return SENIOR_KEYWORDS.some((keyword) => normalized.includes(keyword));
 }
 
-function matchesWelfareCategory(
+function welfareHaystack(
   service: { servNm?: string; summary?: string; target?: string; benefit?: string; criteria?: string; department?: string },
-  category: string,
-): boolean {
-  if (!category || category === "all") return true;
-
-  const keywords = WELFARE_CATEGORY_KEYWORDS[category];
-  if (!keywords?.length) return true;
-
-  const haystack = [
+): string {
+  return [
     service.servNm,
     service.summary,
     service.target,
@@ -477,6 +476,18 @@ function matchesWelfareCategory(
     service.criteria,
     service.department,
   ].filter(Boolean).join(" ");
+}
+
+function matchesWelfareCategory(
+  service: { servNm?: string; summary?: string; target?: string; benefit?: string; criteria?: string; department?: string },
+  category: string,
+): boolean {
+  const haystack = welfareHaystack(service);
+  if (NON_SENIOR_RE.test(haystack)) return false;
+  if (!category || category === "all") return true;
+
+  const keywords = WELFARE_CATEGORY_KEYWORDS[category];
+  if (!keywords?.length) return true;
 
   return keywords.some((keyword) => haystack.includes(keyword));
 }

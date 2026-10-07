@@ -3,7 +3,7 @@ import { LegalDoc } from "@/components/LegalDoc";
 
 export const metadata: Metadata = {
   title: "개인정보처리방침",
-  description: "시니어 디지털 보안관 개인정보처리방침",
+  description: "시니어 안심 개인정보처리방침",
 };
 
 export default function PrivacyPage() {
@@ -20,12 +20,12 @@ export default function PrivacyPage() {
     >
       <h2>제1조 (개인정보의 처리 목적)</h2>
       <p>
-        서비스(「시니어 디지털 보안관」)는 다음 목적 범위에서만 개인정보를 처리하며,
+        서비스(「시니어 안심」)는 다음 목적 범위에서만 개인정보를 처리하며,
         목적이 변경되면 「개인정보 보호법」 제18조에 따라 필요한 조치를 하거나 별도 동의를 받습니다.
       </p>
       <ul>
         <li>회원 가입·본인 확인·로그인(이메일·비밀번호, 휴대폰 확인, 카카오·네이버·구글 OAuth)</li>
-        <li>이용 역할(어르신(senior)/관리자(guardian))에 맞춘 영상 추천·가족 케어 안내</li>
+        <li>이용 역할(어르신/보호자)에 맞춘 영상 추천·가족 케어 안내</li>
         <li>링크·영상 검사, 뉴스·복지 안내, AI 상담(마카), 게시판 운영</li>
         <li>가족 계정 연동(초대 코드) 및 보호자 케어 활동 요약(위험 검사·영상 시청·기사 열람·챗봇 위험)</li>
         <li>고객 문의·오류 대응·부정 이용 방지·보안·서비스 개선(비식별·집계 포함)</li>
@@ -37,8 +37,8 @@ export default function PrivacyPage() {
       <ul>
         <li>
           <strong>필수(이메일 회원 가입):</strong> 이름, 이메일, 휴대폰 번호, 비밀번호,
-          이용 역할(어르신(senior)/관리자(guardian)), 이용약관·개인정보처리방침 동의 여부.
-          어르신(senior)으로 가입하는 경우 태어난 해(연령대 맞춤 추천용)
+          이용 역할(어르신/보호자), 이용약관·개인정보처리방침 동의 여부.
+          어르신으로 가입하는 경우 태어난 해(연령대 맞춤 추천용)
         </li>
         <li>
           <strong>선택(이메일 회원 가입):</strong> 닉네임, 관심 영상 주제(노래·시사·역사·예능·건강)
@@ -49,7 +49,7 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>서비스 이용 과정에서:</strong> 게시판 작성자 이름·제목·내용·작성 시각,
-          가족 그룹 소속·역할(자녀 guardian / 부모 senior), 초대 코드 발급·사용 기록,
+          가족 그룹 소속·역할(보호자/어르신), 초대 코드 발급·사용 기록,
           연결된 가족의 위험 검사·영상 시청·기사 열람 요약(짧은 제목·출처·시청 초만, 전문 URL·본문은 저장하지 않음),
           링크 검사 URL·챗봇 대화 내용(서비스 제공 목적 범위)
         </li>
@@ -139,8 +139,8 @@ export default function PrivacyPage() {
 
       <h2>제10조 (개인정보 보호책임자)</h2>
       <ul>
-        <li>운영 주체: 시니어 디지털 보안관 운영팀</li>
-        <li>개인정보 보호책임자: 시니어 디지털 보안관 운영팀</li>
+        <li>운영 주체: 시니어 안심 운영팀</li>
+        <li>개인정보 보호책임자: 시니어 안심 운영팀</li>
         <li>
           문의:{" "}
           <a href="https://github.com/rlarlgns-evan/senior_safe_portal/issues" target="_blank" rel="noopener noreferrer">

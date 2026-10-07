@@ -400,7 +400,7 @@ export function Media({
   meta,
   href,
   onClick,
-  verified = "확인된 영상",
+  verified = false,
 }: {
   title: string;
   image: string;

@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/icons";
 import { formatFeedUpdatedAt } from "@/lib/domain/feed-meta";
 
 type Props = {
@@ -25,12 +26,12 @@ export function FeedRefreshBar({
       </p>
       <button
         type="button"
-        className="feed-refresh-manual"
+        className={`feed-refresh-manual${refreshing ? " is-busy" : ""}`}
         disabled={refreshing}
         onClick={onRefresh}
         aria-label={refreshing ? "새로고침 중" : `${label} 다시 불러오기`}
       >
-        {refreshing ? "…" : "다시"}
+        <Icon name="refresh" className="feed-refresh-icon" />
       </button>
     </div>
   );
