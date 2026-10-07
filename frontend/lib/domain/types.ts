@@ -67,9 +67,9 @@ export type WelfareCard = {
   href?: string;
 };
 
-export type VideosResponse = { ok: boolean; videos?: VideoItem[]; message?: string };
-export type NewsResponse = { ok: boolean; articles?: NewsItem[]; message?: string };
-export type WelfareResponse = { ok: boolean; place?: string; cards?: WelfareCard[]; message?: string };
+export type VideosResponse = { ok: boolean; videos?: VideoItem[]; message?: string; updatedAt?: string };
+export type NewsResponse = { ok: boolean; articles?: NewsItem[]; message?: string; updatedAt?: string };
+export type WelfareResponse = { ok: boolean; place?: string; cards?: WelfareCard[]; message?: string; updatedAt?: string };
 export type ActivityResponse = { ok?: boolean; count?: number; message?: string };
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };

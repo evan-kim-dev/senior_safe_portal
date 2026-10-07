@@ -184,7 +184,12 @@ describe("feed views", () => {
   it("실패는 화면 문구로 바뀐다", () => {
     expect(toVideoView(null, []).message).toBe(FEED_MESSAGES.videos.failed);
     expect(toNewsView({ ok: false, message: "서버 문장" }).message).toBe("서버 문장");
-    expect(toWelfareView({ ok: true, cards: [], message: "비었음" }, "서울")).toEqual({ cards: [], placeLabel: "서울", message: "비었음" });
+    expect(toWelfareView({ ok: true, cards: [], message: "비었음" }, "서울")).toEqual({
+      cards: [],
+      placeLabel: "서울",
+      message: "비었음",
+      updatedAt: null,
+    });
   });
 
   it("채널 목록은 중복 없이 정렬", () => {

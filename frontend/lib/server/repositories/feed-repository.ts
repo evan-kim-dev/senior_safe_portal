@@ -7,10 +7,15 @@ export const VIDEO_FEED_REVALIDATE_SECONDS = 300;
 export const NEWS_FEED_REVALIDATE_SECONDS = 60;
 export const WELFARE_FEED_REVALIDATE_SECONDS = 300;
 
+export type FeedRow = { category_id?: unknown; videos?: unknown; articles?: unknown; updated_at?: unknown };
+
 export type FeedRepository = {
-  videoRows(categoryId: string): Promise<Array<{ category_id?: unknown; videos?: unknown }> | null>;
-  newsRows(categoryId: string): Promise<Array<{ category_id?: unknown; articles?: unknown }> | null>;
-  welfarePayload(feedKey: string): Promise<WelfarePayload | null>;
+  videoRows(categoryId: string, options?: { fresh?: boolean }): Promise<FeedRow[] | null>;
+  newsRows(categoryId: string, options?: { fresh?: boolean }): Promise<FeedRow[] | null>;
+  welfarePayload(
+    feedKey: string,
+    options?: { fresh?: boolean },
+  ): Promise<{ payload: WelfarePayload; updatedAt?: string } | null>;
 };
 
 function byCategory(table: string, columns: string, categoryId: string): string {
@@ -20,10 +25,15 @@ function byCategory(table: string, columns: string, categoryId: string): string 
 }
 
 export function createFeedRepository(rest: RestClient): FeedRepository {
-  async function rows<T>(path: string, tag: string, revalidateSeconds: number): Promise<T[] | null> {
+  async function rows<T>(
+    path: string,
+    tag: string,
+    revalidateSeconds: number,
+    fresh?: boolean,
+  ): Promise<T[] | null> {
     const result = await rest.request<T[]>("anon", {
       path,
-      revalidateSeconds,
+      revalidateSeconds: fresh ? undefined : revalidateSeconds,
       tags: [tag],
     });
     if (!result.ok || !Array.isArray(result.data)) return null;
@@ -31,26 +41,39 @@ export function createFeedRepository(rest: RestClient): FeedRepository {
   }
 
   return {
-    videoRows: (categoryId) =>
-      rows(
-        byCategory("youtube_feeds", "category_id,videos", categoryId),
+    videoRows: (categoryId, options) =>
+      rows<FeedRow>(
+        byCategory("youtube_feeds", "category_id,videos,updated_at", categoryId),
         "youtube_feeds",
         VIDEO_FEED_REVALIDATE_SECONDS,
+        options?.fresh,
       ),
-    newsRows: (categoryId) =>
-      rows(
-        byCategory("news_feeds", "category_id,articles", categoryId),
+    newsRows: (categoryId, options) =>
+      rows<FeedRow>(
+        byCategory("news_feeds", "category_id,articles,updated_at", categoryId),
         "news_feeds",
         NEWS_FEED_REVALIDATE_SECONDS,
+        options?.fresh,
       ),
-    async welfarePayload(feedKey) {
-      const found = await rows<{ payload?: WelfarePayload }>(
-        `welfare_feeds?feed_key=eq.${encodeURIComponent(feedKey)}&select=payload&limit=1`,
+    async welfarePayload(feedKey, options) {
+      const found = await rows<{ payload?: WelfarePayload; updated_at?: unknown }>(
+        `welfare_feeds?feed_key=eq.${encodeURIComponent(feedKey)}&select=payload,updated_at&limit=1`,
         "welfare_feeds",
         WELFARE_FEED_REVALIDATE_SECONDS,
+        options?.fresh,
       );
-      const payload = found?.[0]?.payload;
-      return payload && typeof payload === "object" ? payload : null;
+      const row = found?.[0];
+      const payload = row?.payload;
+      if (!payload || typeof payload !== "object") return null;
+      const updatedRaw = row?.updated_at;
+      const updatedAt =
+        typeof updatedRaw === "string" || typeof updatedRaw === "number"
+          ? new Date(updatedRaw).toISOString()
+          : undefined;
+      return {
+        payload,
+        updatedAt: updatedAt && !Number.isNaN(Date.parse(updatedAt)) ? updatedAt : undefined,
+      };
     },
   };
 }

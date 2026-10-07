@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { FeedRefreshBar } from "@/components/FeedRefreshBar";
 import { SafetyTipGrid } from "@/components/SafetyTips";
 import { Grid, Info, Screen, Status } from "@/components/ui";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,7 +23,7 @@ function trackNewsView(article: NewsItem) {
 
 export default function NewsPage() {
   const { user } = useAuth();
-  const { articles, message } = useNews();
+  const { articles, message, updatedAt, refreshing, refresh } = useNews();
   const profile = useMemo(
     () => parseAccountProfileFromMeta(user?.user_metadata ?? undefined),
     [user],
@@ -32,6 +33,12 @@ export default function NewsPage() {
 
   return (
     <Screen title="뉴스" lead={lead}>
+      <FeedRefreshBar
+        updatedAt={updatedAt}
+        refreshing={refreshing}
+        onRefresh={() => void refresh()}
+        label="뉴스 업데이트"
+      />
       {message ? <Status>{message}</Status> : null}
       {articles.length ? (
         <Grid kind="info">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { FeedRefreshBar } from "@/components/FeedRefreshBar";
 import { Grid, LineButton, Media, Player, Screen, Status } from "@/components/ui";
 import { useAuth } from "@/hooks/use-auth";
 import { useVideos } from "@/hooks/use-feeds";
@@ -29,7 +30,7 @@ function openVideo(video: VideoItem, setPlaying: (video: VideoItem) => void) {
 
 export default function VideosPage() {
   const { user } = useAuth();
-  const { videos, message } = useVideos();
+  const { videos, message, updatedAt, refreshing, refresh } = useVideos();
   const [playing, setPlaying] = useState<VideoItem | null>(null);
 
   const profile = useMemo(
@@ -117,6 +118,12 @@ export default function VideosPage() {
 
   return (
     <Screen title="영상" lead={interestLead}>
+      <FeedRefreshBar
+        updatedAt={updatedAt}
+        refreshing={refreshing}
+        onRefresh={() => void refresh()}
+        label="영상 업데이트"
+      />
       {message ? <Status>{message}</Status> : null}
       {profile.interests.length ? (
         <Status>관심 주제: {videoInterestLabels(profile.interests)}</Status>

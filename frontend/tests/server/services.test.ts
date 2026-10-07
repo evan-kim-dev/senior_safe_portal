@@ -188,11 +188,15 @@ describe("feed service", () => {
   });
 
   it("복지는 지역|분류 키로 찾는다", async () => {
-    const welfarePayload = vi.fn(async () => ({ region: "서울", services: [{ servNm: "돌봄" }] }));
+    const welfarePayload = vi.fn(async () => ({
+      payload: { region: "서울", services: [{ servNm: "돌봄" }] },
+      updatedAt: "2026-10-07T12:00:00.000Z",
+    }));
     const service = createFeedService({ videoRows: async () => [], newsRows: async () => [], welfarePayload });
     const result = await service.welfare({ region: "서울", category: "all" });
-    expect(welfarePayload).toHaveBeenCalledWith("서울|all");
+    expect(welfarePayload).toHaveBeenCalledWith("서울|all", { fresh: undefined });
     expect(result.cards).toHaveLength(1);
+    expect(result.updatedAt).toBe("2026-10-07T12:00:00.000Z");
   });
 });
 

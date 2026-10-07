@@ -3290,6 +3290,58 @@ button.mosaic-lead {
   cursor: not-allowed;
 }
 
+.feed-refresh-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem 0.85rem;
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.feed-refresh-time {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.feed-refresh-time strong {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.feed-refresh-busy {
+  color: var(--primary-strong);
+  font-weight: 700;
+}
+
+.feed-refresh-manual {
+  appearance: none;
+  min-height: 2.35rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--primary-strong);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.feed-refresh-manual:hover:not(:disabled) {
+  background: var(--primary-soft);
+}
+
+.feed-refresh-manual:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .care-roster-badge {
   flex-shrink: 0;
   padding: 0.15rem 0.55rem;

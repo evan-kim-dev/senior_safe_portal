@@ -10,9 +10,13 @@ export const POST = withRoute("videos", { rateLimit: { limit: 60, windowMs: 60_0
   const input = parseFeedInput(body.ok ? body.value : null);
   if (!input.ok) return json({ ok: false, message: input.message }, { status: 400 });
   const user = await requireUser(request);
+  const fresh =
+    body.ok &&
+    Boolean(body.value && typeof body.value === "object" && (body.value as { refresh?: unknown }).refresh === true);
   return json(
     await getServices().feeds.videos(input.value.categoryId, {
       metadata: user?.metadata,
+      fresh,
     }),
   );
 });

@@ -17,9 +17,13 @@ export const POST = withRoute("welfare", { rateLimit: { limit: 60, windowMs: 60_
   const input = parseWelfareInput(body.value);
   if (!input.ok) return json({ ok: false, message: input.message }, { status: 400 });
   const user = await requireUser(request);
+  const fresh = Boolean(
+    body.value && typeof body.value === "object" && (body.value as { refresh?: unknown }).refresh === true,
+  );
   return json(
     await getServices().feeds.welfare(input.value, {
       metadata: user?.metadata,
+      fresh,
     }),
   );
 });

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { FeedRefreshBar } from "@/components/FeedRefreshBar";
 import { Icon } from "@/components/icons";
 import { Rail } from "@/components/Rail";
 import { TipCard } from "@/components/SafetyTips";
@@ -50,7 +51,7 @@ function pickSideNews(articles: readonly NewsItem[], leadIndex: number, count: n
 }
 
 export function VideoRail() {
-  const { videos, message } = useVideos();
+  const { videos, message, updatedAt, refreshing, refresh } = useVideos();
 
   return (
     <Section
@@ -59,6 +60,12 @@ export function VideoRail() {
       more={{ href: "/videos", label: "전체 보기" }}
       className="section-tint"
     >
+      <FeedRefreshBar
+        updatedAt={updatedAt}
+        refreshing={refreshing}
+        onRefresh={() => void refresh()}
+        label="영상 업데이트"
+      />
       {videos.length === 0 ? (
         <Status>{message}</Status>
       ) : (
@@ -124,6 +131,7 @@ function LeadCard({
 
 export function NewsSection() {
   const news = useNews();
+  const { updatedAt, refreshing, refresh } = news;
   const pool = news.articles.slice(0, LEAD_POOL);
   const [leadIndex, setLeadIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -160,6 +168,12 @@ export function NewsSection() {
       title="오늘의 뉴스"
       more={{ href: "/news", label: "전체 보기" }}
     >
+      <FeedRefreshBar
+        updatedAt={updatedAt}
+        refreshing={refreshing}
+        onRefresh={() => void refresh()}
+        label="뉴스 업데이트"
+      />
       {pool.length === 0 && news.message ? <Status>{news.message}</Status> : null}
       <div className="mosaic mosaic-news">
         <LeadCard
@@ -197,6 +211,12 @@ export function WelfareSection() {
       more={{ href: "/welfare", label: "전체 보기" }}
       className="section-soft"
     >
+      <FeedRefreshBar
+        updatedAt={welfare.updatedAt}
+        refreshing={welfare.refreshing}
+        onRefresh={() => void welfare.refresh()}
+        label="복지 업데이트"
+      />
       {cards.length === 0 ? (
         <Status>{welfare.message}</Status>
       ) : (

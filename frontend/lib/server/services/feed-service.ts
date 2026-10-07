@@ -5,6 +5,7 @@ import {
   shouldPersonalizeFeeds,
   welfarePreferenceKeywords,
 } from "@/lib/domain/account-profile";
+import { maxUpdatedAt } from "@/lib/domain/feed-meta";
 import { mapNews, mapVideos, mapWelfare, rankWelfareCards } from "@/lib/domain/feeds";
 import { MESSAGES } from "@/lib/domain/messages";
 import type { NewsResponse, VideosResponse, WelfareResponse } from "@/lib/domain/types";
@@ -13,6 +14,7 @@ import type { FeedRepository } from "../repositories/feed-repository";
 
 export type FeedUserOptions = {
   metadata?: Record<string, unknown> | null;
+  fresh?: boolean;
 };
 
 export type FeedService = {
@@ -25,7 +27,7 @@ export type FeedService = {
 export function createFeedService(repo: FeedRepository): FeedService {
   return {
     async videos(categoryId, options = {}) {
-      const rows = await repo.videoRows(categoryId);
+      const rows = await repo.videoRows(categoryId, { fresh: options.fresh });
       if (!rows) return { ok: true, videos: [], message: MESSAGES.emptyFeed };
       const profile = parseAccountProfileFromMeta(options.metadata);
       const preferred = shouldPersonalizeFeeds(profile)
@@ -38,11 +40,12 @@ export function createFeedService(repo: FeedRepository): FeedService {
       return {
         ok: true,
         videos: mapVideos(rows, preferred ? { preferredCategories: preferred } : undefined),
+        updatedAt: maxUpdatedAt(rows),
       };
     },
 
     async news(categoryId, options = {}) {
-      const rows = await repo.newsRows(categoryId);
+      const rows = await repo.newsRows(categoryId, { fresh: options.fresh });
       if (!rows) return { ok: true, articles: [], message: MESSAGES.emptyFeed };
       const profile = parseAccountProfileFromMeta(options.metadata);
       const preferred = shouldPersonalizeFeeds(profile)
@@ -55,21 +58,29 @@ export function createFeedService(repo: FeedRepository): FeedService {
       return {
         ok: true,
         articles: mapNews(rows, preferred ? { preferredCategories: preferred } : undefined),
+        updatedAt: maxUpdatedAt(rows),
       };
     },
 
     async welfare({ region, category }, options = {}) {
-      const payload = await repo.welfarePayload(`${region}|${category}`);
-      if (!payload) return { ok: true, place: region, cards: [], message: MESSAGES.emptyFeed };
-      const { place, cards } = mapWelfare(payload, region);
+      const found = await repo.welfarePayload(`${region}|${category}`, { fresh: options.fresh });
+      if (!found) return { ok: true, place: region, cards: [], message: MESSAGES.emptyFeed };
+      const { place, cards } = mapWelfare(found.payload, region);
       const profile = parseAccountProfileFromMeta(options.metadata);
-      if (!shouldPersonalizeFeeds(profile)) return { ok: true, place, cards };
+      if (!shouldPersonalizeFeeds(profile)) {
+        return { ok: true, place, cards, updatedAt: found.updatedAt };
+      }
       const keywords = welfarePreferenceKeywords({
         role: "senior",
         birthYear: profile.birthYear,
         interests: profile.interests,
       });
-      return { ok: true, place, cards: rankWelfareCards(cards, keywords) };
+      return {
+        ok: true,
+        place,
+        cards: rankWelfareCards(cards, keywords),
+        updatedAt: found.updatedAt,
+      };
     },
   };
 }

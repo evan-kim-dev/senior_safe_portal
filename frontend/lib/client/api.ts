@@ -73,6 +73,13 @@ type CacheEntry = { expiresAt: number; promise: Promise<unknown> };
 
 const memo = new Map<string, CacheEntry>();
 
+/** 수동 새로고침 때 같은 경로의 클라이언트 캐시를 비운다. */
+export function invalidateCachedPosts(pathPrefix: string) {
+  for (const key of memo.keys()) {
+    if (key.startsWith(`${pathPrefix}:`)) memo.delete(key);
+  }
+}
+
 /**
  * 같은 화면을 오가도 피드를 다시 받지 않게 잠깐 기억한다.
  * keep 이 false 를 돌려주는 응답(실패)은 기억하지 않는다.
@@ -82,18 +89,31 @@ export function cachedPostJson<T>(
   body: unknown,
   ttlMs: number,
   keep: (data: T) => boolean,
-  options?: RequestOptions & { cacheKey?: string },
+  options?: RequestOptions & { cacheKey?: string; bypassCache?: boolean },
 ): Promise<T> {
-  const key = `${path}:${JSON.stringify(body)}:${options?.cacheKey ?? ""}`;
+  // cacheKey 가 있으면 body(refresh 등)와 무관하게 같은 항목으로 묶는다.
+  const key =
+    options?.cacheKey != null && options.cacheKey !== ""
+      ? `${path}:${options.cacheKey}`
+      : `${path}:${JSON.stringify(body)}`;
   const now = Date.now();
-  const hit = memo.get(key);
-  if (hit && hit.expiresAt > now) return hit.promise as Promise<T>;
+  if (!options?.bypassCache) {
+    const hit = memo.get(key);
+    if (hit && hit.expiresAt > now) return hit.promise as Promise<T>;
+  } else {
+    memo.delete(key);
+  }
 
   const entry: CacheEntry = { expiresAt: now + ttlMs, promise: Promise.resolve() };
   const drop = () => {
     if (memo.get(key) === entry) memo.delete(key);
   };
-  const promise = postJson<T>(path, body, options).then(
+  const requestOptions: RequestOptions = {
+    timeoutMs: options?.timeoutMs,
+    signal: options?.signal,
+    headers: options?.headers,
+  };
+  const promise = postJson<T>(path, body, requestOptions).then(
     (data) => {
       if (!keep(data)) drop();
       return data;

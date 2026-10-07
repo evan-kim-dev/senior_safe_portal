@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { FeedRefreshBar } from "@/components/FeedRefreshBar";
 import { Grid, Info, Screen, Status } from "@/components/ui";
 import { useAuth } from "@/hooks/use-auth";
 import { loadWelfareView } from "@/lib/client/feeds";
@@ -39,13 +40,25 @@ export default function WelfarePage() {
     cards: [],
     placeLabel: "",
     message: FEED_MESSAGES.welfare.loading,
+    updatedAt: null,
   });
+  const [refreshing, setRefreshing] = useState(false);
   const profile = useMemo(
     () => parseAccountProfileFromMeta(user?.user_metadata ?? undefined),
     [user],
   );
   const lead =
     personalizedFeedLead("welfare", profile) ?? "사는 곳에 맞는 복지 혜택을 알려 드려요.";
+
+  const reload = useCallback(async (force = false) => {
+    if (force) setRefreshing(true);
+    try {
+      const next = await loadWelfareView(force ? { force: true } : undefined);
+      setView(next);
+    } finally {
+      if (force) setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
     const stored = loadGuardian().region || "서울";
@@ -55,7 +68,12 @@ export default function WelfarePage() {
   useEffect(() => {
     let alive = true;
     saveRegion(region);
-    setView({ cards: [], placeLabel: "", message: FEED_MESSAGES.welfare.loading });
+    setView({
+      cards: [],
+      placeLabel: "",
+      message: FEED_MESSAGES.welfare.loading,
+      updatedAt: null,
+    });
     void loadWelfareView().then((next) => {
       if (alive) setView(next);
     });
@@ -66,6 +84,12 @@ export default function WelfarePage() {
 
   return (
     <Screen title="복지" lead={lead}>
+      <FeedRefreshBar
+        updatedAt={view.updatedAt}
+        refreshing={refreshing}
+        onRefresh={() => void reload(true)}
+        label="복지 업데이트"
+      />
       <label className="field" htmlFor="welfare-region">
         <span>사는 곳</span>
         <select
