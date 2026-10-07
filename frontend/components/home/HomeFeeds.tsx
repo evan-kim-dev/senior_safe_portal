@@ -86,7 +86,7 @@ function LeadCard({
         <span className="tag tag-light">오늘의 보안 수칙</span>
         <strong>{tip.title}</strong>
         <span className="mosaic-meta">{tip.text}</span>
-        <span className="info-more">단디에게 묻기 <Icon name="arrow" /></span>
+        <span className="info-more">마카에게 묻기 <Icon name="arrow" /></span>
       </button>
     );
   }

@@ -11,7 +11,7 @@ export function TipCard({ tip }: { tip: SafetyTip }) {
       <span className="tag">보안 수칙</span>
       <strong className="info-title">{tip.title}</strong>
       <p>{tip.text}</p>
-      <span className="info-more">단디에게 묻기 <Icon name="arrow" /></span>
+      <span className="info-more">마카에게 묻기 <Icon name="arrow" /></span>
     </button>
   );
 }

@@ -33,7 +33,7 @@ export function getSiteChatHtml() {
               <img src="${assetUrl(MASCOT_SRC)}" alt="" class="chat-header-mascot" width="36" height="36" />
             </div>
             <div class="chat-header-text">
-              <h3 id="chat-title">보안관 단디</h3>
+              <h3 id="chat-title">보안관 마카</h3>
               <p class="chat-header-status">
                 <span class="chat-status-dot" aria-hidden="true"></span>
                 지금 물어볼 수 있습니다
@@ -63,7 +63,7 @@ export function getSiteChatHtml() {
       </div>
       <button type="button" id="chat-fab" class="chat-fab chat-fab--mascot">
         <img src="${assetUrl(MASCOT_SRC)}" alt="" class="chat-fab-img" width="42" height="42" />
-        <span>보안관 단디에게 물어보기</span>
+        <span>보안관 마카에게 물어보기</span>
       </button>
     </div>
   `;
@@ -228,7 +228,7 @@ export const SiteChat = {
       if (chatDom.input) chatDom.input.value = "";
       chatHistory.push({ role: "user", content: text });
 
-      const thinkingBubble = SiteChat.renderChatBubble("단디가 생각하고 있습니다...", "bot");
+      const thinkingBubble = SiteChat.renderChatBubble("마카가 생각하고 있습니다...", "bot");
       SiteChat.setSubmitting(true);
 
       const data = await chatWithAgent(text, chatHistory.slice(0, -1));
@@ -298,7 +298,7 @@ export function initSiteChat(options = {}) {
 
   if (!chatDom.messages?.childElementCount) {
     SiteChat.renderChatBubble(
-      "안녕하세요! 저는 디지털 보안관 단디예요. 의심스러운 문자, 링크, 전화 사기 등 무엇이든 편하게 물어보세요.",
+      "안녕하세요! 저는 디지털 보안관 마카예요. 의심스러운 문자, 링크, 전화 사기 등 무엇이든 편하게 물어보세요.",
       "bot",
       { featured: true },
     );

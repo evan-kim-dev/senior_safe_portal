@@ -54,15 +54,15 @@ export function ChatDock() {
 
   if (!open) {
     return (
-      <button type="button" className="chat-fab" onClick={() => setOpen(true)} aria-label="단디에게 질문하기">
+      <button type="button" className="chat-fab" onClick={() => setOpen(true)} aria-label="마카에게 질문하기">
         <span className="chat-fab-icon" aria-hidden="true">
           <img src="/mascot.png" alt="" width={28} height={28} />
         </span>
         <span className="chat-fab-caption" aria-hidden="true">
-          <span className="chat-fab-name">단디</span>
+          <span className="chat-fab-name">마카</span>
           <span className="chat-fab-hint">질문하기</span>
         </span>
-        <span className="chat-fab-label">단디에게 물어보기</span>
+        <span className="chat-fab-label">마카에게 물어보기</span>
       </button>
     );
   }
@@ -71,13 +71,13 @@ export function ChatDock() {
   const showWelcome = !chat.needsLogin && chat.turns.length === 0 && !chat.busy;
 
   return (
-    <section className="chat-panel" role="dialog" aria-modal="true" aria-label="단디와 대화">
+    <section className="chat-panel" role="dialog" aria-modal="true" aria-label="마카와 대화">
       <header className="chat-head">
         <span className="chat-avatar">
           <img src="/mascot.png" alt="" width={40} height={40} />
         </span>
         <div className="chat-title">
-          <h1>단디</h1>
+          <h1>마카</h1>
           <p>사기·보안 궁금증을 물어보세요</p>
         </div>
         <button type="button" className="chat-close" onClick={() => setOpen(false)} aria-label="대화 닫기">
@@ -90,7 +90,7 @@ export function ChatDock() {
         {chat.needsLogin ? (
           <div className="chat-welcome">
             <Status>
-              단디와 대화하려면{" "}
+              마카와 대화하려면{" "}
               <Link href="/login?next=/">로그인해 주세요</Link>.
             </Status>
             <LineButton href="/login?next=/">로그인하기</LineButton>
@@ -101,7 +101,7 @@ export function ChatDock() {
           <div className="chat-welcome">
             <div className="chat-welcome-card">
               <img src="/mascot.png" alt="" width={56} height={56} className="chat-welcome-mascot" />
-              <p className="chat-welcome-title">안녕하세요, 단디예요</p>
+              <p className="chat-welcome-title">안녕하세요, 마카예요</p>
               <p className="chat-welcome-text">링크·문자·사진이 걱정되면 편하게 물어보세요.</p>
             </div>
             <div className="chat-quick" role="group" aria-label="자주 묻는 질문">
@@ -152,7 +152,7 @@ export function ChatDock() {
         ))}
 
         {chat.busy ? (
-          <div className="chat-turn" aria-live="polite" aria-label="단디가 답을 준비하고 있어요">
+          <div className="chat-turn" aria-live="polite" aria-label="마카가 답을 준비하고 있어요">
             <span className="chat-turn-avatar" aria-hidden="true">
               <img src="/mascot.png" alt="" width={28} height={28} />
             </span>

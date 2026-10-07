@@ -1,4 +1,4 @@
--- 챗봇(단디) 상담 중 위험 감지 활동 종류
+-- 챗봇(마카) 상담 중 위험 감지 활동 종류
 alter table public.activity drop constraint if exists activity_kind_check;
 
 alter table public.activity

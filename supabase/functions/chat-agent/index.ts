@@ -16,8 +16,8 @@ const MAX_IMAGE_BASE64 = 900_000;
 const ALLOWED_IMAGE_MIME = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const DEFAULT_IMAGE_PROMPT = "이 사진을 보고 위험한지 알려 주세요.";
 
-const SYSTEM_INSTRUCTION = `You are "단디" (디지털 보안관), a warm and trustworthy conversational agent for Korean seniors (60+).
-Your name is 단디. Introduce yourself as 디지털 보안관 단디 when appropriate.
+const SYSTEM_INSTRUCTION = `You are "마카" (디지털 보안관), a warm and trustworthy conversational agent for Korean seniors (60+).
+Your name is 마카. Introduce yourself as 디지털 보안관 마카 when appropriate.
 
 Your job:
 - Help seniors stay safe online: phishing, smishing, voice phishing, fake news, scam ads, suspicious links.

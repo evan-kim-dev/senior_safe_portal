@@ -31,7 +31,7 @@ export function QuickMenu() {
 
 export function ScamRail() {
   return (
-    <Section id="scams" title="요즘 사기 수법" desc="카드를 누르면 단디에게 바로 물어볼 수 있어요.">
+    <Section id="scams" title="요즘 사기 수법" desc="카드를 누르면 마카에게 바로 물어볼 수 있어요.">
       <Rail label="사기 수법" kind="poster">
         {SCAM_TYPES.map((scam, index) => (
           <button key={scam.id} type="button" className={`poster poster-${index % 6}`} onClick={() => openChat(scam.question)}>
@@ -39,7 +39,7 @@ export function ScamRail() {
             <span className="poster-icon"><Icon name={scam.icon} /></span>
             <strong>{scam.title}</strong>
             <span className="poster-tip">{scam.tip}</span>
-            <span className="poster-more">단디에게 묻기 <Icon name="arrow" /></span>
+            <span className="poster-more">마카에게 묻기 <Icon name="arrow" /></span>
           </button>
         ))}
       </Rail>
