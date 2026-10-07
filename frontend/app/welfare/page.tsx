@@ -88,7 +88,7 @@ export default function WelfarePage() {
         updatedAt={view.updatedAt}
         refreshing={refreshing}
         onRefresh={() => void reload(true)}
-        label="복지 업데이트"
+        label="복지 저장 시각"
       />
       <label className="field" htmlFor="welfare-region">
         <span>사는 곳</span>

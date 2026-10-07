@@ -122,7 +122,7 @@ export default function VideosPage() {
         updatedAt={updatedAt}
         refreshing={refreshing}
         onRefresh={() => void refresh()}
-        label="영상 업데이트"
+        label="영상 저장 시각"
       />
       {message ? <Status>{message}</Status> : null}
       {profile.interests.length ? (

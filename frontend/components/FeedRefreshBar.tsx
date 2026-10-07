@@ -14,7 +14,7 @@ export function FeedRefreshBar({
   updatedAt,
   refreshing = false,
   onRefresh,
-  label = "정보 업데이트",
+  label = "저장 시각",
 }: Props) {
   return (
     <div className="feed-refresh-bar" aria-live="polite">
@@ -28,7 +28,7 @@ export function FeedRefreshBar({
         disabled={refreshing}
         onClick={onRefresh}
       >
-        {refreshing ? "새로고침 중…" : "지금 새로고침"}
+        {refreshing ? "새로고침 중…" : "다시 불러오기"}
       </button>
     </div>
   );

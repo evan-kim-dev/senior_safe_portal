@@ -119,7 +119,7 @@ export type FamilyFeature = { icon: ContentIcon; title: string; text: string };
 export const FAMILY_FEATURES: readonly FamilyFeature[] = [
   { icon: "users", title: "계정으로 연결", text: "자녀가 초대 코드를 만들고, 부모님이 계정연결에서 코드를 넣으면 가족이 이어져요." },
   { icon: "bell", title: "위험 활동을 함께 확인", text: "연결 후 부모님이 위험한 링크·영상을 검사하면 대시보드에 오늘 기록이 보여요." },
-  { icon: "text", title: "글자·채널 맞춤", text: "연결이 되면 QR로 부모님 폰 글자 크기와 영상 채널도 맞춰 둘 수 있어요." },
+  { icon: "text", title: "글자·관심 맞춤", text: "어르신 계정에서 글자 크기와 관심 주제를 고르면 피드가 맞춰져요." },
 ];
 
 export type Hotline = { number: string; org: string; text: string };

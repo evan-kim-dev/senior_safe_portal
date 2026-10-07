@@ -134,8 +134,8 @@ export default function LoginPage() {
               : "로그인";
 
   const lead =
-    mode === "signup" ? "어르신(senior)인지 관리자(guardian)인지 고르고 적어 주세요. 이메일 확인 없이 바로 가입돼요."
-      : mode === "emailConfirm" ? "예전에 가입한 계정은 메일 확인이 필요할 수 있어요."
+    mode === "signup" ? "어르신인지 보호자인지 고르고 적어 주세요. 가입 후 이메일 확인이 필요해요."
+      : mode === "emailConfirm" ? "메일함의 확인 링크를 눌러 주세요. 메일이 없으면 아래 버튼으로 다시 보낼 수 있어요."
         : mode === "phoneConfirm" ? "문자로 받은 확인 번호를 적어 주세요."
           : mode === "reset" ? "가입한 이메일을 적어 주세요."
             : mode === "findId" ? "휴대폰 확인이 준비되면 아이디 찾기를 열 예정이에요."
@@ -193,7 +193,13 @@ export default function LoginPage() {
     setPassword("");
     setPasswordConfirm("");
     setOtp("");
-    // 이메일·휴대폰 확인 없이 바로 로그인된 상태로 보낸다.
+    if (result.needsEmailConfirm) {
+      setMode("emailConfirm");
+      setMessage("가입 확인 메일을 보냈어요. 메일함의 링크를 눌러 주세요.");
+      setResendIn(60);
+      setBusy(false);
+      return;
+    }
     window.location.replace(accountRole === "guardian" ? "/care" : readNext());
   }
 

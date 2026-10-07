@@ -118,14 +118,12 @@ type CardProps = {
 function CareSeniorCard({ senior, busy, onOpen, onUpdate, onRemove }: CardProps) {
   const [mode, setMode] = useState<"idle" | "edit" | "remove">("idle");
   const [editName, setEditName] = useState(senior.displayName);
-  const [editBirthYear, setEditBirthYear] = useState(senior.birthYear ? String(senior.birthYear) : "");
   const [removeConfirm, setRemoveConfirm] = useState("");
   const [localHint, setLocalHint] = useState("");
 
   function startEdit() {
     setMode("edit");
     setEditName(senior.displayName);
-    setEditBirthYear(senior.birthYear ? String(senior.birthYear) : "");
     setLocalHint("");
   }
 
@@ -142,7 +140,7 @@ function CareSeniorCard({ senior, busy, onOpen, onUpdate, onRemove }: CardProps)
   }
 
   async function saveEdit() {
-    const checked = validateSeniorProfileEdit({ name: editName, birthYear: editBirthYear });
+    const checked = validateSeniorProfileEdit({ name: editName, birthYear: "" });
     if (!checked.ok) {
       setLocalHint(checked.message);
       return;
@@ -150,7 +148,7 @@ function CareSeniorCard({ senior, busy, onOpen, onUpdate, onRemove }: CardProps)
     const ok = await onUpdate({
       seniorUserId: senior.userId,
       displayName: checked.value.name,
-      birthYear: checked.value.birthYear,
+      birthYear: null,
     });
     if (ok) cancelMode();
   }
@@ -220,16 +218,7 @@ function CareSeniorCard({ senior, busy, onOpen, onUpdate, onRemove }: CardProps)
             disabled={busy}
             onChange={(event) => setEditName(event.target.value)}
           />
-          <Field
-            id={`senior-edit-birth-${senior.userId}`}
-            label="태어난 해"
-            inputMode="numeric"
-            maxLength={4}
-            value={editBirthYear}
-            placeholder="예: 1948"
-            disabled={busy}
-            onChange={(event) => setEditBirthYear(event.target.value)}
-          />
+          <p className="care-senior-card-hint">태어난 해·관심사는 어르신 계정에서만 바꿀 수 있어요.</p>
           <div className="care-senior-card-actions">
             <button type="button" className="care-senior-card-action is-primary" disabled={busy} onClick={() => void saveEdit()}>
               {busy ? "저장 중…" : "저장"}

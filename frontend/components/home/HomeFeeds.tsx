@@ -64,7 +64,7 @@ export function VideoRail() {
         updatedAt={updatedAt}
         refreshing={refreshing}
         onRefresh={() => void refresh()}
-        label="영상 업데이트"
+        label="영상 저장 시각"
       />
       {videos.length === 0 ? (
         <Status>{message}</Status>
@@ -172,7 +172,7 @@ export function NewsSection() {
         updatedAt={updatedAt}
         refreshing={refreshing}
         onRefresh={() => void refresh()}
-        label="뉴스 업데이트"
+        label="뉴스 저장 시각"
       />
       {pool.length === 0 && news.message ? <Status>{news.message}</Status> : null}
       <div className="mosaic mosaic-news">

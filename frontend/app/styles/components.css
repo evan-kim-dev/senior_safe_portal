@@ -3290,6 +3290,16 @@ button.mosaic-lead {
   cursor: not-allowed;
 }
 
+.care-profile-hint {
+  margin: 0.35rem 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--ink-2);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
 .feed-refresh-bar {
   display: flex;
   flex-wrap: wrap;

@@ -30,6 +30,8 @@ export const MESSAGES = {
   familyNotFound: "연결된 가족이 없어요.",
   familyLoadFailed: "가족 정보를 불러오지 못했어요.",
   familyGuardianOnly: "자녀(보호자) 계정에서만 가족을 만들 수 있어요.",
+  familySeniorOnly: "어르신 계정에서만 초대 코드로 연결할 수 있어요.",
+  familyRoleRequired: "가입할 때 보호자 또는 어르신으로 역할을 골라 주세요.",
   familyLeaveFailed: "연결을 해제하지 못했어요. 잠시 후 다시 눌러 주세요.",
   familyResetFailed: "연결을 초기화하지 못했어요. 잠시 후 다시 눌러 주세요.",
   familyLeaveConfirm: "해제하려면 아래 칸에 ‘해제’라고 적어 주세요.",

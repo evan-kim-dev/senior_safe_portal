@@ -1,3 +1,4 @@
+import { parseAccountProfileFromMeta, type AccountRole } from "@/lib/domain/account-profile";
 import {
   familySeniorDisplayName,
   generateInviteCode,
@@ -14,6 +15,15 @@ import { isFamilyCode } from "@/lib/domain/validation";
 import { resolveSeniorProfiles, updateSeniorAuthProfile } from "../gateways/auth-admin";
 import type { ActivityService } from "./activity-service";
 import type { FamilyRepository } from "../repositories/family-repository";
+
+export type FamilyActor = {
+  userId: string;
+  metadata?: Record<string, unknown> | null;
+};
+
+function accountRoleOf(actor: FamilyActor): AccountRole | null {
+  return parseAccountProfileFromMeta(actor.metadata ?? undefined).role;
+}
 
 export type FamilyCreateResult =
   | { ok: true; familyId: string; inviteCode: string; inviteExpiresAt: string }
@@ -50,8 +60,8 @@ export type FamilySeniorMutationResult =
   | { ok: false; message: string; status: number };
 
 export type FamilyService = {
-  create(userId: string, options?: { refresh?: boolean }): Promise<FamilyCreateResult>;
-  join(userId: string, code: unknown): Promise<FamilyJoinResult>;
+  create(actor: FamilyActor, options?: { refresh?: boolean }): Promise<FamilyCreateResult>;
+  join(actor: FamilyActor, code: unknown): Promise<FamilyJoinResult>;
   me(userId: string, now?: Date): Promise<FamilyMeResult>;
   leave(userId: string): Promise<FamilyLeaveResult>;
   reset(userId: string): Promise<FamilyLeaveResult>;
@@ -133,7 +143,10 @@ export function createFamilyService(repo: FamilyRepository, activity: ActivitySe
       const target = seniors.find((row) => row.user_id === seniorUserId);
       if (!target) return { ok: false, message: MESSAGES.familySeniorNotFound, status: 404 };
 
-      const updated = await updateSeniorAuthProfile(seniorUserId, patch);
+      // 출생연도는 피드 맞춤 키라 본인 Auth만 바꾼다. 보호자는 표시 이름만 고친다.
+      const updated = await updateSeniorAuthProfile(seniorUserId, {
+        displayName: patch.displayName,
+      });
       if (!updated) return { ok: false, message: MESSAGES.familySeniorUpdateFailed, status: 502 };
       return { ok: true };
     },
@@ -154,7 +167,12 @@ export function createFamilyService(repo: FamilyRepository, activity: ActivitySe
       return { ok: true };
     },
 
-    async create(userId, options = {}) {
+    async create(actor, options = {}) {
+      const role = accountRoleOf(actor);
+      if (role == null) return { ok: false, message: MESSAGES.familyRoleRequired, status: 403 };
+      if (role !== "guardian") return { ok: false, message: MESSAGES.familyGuardianOnly, status: 403 };
+
+      const userId = actor.userId;
       const existing = await repo.findMembership(userId);
       if (existing) {
         if (existing.role !== "guardian") {
@@ -192,7 +210,12 @@ export function createFamilyService(repo: FamilyRepository, activity: ActivitySe
       return { ok: true, familyId, inviteCode: issued.code, inviteExpiresAt: issued.expiresAt };
     },
 
-    async join(userId, rawCode) {
+    async join(actor, rawCode) {
+      const role = accountRoleOf(actor);
+      if (role == null) return { ok: false, message: MESSAGES.familyRoleRequired, status: 403 };
+      if (role !== "senior") return { ok: false, message: MESSAGES.familySeniorOnly, status: 403 };
+
+      const userId = actor.userId;
       const existing = await repo.findMembership(userId);
       if (existing) return { ok: false, message: MESSAGES.familyAlreadyMember, status: 409 };
 

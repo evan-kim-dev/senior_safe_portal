@@ -64,10 +64,10 @@ export async function resolveSeniorProfiles(userIds: string[]): Promise<Map<stri
   return out;
 }
 
-/** 보호자가 어르신 표시 이름·출생연도를 고친다. */
+/** 보호자가 어르신 표시 이름만 고친다. 출생연도 등 맞춤 키는 건드리지 않는다. */
 export async function updateSeniorAuthProfile(
   userId: string,
-  patch: { displayName: string; birthYear: number | null },
+  patch: { displayName: string },
 ): Promise<boolean> {
   const admin = createAdminClient();
   if (!admin || !userId) return false;
@@ -81,11 +81,6 @@ export async function updateSeniorAuthProfile(
       full_name: patch.displayName,
       name: patch.displayName,
     };
-    if (patch.birthYear == null) {
-      nextMeta.birth_year = null;
-    } else {
-      nextMeta.birth_year = patch.birthYear;
-    }
 
     const updated = await admin.auth.admin.updateUserById(userId, { user_metadata: nextMeta });
     return !updated.error;

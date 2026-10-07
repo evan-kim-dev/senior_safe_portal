@@ -18,7 +18,7 @@ export const POST = withRoute("family.join", { rateLimit: { limit: 5, windowMs: 
   }
 
   const code = body.value && typeof body.value === "object" ? (body.value as { code?: unknown }).code : undefined;
-  const result = await getServices().family.join(user.id, code);
+  const result = await getServices().family.join({ userId: user.id, metadata: user.metadata }, code);
   if (!result.ok) return json({ ok: false, message: result.message }, { status: result.status });
   return json({ ok: true, familyId: result.familyId, role: result.role });
 });

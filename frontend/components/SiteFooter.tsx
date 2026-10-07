@@ -15,7 +15,7 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="wrap footer-inner">
         <div className="footer-brand">
-          <strong className="footer-name">시니어 디지털 보안관</strong>
+          <strong className="footer-name">시니어 안심</strong>
           <p className="footer-desc">
             어르신과 가족이 함께 쓰는 디지털 안심 도우미입니다.
             <br />
@@ -40,7 +40,7 @@ export function SiteFooter() {
               </span>
             ))}
           </nav>
-          <p className="footer-copy">© {YEAR} 시니어 디지털 보안관</p>
+          <p className="footer-copy">© {YEAR} 시니어 안심</p>
         </div>
       </div>
     </footer>

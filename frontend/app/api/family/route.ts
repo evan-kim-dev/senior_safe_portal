@@ -18,7 +18,10 @@ export const POST = withRoute("family.create", { rateLimit: { limit: 20, windowM
     ? Boolean((body.value as { refresh?: unknown }).refresh)
     : false;
 
-  const result = await getServices().family.create(user.id, { refresh });
+  const result = await getServices().family.create(
+    { userId: user.id, metadata: user.metadata },
+    { refresh },
+  );
   if (!result.ok) return json({ ok: false, message: result.message }, { status: result.status });
   return json({
     ok: true,

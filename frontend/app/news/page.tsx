@@ -37,7 +37,7 @@ export default function NewsPage() {
         updatedAt={updatedAt}
         refreshing={refreshing}
         onRefresh={() => void refresh()}
-        label="뉴스 업데이트"
+        label="뉴스 저장 시각"
       />
       {message ? <Status>{message}</Status> : null}
       {articles.length ? (
