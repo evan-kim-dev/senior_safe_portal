@@ -3935,9 +3935,7 @@ body[data-chat-open="1"] {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 4%;
-  transform: scale(2.55);
-  transform-origin: 50% 6%;
+  object-position: center 35%;
 }
 
 .chat-title {
@@ -4108,9 +4106,7 @@ body[data-chat-open="1"] {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 4%;
-  transform: scale(2.55);
-  transform-origin: 50% 6%;
+  object-position: center 35%;
 }
 
 .chat-turn-body {
