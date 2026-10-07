@@ -3934,8 +3934,10 @@ body[data-chat-open="1"] {
 .chat-avatar img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center 35%;
+  object-fit: cover;
+  object-position: 50% 10%;
+  transform: scale(1.7);
+  transform-origin: 50% 14%;
 }
 
 .chat-title {
