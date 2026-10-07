@@ -9,6 +9,7 @@ import {
   validateSignUpForm,
   type SignUpFormInput,
 } from "@/lib/domain/auth-form";
+import { postJson } from "./api";
 
 let client: SupabaseClient | null = null;
 
@@ -120,7 +121,8 @@ export type SignUpResult =
   | { ok: true; needsEmailConfirm: boolean; needsPhoneConfirm: boolean; phone: string }
   | { ok: false; message: string };
 
-export async function signUpWithEmail(input: SignUpFormInput, next?: string | null): Promise<SignUpResult> {
+/** 서버에서 이메일 확인 없이 계정을 만든 뒤 바로 로그인한다. */
+export async function signUpWithEmail(input: SignUpFormInput, _next?: string | null): Promise<SignUpResult> {
   const checked = validateSignUpForm(input);
   if (!checked.ok) return { ok: false, message: checked.message };
 
@@ -128,48 +130,37 @@ export async function signUpWithEmail(input: SignUpFormInput, next?: string | nu
   if (!supabase) return { ok: false, message: "지금 가입할 수 없어요. 잠시 후 다시 눌러 주세요." };
 
   try {
-    const { data, error } = await supabase.auth.signUp({
+    const created = await postJson<{ ok: boolean; message?: string }>("/api/auth/signup", {
+      name: input.name,
+      nickname: input.nickname,
+      email: input.email,
+      phone: input.phone,
+      password: input.password,
+      passwordConfirm: input.passwordConfirm,
+      accountRole: input.accountRole,
+      birthYear: input.birthYear,
+      interests: input.interests,
+      agreeTerms: input.agreeTerms,
+      agreePrivacy: input.agreePrivacy,
+    });
+    if (!created.ok) {
+      return { ok: false, message: created.message || "가입하지 못했어요. 잠시 후 다시 눌러 주세요." };
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
       email: checked.value.email,
       password: checked.value.password,
-      options: {
-        emailRedirectTo: authCallbackUrl(next),
-        data: {
-          full_name: checked.value.name,
-          nickname: checked.value.nickname,
-          phone: checked.value.phone,
-          account_role: checked.value.accountRole,
-          birth_year: checked.value.birthYear,
-          interests: checked.value.interests,
-        },
-      },
     });
     if (error) {
-      return { ok: false, message: authErrorMessage(error, "가입하지 못했어요. 잠시 후 다시 눌러 주세요.") };
-    }
-
-    // 이미 가입된 이메일이면 에러 없이 빈 identities 로 올 수 있다.
-    const identities = data.user?.identities;
-    if (data.user && Array.isArray(identities) && identities.length === 0) {
-      return { ok: false, message: "이미 가입한 이메일이에요. 로그인해 주세요." };
-    }
-
-    try {
-      sessionStorage.setItem("ssp.pendingSignupEmail", checked.value.email);
-      sessionStorage.setItem("ssp.pendingSignupPhone", checked.value.phone);
-    } catch {
-      // ignore
-    }
-
-    const hasSession = Boolean(data.session);
-    if (hasSession) {
-      // 세션이 있으면 바로 휴대폰 확인 문자를 보낸다. 실패해도 확인 화면에서 다시 받을 수 있다.
-      await sendPhoneOtp(checked.value.phone);
-      return { ok: true, needsEmailConfirm: false, needsPhoneConfirm: true, phone: checked.value.phone };
+      return {
+        ok: false,
+        message: authErrorMessage(error, "가입은 됐지만 로그인하지 못했어요. 로그인해 주세요."),
+      };
     }
 
     return {
       ok: true,
-      needsEmailConfirm: true,
+      needsEmailConfirm: false,
       needsPhoneConfirm: false,
       phone: checked.value.phone,
     };

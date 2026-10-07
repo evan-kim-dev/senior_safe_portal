@@ -11,6 +11,12 @@ import { MAX_CHAT_MESSAGE_LENGTH } from "@/lib/domain/validation";
 import { LineButton, Status } from "@/components/ui";
 import { Icon } from "./icons";
 
+const QUICK_PROMPTS = [
+  "이 링크가 위험할까요?",
+  "보이스피싱인지 알려 주세요",
+  "문자에 온 사진을 검사해 주세요",
+] as const;
+
 function formatChatTime(at: number) {
   return new Date(at).toLocaleTimeString("ko-KR", {
     hour: "numeric",
@@ -32,29 +38,36 @@ export function ChatDock() {
 
   useEffect(() => {
     if (!open) return;
+    document.body.dataset.chatOpen = "1";
     document.getElementById("chat-text")?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      delete document.body.dataset.chatOpen;
+      window.removeEventListener("keydown", onKey);
+    };
   }, [open, setOpen]);
 
   if (isStandaloneRoute(pathname)) return null;
 
   if (!open) {
     return (
-      <button type="button" className="chat-fab" onClick={() => setOpen(true)}>
-        <Icon name="chat" />
-        <span>단디에게 물어보기</span>
+      <button type="button" className="chat-fab" onClick={() => setOpen(true)} aria-label="단디에게 물어보기">
+        <span className="chat-fab-icon" aria-hidden="true">
+          <img src="/mascot.png" alt="" width={28} height={28} />
+        </span>
+        <span className="chat-fab-label">단디에게 물어보기</span>
       </button>
     );
   }
 
   const canSend = Boolean(chat.text.trim() || chat.attachment) && !chat.busy && !chat.needsLogin;
+  const showWelcome = !chat.needsLogin && chat.turns.length === 0 && !chat.busy;
 
   return (
-    <section className="chat-panel" role="dialog" aria-label="단디와 대화">
+    <section className="chat-panel" role="dialog" aria-modal="true" aria-label="단디와 대화">
       <header className="chat-head">
         <span className="chat-avatar">
           <img src="/mascot.png" alt="" width={40} height={40} />
@@ -63,49 +76,95 @@ export function ChatDock() {
           <h1>단디</h1>
           <p>사기·보안 궁금증을 물어보세요</p>
         </div>
-        <button type="button" className="chat-close" onClick={() => setOpen(false)}>
+        <button type="button" className="chat-close" onClick={() => setOpen(false)} aria-label="대화 닫기">
           <Icon name="close" />
-          <span>닫기</span>
+          <span className="chat-close-label">닫기</span>
         </button>
       </header>
+
       <div className="chat-log" role="log" ref={logRef}>
         {chat.needsLogin ? (
-          <Status>
-            단디와 대화하려면{" "}
-            <Link href="/login?next=/">로그인해 주세요</Link>.
-          </Status>
-        ) : chat.turns.length === 0 ? (
-          <Status>궁금한 점을 적어 주세요. 사진도 보낼 수 있어요.</Status>
-        ) : null}
-        {chat.turns.map((turn, index) => (
-          <div key={`${turn.role}-${index}`} className={turn.role === "user" ? "chat-turn user" : "chat-turn"}>
-            {turn.imageUrl ? (
-              <div className="chat-bubble chat-bubble-media">
-                <img src={turn.imageUrl} alt="보낸 사진" className="chat-image" />
-                {turn.content && turn.content !== "사진을 보냈어요" ? <p>{turn.content}</p> : null}
-              </div>
-            ) : (
-              <p className="chat-bubble">{turn.content}</p>
-            )}
-            <time className="chat-time" dateTime={new Date(turn.at).toISOString()}>
-              {formatChatTime(turn.at)}
-            </time>
-            {turn.linkUrl ? (
-              <LineButton icon="link" onClick={() => sendToCheck(turn.linkUrl ?? "", true)}>이 주소 검사하기</LineButton>
-            ) : null}
+          <div className="chat-welcome">
+            <Status>
+              단디와 대화하려면{" "}
+              <Link href="/login?next=/">로그인해 주세요</Link>.
+            </Status>
+            <LineButton href="/login?next=/">로그인하기</LineButton>
           </div>
-        ))}
-        {chat.busy ? (
-          <div className="chat-turn" aria-live="polite" aria-label="단디가 답을 준비하고 있어요">
-            <div className="chat-bubble chat-typing" aria-hidden="true">
-              <span />
-              <span />
-              <span />
+        ) : null}
+
+        {showWelcome ? (
+          <div className="chat-welcome">
+            <div className="chat-welcome-card">
+              <img src="/mascot.png" alt="" width={56} height={56} className="chat-welcome-mascot" />
+              <p className="chat-welcome-title">안녕하세요, 단디예요</p>
+              <p className="chat-welcome-text">링크·문자·사진이 걱정되면 편하게 물어보세요.</p>
+            </div>
+            <div className="chat-quick" role="group" aria-label="자주 묻는 질문">
+              {QUICK_PROMPTS.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  className="chat-quick-chip"
+                  disabled={chat.busy}
+                  onClick={() => {
+                    chat.setText(prompt);
+                    window.setTimeout(() => document.getElementById("chat-text")?.focus(), 0);
+                  }}
+                >
+                  {prompt}
+                </button>
+              ))}
             </div>
           </div>
         ) : null}
+
+        {chat.turns.map((turn, index) => (
+          <div key={`${turn.role}-${index}`} className={turn.role === "user" ? "chat-turn user" : "chat-turn"}>
+            {turn.role === "assistant" ? (
+              <span className="chat-turn-avatar" aria-hidden="true">
+                <img src="/mascot.png" alt="" width={28} height={28} />
+              </span>
+            ) : null}
+            <div className="chat-turn-body">
+              {turn.imageUrl ? (
+                <div className="chat-bubble chat-bubble-media">
+                  <img src={turn.imageUrl} alt="보낸 사진" className="chat-image" />
+                  {turn.content && turn.content !== "사진을 보냈어요" ? <p>{turn.content}</p> : null}
+                </div>
+              ) : (
+                <p className="chat-bubble">{turn.content}</p>
+              )}
+              <time className="chat-time" dateTime={new Date(turn.at).toISOString()}>
+                {formatChatTime(turn.at)}
+              </time>
+              {turn.linkUrl ? (
+                <LineButton icon="link" onClick={() => sendToCheck(turn.linkUrl ?? "", true)}>
+                  이 주소 검사하기
+                </LineButton>
+              ) : null}
+            </div>
+          </div>
+        ))}
+
+        {chat.busy ? (
+          <div className="chat-turn" aria-live="polite" aria-label="단디가 답을 준비하고 있어요">
+            <span className="chat-turn-avatar" aria-hidden="true">
+              <img src="/mascot.png" alt="" width={28} height={28} />
+            </span>
+            <div className="chat-turn-body">
+              <div className="chat-bubble chat-typing" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {chat.error ? <Status>{chat.error}</Status> : null}
       </div>
+
       <form
         className="chat-form"
         onSubmit={(event) => {
@@ -139,7 +198,7 @@ export function ChatDock() {
           <button
             type="button"
             className="chat-attach"
-            disabled={chat.busy}
+            disabled={chat.busy || chat.needsLogin}
             aria-label="사진 첨부"
             onClick={() => fileRef.current?.click()}
           >
@@ -153,8 +212,14 @@ export function ChatDock() {
               value={chat.text}
               placeholder={chat.attachment ? "사진에 대해 궁금한 점을 적어 주세요" : "궁금한 점을 적어 주세요"}
               maxLength={MAX_CHAT_MESSAGE_LENGTH}
-              disabled={chat.busy}
+              disabled={chat.busy || chat.needsLogin}
+              enterKeyHint="send"
               onChange={(event) => chat.setText(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
+                event.preventDefault();
+                if (canSend) void chat.send();
+              }}
             />
           </label>
           <button type="submit" className="chat-send" disabled={!canSend} aria-label="보내기">

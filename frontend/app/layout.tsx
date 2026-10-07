@@ -4,11 +4,21 @@ import { PortalNav } from "@/components/PortalNav";
 import { ShellSync } from "@/components/ShellSync";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TextSize } from "@/components/TextSize";
+import { WebAppInstallGuide } from "@/components/WebAppInstallGuide";
 import "./styles/components.css";
 
 export const metadata: Metadata = {
   title: "이 링크, 괜찮나요?",
   description: "받은 주소가 괜찮은지 확인해 드립니다.",
+  applicationName: "링크확인",
+  appleWebApp: {
+    capable: true,
+    title: "링크확인",
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: [
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
@@ -36,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div id="main-content">{children}</div>
         <SiteFooter />
         <ChatDock />
+        <WebAppInstallGuide />
       </body>
     </html>
   );
