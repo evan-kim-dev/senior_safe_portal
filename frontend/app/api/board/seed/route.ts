@@ -24,26 +24,6 @@ function seedAuthorized(request: Request, cronSecret: string | null, edgeSecret:
   return Boolean(bearer?.startsWith("Bearer ") && safeEqualText(bearer.slice(7), edgeSecret));
 }
 
-async function ensureDemoUser(
-  admin: ReturnType<typeof createClient>,
-): Promise<{ ok: true; userId: string } | { ok: false; message: string }> {
-  const listed = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
-  if (listed.error) return { ok: false, message: listed.error.message };
-  const existing = listed.data.users.find((user) => user.email?.toLowerCase() === DEMO_EMAIL);
-  if (existing) return { ok: true, userId: existing.id };
-
-  const created = await admin.auth.admin.createUser({
-    email: DEMO_EMAIL,
-    email_confirm: true,
-    user_metadata: { full_name: "시니어 안심", account_role: "senior" },
-    password: `BoardDemo-${crypto.randomUUID()}`,
-  });
-  if (created.error || !created.data.user) {
-    return { ok: false, message: created.error?.message ?? "demo user create failed" };
-  }
-  return { ok: true, userId: created.data.user.id };
-}
-
 /** 게시판 목업 글 시드. CRON_SECRET 또는 EDGE_INTERNAL_SECRET 필요. */
 export const POST = withRoute(
   "board.seed",
@@ -59,13 +39,28 @@ export const POST = withRoute(
     }
 
     const admin = createClient(env.supabaseUrl, env.serviceRoleKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
 
-    const author = await ensureDemoUser(admin);
-    if (!author.ok) {
-      log.error("board_seed_user_failed", { message: author.message });
-      return json({ ok: false, message: "데모 계정을 만들지 못했어요." }, { status: 500 });
+    const listed = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
+    if (listed.error) {
+      log.error("board_seed_user_list_failed", { message: listed.error.message });
+      return json({ ok: false, message: "데모 계정을 확인하지 못했어요." }, { status: 500 });
+    }
+
+    let userId = listed.data.users.find((user) => user.email?.toLowerCase() === DEMO_EMAIL)?.id;
+    if (!userId) {
+      const created = await admin.auth.admin.createUser({
+        email: DEMO_EMAIL,
+        email_confirm: true,
+        user_metadata: { full_name: "시니어 안심", account_role: "senior" },
+        password: `BoardDemo-${crypto.randomUUID()}`,
+      });
+      userId = created.data.user?.id;
+      if (created.error || !userId) {
+        log.error("board_seed_user_failed", { message: created.error?.message });
+        return json({ ok: false, message: "데모 계정을 만들지 못했어요." }, { status: 500 });
+      }
     }
 
     const { error: deleteError } = await admin
@@ -79,7 +74,7 @@ export const POST = withRoute(
 
     const now = Date.now();
     const rows = BOARD_MOCK_POSTS.map((post) => ({
-      user_id: author.userId,
+      user_id: userId,
       author_name: post.author_name,
       author_id: BOARD_DEMO_AUTHOR_ID,
       title: post.title,

@@ -1,3 +1,5 @@
+import type { BoardPost } from "./types";
+
 /** 게시판 데모용 목업. DB 시드(author_id = board-demo)와 같은 내용. */
 export const BOARD_DEMO_AUTHOR_ID = "board-demo";
 
@@ -51,3 +53,15 @@ export const BOARD_MOCK_POSTS: ReadonlyArray<{
     hoursAgo: 96,
   },
 ];
+
+/** DB가 비었을 때 목록에 보여줄 데모 글. */
+export function boardMockPostsAsList(now = Date.now()): BoardPost[] {
+  return BOARD_MOCK_POSTS.map((post, index) => ({
+    id: `mock-${index + 1}`,
+    user_id: "mock",
+    author_name: post.author_name,
+    title: post.title,
+    content: post.content,
+    created_at: new Date(now - post.hoursAgo * 60 * 60 * 1000).toISOString(),
+  }));
+}

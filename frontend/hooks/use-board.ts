@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPost, isBoardAvailable, listPosts } from "@/lib/client/board-repository";
 import { boardAuthorName } from "@/lib/domain/user-profile";
 import { parseBoardDraft } from "@/lib/domain/board";
+import { boardMockPostsAsList } from "@/lib/domain/board-mock";
 import { formatDate } from "@/lib/domain/date";
 import type { BoardPost } from "@/lib/domain/types";
 import { useAliveRef } from "./use-alive";
@@ -40,8 +41,9 @@ export function useBoard() {
         setMessage("글을 불러오지 못했습니다. 잠시 후 다시 눌러 주세요.");
         return;
       }
-      setPosts(result.posts);
-      setMessage(result.posts.length ? "" : "아직 올라온 글이 없습니다.");
+      const posts = result.posts.length ? result.posts : boardMockPostsAsList();
+      setPosts(posts);
+      setMessage("");
     });
     return () => {
       active = false;

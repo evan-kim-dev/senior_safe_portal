@@ -59,14 +59,15 @@ const response = await fetch(base, {
 });
 
 const text = await response.text();
-let payload = text;
+let payload;
 try {
   payload = JSON.parse(text);
 } catch {
-  // keep text
+  console.error("seed failed: JSON이 아닙니다", response.status, text.slice(0, 200));
+  process.exit(1);
 }
 
-if (!response.ok) {
+if (!response.ok || payload?.ok !== true) {
   console.error("seed failed", response.status, payload);
   process.exit(1);
 }
