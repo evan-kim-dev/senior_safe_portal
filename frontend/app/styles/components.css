@@ -4080,8 +4080,8 @@ body[data-chat-open="1"] {
 
 .chat-turn {
   display: flex;
-  align-items: flex-end;
-  gap: 0.45rem;
+  align-items: flex-start;
+  gap: 0.55rem;
   max-width: min(92%, 28rem);
 }
 
@@ -4093,8 +4093,8 @@ body[data-chat-open="1"] {
 .chat-turn-avatar {
   display: grid;
   place-items: center;
-  width: 1.85rem;
-  height: 1.85rem;
+  width: 2.75rem;
+  height: 2.75rem;
   flex: none;
   overflow: hidden;
   border-radius: 50%;

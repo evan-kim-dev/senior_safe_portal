@@ -126,7 +126,7 @@ export function ChatDock() {
           <div key={`${turn.role}-${index}`} className={turn.role === "user" ? "chat-turn user" : "chat-turn"}>
             {turn.role === "assistant" ? (
               <span className="chat-turn-avatar" aria-hidden="true">
-                <img src="/mascot.png" alt="" width={28} height={28} />
+                <img src="/mascot.png" alt="" width={44} height={44} />
               </span>
             ) : null}
             <div className="chat-turn-body">
@@ -153,7 +153,7 @@ export function ChatDock() {
         {chat.busy ? (
           <div className="chat-turn" aria-live="polite" aria-label="마카가 답을 준비하고 있어요">
             <span className="chat-turn-avatar" aria-hidden="true">
-              <img src="/mascot.png" alt="" width={28} height={28} />
+              <img src="/mascot.png" alt="" width={44} height={44} />
             </span>
             <div className="chat-turn-body">
               <div className="chat-bubble chat-typing" aria-hidden="true">
