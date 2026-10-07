@@ -91,6 +91,108 @@ function baseOrderForAge(age: number | null): VideoInterestId[] {
   return ["health", "entertainment", "affairs", "music", "history"];
 }
 
+/** 뉴스 피드 category_id (refresh-news-feeds 와 같음). */
+export const NEWS_CATEGORY_IDS = ["affairs", "society", "health", "welfare", "life"] as const;
+export type NewsCategoryId = (typeof NEWS_CATEGORY_IDS)[number];
+
+export const DEFAULT_NEWS_CATEGORY_ORDER: readonly NewsCategoryId[] = [
+  "affairs",
+  "society",
+  "health",
+  "welfare",
+  "life",
+];
+
+const VIDEO_INTEREST_TO_NEWS: Record<VideoInterestId, readonly NewsCategoryId[]> = {
+  music: ["life"],
+  affairs: ["affairs", "society"],
+  history: ["society", "affairs"],
+  entertainment: ["life", "society"],
+  health: ["health", "welfare"],
+};
+
+function isNewsCategoryId(value: unknown): value is NewsCategoryId {
+  return typeof value === "string" && (NEWS_CATEGORY_IDS as readonly string[]).includes(value);
+}
+
+function newsBaseOrderForAge(age: number | null): NewsCategoryId[] {
+  if (age == null) return [...DEFAULT_NEWS_CATEGORY_ORDER];
+  if (age >= 80) return ["health", "welfare", "life", "society", "affairs"];
+  if (age >= 70) return ["health", "welfare", "affairs", "life", "society"];
+  if (age >= 60) return ["affairs", "health", "welfare", "life", "society"];
+  return [...DEFAULT_NEWS_CATEGORY_ORDER];
+}
+
+/** 관심·나이로 뉴스 카테고리 우선순위를 잡는다. */
+export function preferredNewsCategories(
+  profile: Pick<AccountProfile, "role" | "birthYear" | "interests">,
+  now = new Date(),
+): NewsCategoryId[] {
+  const age = profile.role === "senior" ? ageFromBirthYear(profile.birthYear ?? 0, now) : null;
+  const base = newsBaseOrderForAge(age);
+  const fromInterests: NewsCategoryId[] = [];
+  for (const interest of profile.interests.filter(isVideoInterestId)) {
+    for (const newsId of VIDEO_INTEREST_TO_NEWS[interest]) {
+      if (!fromInterests.includes(newsId)) fromInterests.push(newsId);
+    }
+  }
+  if (!fromInterests.length) return base;
+  const rest = base.filter((id) => !fromInterests.includes(id));
+  return [...fromInterests, ...rest].filter(isNewsCategoryId);
+}
+
+/** 복지 카드 정렬에 쓰는 한글 키워드. */
+export function welfarePreferenceKeywords(
+  profile: Pick<AccountProfile, "role" | "birthYear" | "interests">,
+  now = new Date(),
+): string[] {
+  const age = profile.role === "senior" ? ageFromBirthYear(profile.birthYear ?? 0, now) : null;
+  const keywords: string[] = [];
+  const push = (...items: string[]) => {
+    for (const item of items) {
+      if (!keywords.includes(item)) keywords.push(item);
+    }
+  };
+
+  if (profile.role === "senior" || age != null) {
+    push("노인", "어르신", "기초연금", "돌봄", "장기요양");
+  }
+  if (age != null && age >= 75) push("요양", "방문", "재가", "치매");
+  for (const interest of profile.interests.filter(isVideoInterestId)) {
+    if (interest === "health") push("건강", "의료", "요양", "돌봄", "건강검진");
+    if (interest === "affairs") push("안전", "보이스피싱", "금융");
+    if (interest === "music" || interest === "entertainment") push("문화", "여가", "경로당");
+    if (interest === "history") push("문화", "교육");
+  }
+  return keywords;
+}
+
+/** 피드 맞춤을 켤지. 어르신 역할이거나 관심·나이가 있을 때. */
+export function shouldPersonalizeFeeds(profile: AccountProfile): boolean {
+  return profile.role === "senior" || profile.interests.length > 0 || profile.birthYear != null;
+}
+
+/** 화면 lead 문구. */
+export function personalizedFeedLead(
+  kind: "videos" | "news" | "welfare",
+  profile: AccountProfile,
+): string | null {
+  if (!shouldPersonalizeFeeds(profile)) return null;
+  if (kind === "videos" && profile.interests.length) {
+    return `${videoInterestLabels(profile.interests)} 관심에 맞춰 먼저 보여 드려요.`;
+  }
+  if (kind === "news") {
+    if (profile.interests.length) {
+      return `${videoInterestLabels(profile.interests)} 관심과 나이에 맞는 소식을 앞에 두었어요.`;
+    }
+    return "나이대에 맞춰 건강·복지 소식을 앞에 두었어요.";
+  }
+  if (kind === "welfare") {
+    return "어르신께 가까운 혜택을 앞에 두었어요. 사는 곳도 맞춰 보세요.";
+  }
+  return null;
+}
+
 export function parseAccountProfileFromMeta(meta: Record<string, unknown> | null | undefined): AccountProfile {
   const raw = meta ?? {};
   const role = isAccountRole(raw.account_role) ? raw.account_role : null;

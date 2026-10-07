@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Grid, Info, Screen, Status } from "@/components/ui";
+import { useAuth } from "@/hooks/use-auth";
 import { loadWelfareView } from "@/lib/client/feeds";
 import { loadGuardian, saveRegion } from "@/lib/client/guardian";
+import {
+  parseAccountProfileFromMeta,
+  personalizedFeedLead,
+} from "@/lib/domain/account-profile";
 import type { WelfareView } from "@/lib/domain/feed-view";
 import { FEED_MESSAGES } from "@/lib/domain/messages";
 
@@ -28,12 +33,19 @@ const REGIONS = [
 ] as const;
 
 export default function WelfarePage() {
+  const { user } = useAuth();
   const [region, setRegion] = useState("서울");
   const [view, setView] = useState<WelfareView>({
     cards: [],
     placeLabel: "",
     message: FEED_MESSAGES.welfare.loading,
   });
+  const profile = useMemo(
+    () => parseAccountProfileFromMeta(user?.user_metadata ?? undefined),
+    [user],
+  );
+  const lead =
+    personalizedFeedLead("welfare", profile) ?? "사는 곳에 맞는 복지 혜택을 알려 드려요.";
 
   useEffect(() => {
     const stored = loadGuardian().region || "서울";
@@ -50,10 +62,10 @@ export default function WelfarePage() {
     return () => {
       alive = false;
     };
-  }, [region]);
+  }, [region, user?.id]);
 
   return (
-    <Screen title="복지" lead="사는 곳에 맞는 복지 혜택을 알려 드려요.">
+    <Screen title="복지" lead={lead}>
       <label className="field" htmlFor="welfare-region">
         <span>사는 곳</span>
         <select

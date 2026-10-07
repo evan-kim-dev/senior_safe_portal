@@ -1,5 +1,6 @@
 import { MESSAGES } from "@/lib/domain/messages";
 import { parseWelfareInput } from "@/lib/domain/validation";
+import { requireUser } from "@/lib/server/auth";
 import { getServices } from "@/lib/server/container";
 import { readJsonBody } from "@/lib/server/http/body";
 import { json } from "@/lib/server/http/respond";
@@ -15,5 +16,10 @@ export const POST = withRoute("welfare", { rateLimit: { limit: 60, windowMs: 60_
 
   const input = parseWelfareInput(body.value);
   if (!input.ok) return json({ ok: false, message: input.message }, { status: 400 });
-  return json(await getServices().feeds.welfare(input.value));
+  const user = await requireUser(request);
+  return json(
+    await getServices().feeds.welfare(input.value, {
+      metadata: user?.metadata,
+    }),
+  );
 });

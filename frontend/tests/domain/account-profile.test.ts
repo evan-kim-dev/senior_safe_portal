@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  preferredNewsCategories,
   preferredVideoCategories,
   parseAccountProfileFromMeta,
+  welfarePreferenceKeywords,
 } from "@/lib/domain/account-profile";
 import { mapVideos } from "@/lib/domain/feeds";
 
@@ -22,6 +24,26 @@ describe("preferredVideoCategories", () => {
         new Date("2026-10-06"),
       ),
     ).toEqual(["music", "affairs", "history", "entertainment", "health"]);
+  });
+});
+
+describe("preferredNewsCategories", () => {
+  it("건강 관심이면 건강·복지 뉴스를 앞에 둔다", () => {
+    const order = preferredNewsCategories(
+      { role: "senior", birthYear: 1945, interests: ["health"] },
+      new Date("2026-10-07"),
+    );
+    expect(order.slice(0, 2)).toEqual(["health", "welfare"]);
+  });
+});
+
+describe("welfarePreferenceKeywords", () => {
+  it("어르신·건강 키워드를 포함한다", () => {
+    const keys = welfarePreferenceKeywords(
+      { role: "senior", birthYear: 1940, interests: ["health"] },
+      new Date("2026-10-07"),
+    );
+    expect(keys).toEqual(expect.arrayContaining(["기초연금", "건강", "요양"]));
   });
 });
 

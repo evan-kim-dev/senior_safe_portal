@@ -1,9 +1,15 @@
 "use client";
 
+import { useMemo } from "react";
 import { SafetyTipGrid } from "@/components/SafetyTips";
 import { Grid, Info, Screen, Status } from "@/components/ui";
+import { useAuth } from "@/hooks/use-auth";
 import { useNews } from "@/hooks/use-feeds";
 import { reportActivity } from "@/lib/client/activity";
+import {
+  parseAccountProfileFromMeta,
+  personalizedFeedLead,
+} from "@/lib/domain/account-profile";
 import type { NewsItem } from "@/lib/domain/types";
 import { isHttpUrl } from "@/lib/domain/url";
 
@@ -15,10 +21,17 @@ function trackNewsView(article: NewsItem) {
 }
 
 export default function NewsPage() {
+  const { user } = useAuth();
   const { articles, message } = useNews();
+  const profile = useMemo(
+    () => parseAccountProfileFromMeta(user?.user_metadata ?? undefined),
+    [user],
+  );
+  const lead =
+    personalizedFeedLead("news", profile) ?? "사기·보안 관련 최신 소식을 모았어요.";
 
   return (
-    <Screen title="뉴스" lead="사기·보안 관련 최신 소식을 모았어요.">
+    <Screen title="뉴스" lead={lead}>
       {message ? <Status>{message}</Status> : null}
       {articles.length ? (
         <Grid kind="info">

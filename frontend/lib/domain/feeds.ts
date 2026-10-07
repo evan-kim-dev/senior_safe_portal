@@ -124,20 +124,86 @@ function sourceName(url: string, publisher: string): string {
   return hostnameOf(url) || publisher || "출처";
 }
 
-export function mapNews(rows: ReadonlyArray<{ articles?: unknown }>): NewsItem[] {
-  return rows
-    .flatMap((row) => records(row.articles))
-    .map((article) => {
-      const url = asString(article.originallink) || asString(article.link);
-      return {
-        title: decodeText(asString(article.title) || "뉴스"),
-        source: sourceName(url, asString(article.publisher)),
-        date: decodeText(asString(article.pubDate)),
-        url,
-        image: safeImageUrl(article.thumbnail) || safeImageUrl(article.image),
-      };
+export function mapNews(
+  rows: ReadonlyArray<{ category_id?: unknown; articles?: unknown }>,
+  options?: { preferredCategories?: readonly string[]; maxItems?: number },
+): NewsItem[] {
+  const preferred = options?.preferredCategories ?? [];
+  const maxItems = options?.maxItems ?? 24;
+  const seen = new Set<string>();
+
+  const orderedRows =
+    preferred.length === 0
+      ? [...rows]
+      : [...rows].sort((a, b) => {
+          const aId = typeof a.category_id === "string" ? a.category_id : "";
+          const bId = typeof b.category_id === "string" ? b.category_id : "";
+          const aRank = preferred.indexOf(aId);
+          const bRank = preferred.indexOf(bId);
+          const aScore = aRank === -1 ? preferred.length + 1 : aRank;
+          const bScore = bRank === -1 ? preferred.length + 1 : bRank;
+          return aScore - bScore;
+        });
+
+  const buckets = orderedRows
+    .map((row) => {
+      const categoryId = typeof row.category_id === "string" ? row.category_id : "";
+      const items: NewsItem[] = [];
+      for (const article of records(row.articles)) {
+        const url = asString(article.originallink) || asString(article.link);
+        if (!url.startsWith("http") || seen.has(url)) continue;
+        seen.add(url);
+        items.push({
+          title: decodeText(asString(article.title) || "뉴스"),
+          source: sourceName(url, asString(article.publisher)),
+          date: decodeText(asString(article.pubDate)),
+          url,
+          image: safeImageUrl(article.thumbnail) || safeImageUrl(article.image),
+          categoryId: categoryId || undefined,
+        });
+      }
+      return { categoryId, items };
     })
-    .filter((article) => article.url.startsWith("http"));
+    .filter((bucket) => bucket.items.length > 0);
+
+  const articles: NewsItem[] = [];
+  const cursors = buckets.map(() => 0);
+  while (articles.length < maxItems) {
+    let added = false;
+    for (let bucketIndex = 0; bucketIndex < buckets.length; bucketIndex += 1) {
+      const bucket = buckets[bucketIndex];
+      const rank = preferred.length ? preferred.indexOf(bucket.categoryId) : -1;
+      const weight = preferenceWeight(rank === -1 ? preferred.length + bucketIndex : rank, preferred.length);
+      for (let take = 0; take < weight && articles.length < maxItems; take += 1) {
+        const cursor = cursors[bucketIndex];
+        if (cursor >= bucket.items.length) break;
+        articles.push(bucket.items[cursor]);
+        cursors[bucketIndex] = cursor + 1;
+        added = true;
+      }
+    }
+    if (!added) break;
+  }
+  return articles;
+}
+
+/** 키워드·동네 여부를 점수로 매겨 복지 카드를 앞에 둔다. */
+export function rankWelfareCards(
+  cards: WelfareCard[],
+  keywords: readonly string[],
+): WelfareCard[] {
+  if (!keywords.length) {
+    return [...cards].sort((a, b) => Number(b.kind === "우리 동네") - Number(a.kind === "우리 동네"));
+  }
+  const scoreOf = (card: WelfareCard) => {
+    const text = `${card.title} ${card.target} ${card.apply}`;
+    let score = card.kind === "우리 동네" ? 1 : 0;
+    for (const keyword of keywords) {
+      if (keyword && text.includes(keyword)) score += 3;
+    }
+    return score;
+  };
+  return [...cards].sort((a, b) => scoreOf(b) - scoreOf(a));
 }
 
 export type WelfarePayload = {

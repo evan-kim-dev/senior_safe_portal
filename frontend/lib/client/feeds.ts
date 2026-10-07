@@ -12,7 +12,8 @@ const DEFAULT_REGION = "서울";
 
 const isOk = (data: { ok?: boolean }) => data?.ok === true;
 
-async function videoCacheKey(): Promise<string> {
+/** 관심·나이 맞춤이 바뀌면 캐시를 갈라 쓴다. */
+async function profileCacheKey(): Promise<string> {
   const supabase = getSupabase();
   if (!supabase) return "guest";
   const { data } = await supabase.auth.getSession();
@@ -26,7 +27,15 @@ async function fetchVideos(): Promise<VideosResponse> {
   const headers = await authHeaders();
   return cachedPostJson<VideosResponse>("/api/videos", {}, VIDEO_FEED_TTL_MS, isOk, {
     headers,
-    cacheKey: await videoCacheKey(),
+    cacheKey: await profileCacheKey(),
+  });
+}
+
+async function fetchNews(): Promise<NewsResponse> {
+  const headers = await authHeaders();
+  return cachedPostJson<NewsResponse>("/api/news", {}, NEWS_FEED_TTL_MS, isOk, {
+    headers,
+    cacheKey: await profileCacheKey(),
   });
 }
 
@@ -38,15 +47,20 @@ export async function loadVideoView(): Promise<VideoView> {
 }
 
 export async function loadNewsView(): Promise<NewsView> {
-  const data = await cachedPostJson<NewsResponse>("/api/news", {}, NEWS_FEED_TTL_MS, isOk).catch(() => null);
+  const data = await fetchNews().catch(() => null);
   return toNewsView(data);
 }
 
 export async function loadWelfareView(): Promise<WelfareView> {
   const region = loadGuardian().region || DEFAULT_REGION;
-  const data = await cachedPostJson<WelfareResponse>("/api/welfare", { region, category: "all" }, WELFARE_FEED_TTL_MS, isOk).catch(
-    () => null,
-  );
+  const headers = await authHeaders();
+  const data = await cachedPostJson<WelfareResponse>(
+    "/api/welfare",
+    { region, category: "all" },
+    WELFARE_FEED_TTL_MS,
+    isOk,
+    { headers, cacheKey: `${region}:${await profileCacheKey()}` },
+  ).catch(() => null);
   return toWelfareView(data, region);
 }
 

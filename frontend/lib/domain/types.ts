@@ -55,6 +55,8 @@ export type NewsItem = {
   date: string;
   url: string;
   image: string;
+  /** news_feeds.category_id — 관심사 맞춤에 쓴다. */
+  categoryId?: string;
 };
 
 export type WelfareCard = {

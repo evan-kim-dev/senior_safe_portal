@@ -9,7 +9,7 @@ export const WELFARE_FEED_REVALIDATE_SECONDS = 300;
 
 export type FeedRepository = {
   videoRows(categoryId: string): Promise<Array<{ category_id?: unknown; videos?: unknown }> | null>;
-  newsRows(categoryId: string): Promise<Array<{ articles?: unknown }> | null>;
+  newsRows(categoryId: string): Promise<Array<{ category_id?: unknown; articles?: unknown }> | null>;
   welfarePayload(feedKey: string): Promise<WelfarePayload | null>;
 };
 
@@ -38,7 +38,11 @@ export function createFeedRepository(rest: RestClient): FeedRepository {
         VIDEO_FEED_REVALIDATE_SECONDS,
       ),
     newsRows: (categoryId) =>
-      rows(byCategory("news_feeds", "articles", categoryId), "news_feeds", NEWS_FEED_REVALIDATE_SECONDS),
+      rows(
+        byCategory("news_feeds", "category_id,articles", categoryId),
+        "news_feeds",
+        NEWS_FEED_REVALIDATE_SECONDS,
+      ),
     async welfarePayload(feedKey) {
       const found = await rows<{ payload?: WelfarePayload }>(
         `welfare_feeds?feed_key=eq.${encodeURIComponent(feedKey)}&select=payload&limit=1`,

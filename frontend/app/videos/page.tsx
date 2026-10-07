@@ -8,6 +8,7 @@ import { reportActivity } from "@/lib/client/activity";
 import { sendToCheck } from "@/lib/client/check-bridge";
 import {
   parseAccountProfileFromMeta,
+  personalizedFeedLead,
   videoInterestLabels,
 } from "@/lib/domain/account-profile";
 import { findVideo } from "@/lib/domain/feed-view";
@@ -35,12 +36,9 @@ export default function VideosPage() {
     () => parseAccountProfileFromMeta(user?.user_metadata ?? undefined),
     [user],
   );
-  const interestLead = useMemo(() => {
-    if (!profile.interests.length) {
-      return "보고 싶은 영상을 고르세요. 설명에 의심 주소가 있으면 바로 검사할 수 있어요.";
-    }
-    return `${videoInterestLabels(profile.interests)} 관심에 맞춰 먼저 보여 드려요.`;
-  }, [profile.interests]);
+  const interestLead =
+    personalizedFeedLead("videos", profile) ??
+    "보고 싶은 영상을 고르세요. 설명에 의심 주소가 있으면 바로 검사할 수 있어요.";
 
   useEffect(() => {
     const found = findVideo(videos, new URLSearchParams(window.location.search).get("v"));

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { MAX_VIDEOS, mapNews, mapVideos, mapWelfare, suspiciousUrlIn } from "@/lib/domain/feeds";
+import {
+  MAX_VIDEOS,
+  mapNews,
+  mapVideos,
+  mapWelfare,
+  rankWelfareCards,
+  suspiciousUrlIn,
+} from "@/lib/domain/feeds";
 import { channelChoices, toNewsView, toVideoView, toWelfareView } from "@/lib/domain/feed-view";
 import { FEED_MESSAGES } from "@/lib/domain/messages";
 import type { VideoItem } from "@/lib/domain/types";
@@ -93,6 +100,50 @@ describe("mapNews", () => {
         image: "https://cdn.news.co.kr/a.jpg",
       },
     ]);
+  });
+
+  it("선호 뉴스 카테고리를 앞에 더 많이 둔다", () => {
+    const result = mapNews(
+      [
+        {
+          category_id: "affairs",
+          articles: [
+            { title: "시사1", originallink: "https://a.com/1", pubDate: "A", publisher: "a.com" },
+            { title: "시사2", originallink: "https://a.com/2", pubDate: "B", publisher: "a.com" },
+          ],
+        },
+        {
+          category_id: "health",
+          articles: [
+            { title: "건강1", originallink: "https://h.com/1", pubDate: "C", publisher: "h.com" },
+            { title: "건강2", originallink: "https://h.com/2", pubDate: "D", publisher: "h.com" },
+            { title: "건강3", originallink: "https://h.com/3", pubDate: "E", publisher: "h.com" },
+          ],
+        },
+      ],
+      { preferredCategories: ["health", "affairs"] },
+    );
+    expect(result.map((item) => item.title).slice(0, 5)).toEqual([
+      "건강1",
+      "건강2",
+      "건강3",
+      "시사1",
+      "시사2",
+    ]);
+    expect(result[0].categoryId).toBe("health");
+  });
+});
+
+describe("rankWelfareCards", () => {
+  it("키워드가 맞는 카드를 앞으로 보낸다", () => {
+    const ranked = rankWelfareCards(
+      [
+        { title: "청년 일자리", target: "청년", apply: "온라인", kind: "전국" },
+        { title: "기초연금", target: "어르신", apply: "주민센터", kind: "우리 동네" },
+      ],
+      ["기초연금", "어르신"],
+    );
+    expect(ranked[0].title).toBe("기초연금");
   });
 });
 
