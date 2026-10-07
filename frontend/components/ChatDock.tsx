@@ -58,11 +58,7 @@ export function ChatDock() {
         <span className="chat-fab-icon" aria-hidden="true">
           <img src="/mascot.png" alt="" width={28} height={28} />
         </span>
-        <span className="chat-fab-caption" aria-hidden="true">
-          <span className="chat-fab-name">마카</span>
-          <span className="chat-fab-hint">질문하기</span>
-        </span>
-        <span className="chat-fab-label">마카에게 물어보기</span>
+        <span className="chat-fab-label">마카에게 질문하기</span>
       </button>
     );
   }
