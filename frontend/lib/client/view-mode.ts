@@ -25,11 +25,22 @@ export function saveViewMode(mode: ViewMode): ViewMode {
   return mode;
 }
 
+export type ShellKind = "web" | "app";
+
+/** 창 너비 기준 기본 화면(자동일 때). */
+export function naturalShell(): ShellKind {
+  if (typeof window === "undefined") return "app";
+  return window.matchMedia(WEB_MQ).matches ? "web" : "app";
+}
+
+export function resolveShell(mode: ViewMode = loadViewMode()): ShellKind {
+  return mode === "auto" ? naturalShell() : mode;
+}
+
 /** html[data-view] · body[data-shell] 을 맞춘다. */
 export function applyViewMode(mode: ViewMode = loadViewMode()) {
   if (typeof document === "undefined") return;
-  const mqWeb = window.matchMedia(WEB_MQ).matches;
-  const shell: "web" | "app" = mode === "auto" ? (mqWeb ? "web" : "app") : mode;
+  const shell = resolveShell(mode);
   document.documentElement.dataset.view = mode;
   document.body.dataset.shell = shell;
 }
